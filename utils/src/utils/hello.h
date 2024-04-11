@@ -8,14 +8,12 @@
 #include <commons/config.h>
 
 /**
-* @fn    decir_hola
-* @brief Imprime un saludo al nombre que se pase por parámetro por consola.
-*/
+ * @fn    decir_hola
+ * @brief Imprime un saludo al nombre que se pase por parámetro por consola.
+ */
 
-//Podriamos usar variables para la ip, puerto, etc.
+// Podriamos usar variables para la ip, puerto, etc.
 
-
-
-void decir_hola(char* quien);
-
+void decir_hola(char *quien);
+t_log *crear_logger(char *modulo);
 #endif
