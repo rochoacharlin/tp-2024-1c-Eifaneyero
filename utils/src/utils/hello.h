@@ -15,5 +15,9 @@
 // Podriamos usar variables para la ip, puerto, etc.
 
 void decir_hola(char *quien);
+
 t_log *crear_logger(char *modulo);
+
+t_config *iniciar_config(t_log logger, char *ruta_archivo)
+
 #endif
