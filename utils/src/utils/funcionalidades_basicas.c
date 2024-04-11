@@ -1,9 +1,4 @@
-#include <utils/hello.h>
-
-void decir_hola(char *quien)
-{
-    printf("Hola desde %s!!\n", quien);
-}
+#include <utils/funcionalidades_basicas.h>
 
 t_log *crear_logger(char *modulo) // Podria ampliarse o cambiarse
 {
