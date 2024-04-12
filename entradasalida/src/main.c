@@ -1,14 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <utils/hello.h>
+#include <utils/funcionalidades_basicas.h>
 
 int main(int argc, char *argv[])
 {
-    decir_hola("una Interfaz de Entrada/Salida");
-
-    char *modulo = "E/S";
+    char *modulo = "entradasalida";
     t_log *logger = crear_logger(modulo);
-    log_info(logger, "Iniciando Interfaz de Entrada/Salida...");
+    log_info(logger, "Iniciando Interfaz de I/O ...");
+
+    t_config *config = iniciar_config(logger, "entradasalida.config");
 
     return 0;
 }
