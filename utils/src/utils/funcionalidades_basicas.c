@@ -17,7 +17,7 @@ t_log *crear_logger(char *modulo) // Podria ampliarse o cambiarse
     return nuevo_logger;
 }
 
-t_config *iniciar_config(t_log logger, char *ruta_archivo)
+t_config *iniciar_config(t_log *logger, char *ruta_archivo)
 {
     t_config *nuevo_config = config_create(ruta_archivo);
     if (nuevo_config == NULL)
