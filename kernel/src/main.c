@@ -1,15 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
-// #include <utils/hello.h>
-#include <utils/hello.c>
+#include <utils/funcionalidades_basicas.h>
 
-int main(int argc, char *argv[])
+int main()
 {
-    decir_hola("Kernel");
-
     char *modulo = "kernel";
     t_log *logger = crear_logger(modulo);
     log_info(logger, "Iniciando Kernel ...");
+
+    t_config *config = iniciar_config(logger, "kernel.config");
 
     return 0;
 }
