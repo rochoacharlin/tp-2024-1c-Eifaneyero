@@ -27,3 +27,10 @@ t_config *iniciar_config(t_log *logger, char *ruta_archivo)
     }
     return nuevo_config;
 }
+
+void terminar_programa(int conexion, t_log *logger, t_config *config)
+{
+    close(conexion);
+    log_destroy(logger);
+    config_destroy(config);
+}
