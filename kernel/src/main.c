@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <utils/funcionalidades_basicas.h>
-#include <comunicacion/comunicacion.h>
+#include <utils/comunicacion.h>
 
 int main()
 {
