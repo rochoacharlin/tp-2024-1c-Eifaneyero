@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <utils/funcionalidades_basicas.h>
+#include <comunicacion/comunicacion.h>
 
 int main()
 {
@@ -10,5 +11,12 @@ int main()
 
     t_config *config = iniciar_config(logger, "kernel.config");
 
+    int server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA");
+    log_info(logger, "Kernel listo para recibir clientes");
+    int cliente_fd = esperar_cliente(logger, server_fd);
+    log_info(logger, "Se conectó un cliente!");
+
+    close(cliente_fd); // TODO es provisional
+    terminar_programa(server_fd, logger, config);
     return 0;
 }
