@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     t_config *config = iniciar_config(logger, "entradasalida.config");
 
     // conecta al kernel
-    conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+    conexion = conectar_a(config, logger, "IP_KERNEL", "PUERTO_KERNEL");
 
     terminar_programa(conexion, logger, config);
     return 0;
