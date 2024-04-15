@@ -112,3 +112,10 @@ int esperar_cliente(t_log *logger, int socket_servidor)
 
     return socket_cliente;
 }
+
+void terminar_programa(int conexion, t_log *logger, t_config *config)
+{
+    close(conexion);
+    log_destroy(logger);
+    config_destroy(config);
+}
