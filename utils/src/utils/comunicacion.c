@@ -26,7 +26,7 @@ int crear_conexion(t_log *logger, char *ip, char *puerto)
         exit(EXIT_FAILURE);
     }
 
-    if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen))
+    if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
     {
         close(socket_cliente);
         log_error(logger, "No se pudo conectar el socket al puerto %s en la IP %s: %s", puerto, ip, strerror(errno));
@@ -44,9 +44,6 @@ int conectar_a(t_config *config, t_log *logger, char *clave_ip, char *clave_puer
     char *puerto = config_get_string_value(config, clave_puerto);
     int conexion = crear_conexion(logger, ip, puerto);
 
-    free(ip);
-    free(puerto);
-
     return conexion;
 }
 
@@ -62,7 +59,7 @@ int iniciar_servidor(t_config *config, t_log *logger, char *clave_puerto)
     hints.ai_flags = AI_PASSIVE;
 
     s = getaddrinfo(NULL, puerto, &hints, &servinfo);
-    if (getaddrinfo(NULL, puerto, &hints, &servinfo))
+    if (s)
     {
         log_error(logger, "No se pudo obtener información para conectar al puerto %s: %s", puerto, gai_strerror(s));
         exit(EXIT_FAILURE);
