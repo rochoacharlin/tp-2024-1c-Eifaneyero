@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
 
-    int conexion;
+    int conexion_kernel, conexion_memoria;
     char *modulo = "entradasalida";
     t_log *logger = crear_logger(modulo);
     log_info(logger, "Iniciando Interfaz de I/O ...");
@@ -14,8 +14,14 @@ int main(int argc, char *argv[])
     t_config *config = iniciar_config(logger, "entradasalida.config");
 
     // conecta al kernel
-    conexion = conectar_a(config, logger, "IP_KERNEL", "PUERTO_KERNEL");
+    conexion_kernel = conectar_a(config, logger, "IP_KERNEL", "PUERTO_KERNEL");
 
-    terminar_programa(conexion, logger, config);
+    // conecta a la memoria
+    conexion_memoria = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+
+    // terminamos el programa cerrando las conexiones
+    close(conexion_memoria);
+    terminar_programa(conexion_kernel, logger, config);
+
     return 0;
 }
