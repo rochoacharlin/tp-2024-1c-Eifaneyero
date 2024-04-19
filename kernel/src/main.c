@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
         break;
 
     case CONEXION_CPU:
+    {
         int puerto;
         printf("Elija el puerto de escucha (numérico) \n - 0 (Dispatch) \n - 1 (Interrupt) \n ");
         scanf("%d", &puerto);
@@ -52,14 +53,17 @@ int main(int argc, char *argv[])
             log_error(logger, "Puerto de escucha invalido");
 
         terminar_programa(conexion, logger, config);
-        break;
+    }
+    break;
 
     case CONEXION_MEMORIA:
+    {
         conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
         int32_t handshake = 1;
         int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         terminar_programa(conexion, logger, config);
         break;
+    }
 
     default:
         log_error(logger, "Modo de ejecucion invalido");
