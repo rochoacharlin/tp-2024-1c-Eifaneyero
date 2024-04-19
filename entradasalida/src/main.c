@@ -5,23 +5,34 @@
 
 int main(int argc, char *argv[])
 {
-
-    int conexion_kernel, conexion_memoria;
+    int conexion;
     char *modulo = "entradasalida";
     t_log *logger = crear_logger(modulo);
     log_info(logger, "Iniciando Interfaz de I/O ...");
 
     t_config *config = iniciar_config(logger, "entradasalida.config");
 
-    // conecta al kernel
-    conexion_kernel = conectar_a(config, logger, "IP_KERNEL", "PUERTO_KERNEL");
+    int modo_ejecucion;
+    printf("Elija su modo de ejecución (numerico) \n - 2 (Conectar a Memoria) \n - 3 (Conectar a Kernel) \n");
+    scanf("%d", &modo_ejecucion);
+    switch (modo_ejecucion)
+    {
+    case CONEXION_KERNEL:
+        conexion = conectar_a(config, logger, "IP_KERNEL", "PUERTO_KERNEL");
+        terminar_programa(conexion, logger, config);
+        break;
 
-    // conecta a la memoria
-    conexion_memoria = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+    case CONEXION_MEMORIA:
+        conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+        terminar_programa(conexion, logger, config);
+        break;
 
-    // terminamos el programa cerrando las conexiones
-    close(conexion_memoria);
-    terminar_programa(conexion_kernel, logger, config);
+    default:
+        log_error(logger, "Modo de ejecucion invalido");
+        log_destroy(logger);
+        config_destroy(config);
+        break;
+    }
 
     return 0;
 }
