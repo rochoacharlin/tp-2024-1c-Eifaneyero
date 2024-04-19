@@ -149,9 +149,11 @@ int handshake_servidor(t_log *logger, int conexion, int32_t handshake_esperado)
     if (handshake == handshake_esperado)
     {
         bytes = send(conexion, &resultOk, sizeof(int32_t), 0);
+        return 1;
     }
     else
     {
         bytes = send(conexion, &resultError, sizeof(int32_t), 0);
+        return 0;
     }
 }
