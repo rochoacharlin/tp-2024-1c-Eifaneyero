@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     log_info(logger, "Iniciando Kernel ...");
 
     t_config *config = iniciar_config(logger, "kernel.config");
+
     int conexion;
     // Provisorio
     int modo_ejecucion;
@@ -18,7 +19,6 @@ int main(int argc, char *argv[])
     switch (modo_ejecucion)
     {
     case SERVIDOR:
-
         int server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA");
         log_info(logger, "Kernel listo para recibir clientes");
         int cliente_fd = esperar_cliente(logger, server_fd);
@@ -37,17 +37,14 @@ int main(int argc, char *argv[])
             scanf("%d", &puerto);
         }
         if (puerto == 0)
-        {
             conexion = conectar_a(config, logger, "IP_CPU", "PUERTO_CPU_DISPATCH");
-        }
         else
-        {
             conexion = conectar_a(config, logger, "IP_CPU", "PUERTO_CPU_INTERRUPT");
-        }
+
         terminar_programa(conexion, logger, config);
+        break;
 
     case C_MEMORIA:
-
         conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
         terminar_programa(conexion, logger, config);
         break;
