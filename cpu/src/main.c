@@ -12,23 +12,22 @@ int main(int argc, char *argv[])
     t_config *config = iniciar_config(logger, "cpu.config");
 
     int modo_ejecucion;
-
-    printf("Elija su modo de ejecución (numerico) \n - 0 (Servidor-Kernel) \n - 2 (Cliente-Memoria)\n");
+    printf("Elija su modo de ejecución (numerico) \n - 0 (Servidor) \n - 2 (Conectar a Memoria) \n");
     scanf("%d", &modo_ejecucion);
     switch (modo_ejecucion)
     {
     case SERVIDOR:
-        int puerto = -1;
+        int puerto;
         int server_fd;
-        while (puerto != 0 && puerto != 1)
-        {
-            printf("Elija el puerto de escucha (numérico) \n - 0 Dispatch \n - 1 Interrupt \n ");
-            scanf("%d", &puerto);
-        }
+        printf("Elija el puerto de escucha (numérico) \n - 0 (Dispatch) \n - 1 (Interrupt) \n ");
+        scanf("%d", &puerto);
+
         if (puerto == 0)
             server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA_DISPATCH");
-        else
+        else if (puerto == 1)
             server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA_INTERRUPT");
+        else
+            log_error(logger, "Puerto de escucha invalido");
 
         log_info(logger, "CPU lista para recibir clientes");
         int cliente_fd = esperar_cliente(logger, server_fd);
@@ -37,12 +36,15 @@ int main(int argc, char *argv[])
         terminar_programa(server_fd, logger, config);
         break;
 
-    case C_MEMORIA:
+    case CONEXION_MEMORIA:
         int conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
         terminar_programa(conexion, logger, config);
         break;
 
     default:
+        log_error(logger, "Modo de ejecucion invalido");
+        log_destroy(logger);
+        config_destroy(config);
         break;
     }
 
