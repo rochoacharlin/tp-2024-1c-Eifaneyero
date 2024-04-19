@@ -7,6 +7,7 @@ t_log *crear_logger(char *modulo) // Podria ampliarse o cambiarse
     string_append_with_format(&nombre_logger, "%s", log);
 
     t_log *nuevo_logger = log_create(nombre_logger, modulo, 1, LOG_LEVEL_INFO);
+    free(nombre_logger);
 
     if (nuevo_logger == NULL)
     {
