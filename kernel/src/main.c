@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     int conexion;
     // Provisorio
     int modo_ejecucion;
-    printf("Elija su modo de ejecución (numerico) \n - 0 (Servidor) \n - 1 (Cliente-CPU) \n - 2 (Cliente-Memoria)\n");
+    printf("Elija su modo de ejecución (numerico) \n - 0 (Servidor) \n - 1 (Conectar a CPU) \n - 2 (Conectar a Memoria) \n");
     scanf("%d", &modo_ejecucion);
     switch (modo_ejecucion)
     {
@@ -28,28 +28,30 @@ int main(int argc, char *argv[])
         terminar_programa(server_fd, logger, config);
         break;
 
-    case C_CPU:
-        // Esta bien algo así por ahora? Es necesario? No sé como se definirán los puertos en el futuro. Idem en CPU
-        int puerto = 2;
-        while (puerto != 0 && puerto != 1)
-        {
-            printf("Elija el puerto de escucha (numérico) \n - 0 Dispatch \n - 1 Interrupt \n ");
-            scanf("%d", &puerto);
-        }
+    case CONEXION_CPU:
+        int puerto;
+        printf("Elija el puerto de escucha (numérico) \n - 0 (Dispatch) \n - 1 (Interrupt) \n ");
+        scanf("%d", &puerto);
+
         if (puerto == 0)
             conexion = conectar_a(config, logger, "IP_CPU", "PUERTO_CPU_DISPATCH");
-        else
+        else if (puerto == 1)
             conexion = conectar_a(config, logger, "IP_CPU", "PUERTO_CPU_INTERRUPT");
+        else
+            log_error(logger, "Puerto de escucha invalido");
 
         terminar_programa(conexion, logger, config);
         break;
 
-    case C_MEMORIA:
+    case CONEXION_MEMORIA:
         conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
         terminar_programa(conexion, logger, config);
         break;
 
     default:
+        log_error(logger, "Modo de ejecucion invalido");
+        log_destroy(logger);
+        config_destroy(config);
         break;
     }
 
