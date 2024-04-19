@@ -27,5 +27,7 @@ int conectar_a(t_config *config, t_log *logger, char *clave_ip, char *clave_puer
 int iniciar_servidor(t_config *config, t_log *logger, char *clave_puerto);
 int esperar_cliente(t_log *logger, int server_socket);
 void terminar_programa(int conexion, t_log *logger, t_config *config);
+int handshake_cliente(t_log *logger, int conexion, int handshake);
+int handshake_servidor(t_log *logger, int conexion, int handshake);
 
 #endif

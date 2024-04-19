@@ -116,3 +116,42 @@ void terminar_programa(int conexion, t_log *logger, t_config *config)
     log_destroy(logger);
     config_destroy(config);
 }
+
+int handshake_cliente(t_log *logger, int conexion, int32_t handshake)
+{
+    size_t bytes;
+    int32_t result;
+
+    bytes = send(conexion, &handshake, sizeof(int32_t), 0);
+    bytes = recv(conexion, &result, sizeof(int32_t), MSG_WAITALL);
+
+    if (result == 0)
+    {
+        log_info(logger, "Handshake realizado correctamente");
+        return 1;
+    }
+    else
+    {
+        log_error(logger, "Ocurrio un error en el Handshake");
+        return 0;
+    }
+}
+
+int handshake_servidor(t_log *logger, int conexion, int32_t handshake_esperado)
+{
+    size_t bytes;
+
+    int32_t handshake;
+    int32_t resultOk = 0;
+    int32_t resultError = -1;
+
+    bytes = recv(conexion, &handshake, sizeof(int32_t), MSG_WAITALL);
+    if (handshake == handshake_esperado)
+    {
+        bytes = send(conexion, &resultOk, sizeof(int32_t), 0);
+    }
+    else
+    {
+        bytes = send(conexion, &resultError, sizeof(int32_t), 0);
+    }
+}
