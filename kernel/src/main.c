@@ -24,6 +24,9 @@ int main(int argc, char *argv[])
         int cliente_fd = esperar_cliente(logger, server_fd);
         log_info(logger, "Se conectó un cliente!");
 
+        int32_t handshake_esperado = 4;
+        int handshake_respuesta = handshake_servidor(logger, cliente_fd, handshake_esperado);
+
         close(cliente_fd); // TODO es provisional
         terminar_programa(server_fd, logger, config);
         break;
@@ -34,9 +37,17 @@ int main(int argc, char *argv[])
         scanf("%d", &puerto);
 
         if (puerto == 0)
+        {
             conexion = conectar_a(config, logger, "IP_CPU", "PUERTO_CPU_DISPATCH");
+            int32_t handshake = 5;
+            int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
+        }
         else if (puerto == 1)
+        {
             conexion = conectar_a(config, logger, "IP_CPU", "PUERTO_CPU_INTERRUPT");
+            int32_t handshake = 6;
+            int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
+        }
         else
             log_error(logger, "Puerto de escucha invalido");
 
@@ -45,6 +56,8 @@ int main(int argc, char *argv[])
 
     case CONEXION_MEMORIA:
         conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+        int32_t handshake = 1;
+        int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         terminar_programa(conexion, logger, config);
         break;
 
