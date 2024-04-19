@@ -23,9 +23,17 @@ int main(int argc, char *argv[])
         scanf("%d", &puerto);
 
         if (puerto == 0)
+        {
             server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA_DISPATCH");
+            int32_t handshake_esperado = 5;
+            int handshake_respuesta = handshake_servidor(logger, cliente_fd, handshake_esperado);
+        }
         else if (puerto == 1)
+        {
             server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA_INTERRUPT");
+            int32_t handshake_esperado = 6;
+            int handshake_respuesta = handshake_servidor(logger, cliente_fd, handshake_esperado);
+        }
         else
             log_error(logger, "Puerto de escucha invalido");
 
@@ -38,6 +46,8 @@ int main(int argc, char *argv[])
 
     case CONEXION_MEMORIA:
         int conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+        int32_t handshake = 1;
+        int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         terminar_programa(conexion, logger, config);
         break;
 
