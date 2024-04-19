@@ -16,6 +16,9 @@ int main(int argc, char *argv[])
     int cliente_fd = esperar_cliente(logger, server_fd);
     log_info(logger, "Se conectó un cliente!");
 
+    int32_t handshake_esperado = 1;
+    int handshake_respuesta = handshake_servidor(logger, cliente_fd, handshake_esperado);
+
     close(cliente_fd); // TODO es provisional
     terminar_programa(server_fd, logger, config);
 
