@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     case CONEXION_KERNEL:
     {
         conexion = conectar_a(config, logger, "IP_KERNEL", "PUERTO_KERNEL");
-        int32_t handshake = 1;
+        int32_t handshake = 4;
         int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         terminar_programa(conexion, logger, config);
     };
