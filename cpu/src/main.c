@@ -23,23 +23,27 @@ int main(int argc, char *argv[])
         scanf("%d", &puerto);
 
         if (puerto == 0)
-        {
             server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA_DISPATCH");
-            int32_t handshake_esperado = 5;
-            int handshake_respuesta = handshake_servidor(logger, cliente_fd, handshake_esperado);
-        }
         else if (puerto == 1)
-        {
             server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA_INTERRUPT");
-            int32_t handshake_esperado = 6;
-            int handshake_respuesta = handshake_servidor(logger, cliente_fd, handshake_esperado);
-        }
         else
             log_error(logger, "Puerto de escucha invalido");
 
         log_info(logger, "CPU lista para recibir clientes");
         int cliente_fd = esperar_cliente(logger, server_fd);
         log_info(logger, "Se conectó un cliente!");
+
+        if (puerto == 0)
+        {
+            int32_t handshake_esperado = 5;
+            int handshake_respuesta = handshake_servidor(logger, cliente_fd, handshake_esperado);
+        }
+        else if (puerto == 1)
+        {
+            int32_t handshake_esperado = 6;
+            int handshake_respuesta = handshake_servidor(logger, cliente_fd, handshake_esperado);
+        }
+
         close(cliente_fd); // TODO es provisional
         terminar_programa(server_fd, logger, config);
         break;
