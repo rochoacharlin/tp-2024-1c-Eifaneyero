@@ -14,5 +14,6 @@
 #define obtener_algoritmo_tlb() config_get_string_value(config, "ALGORITMO_TLB")
 
 extern t_config *config;
+extern t_log *logger;
 
 #endif
