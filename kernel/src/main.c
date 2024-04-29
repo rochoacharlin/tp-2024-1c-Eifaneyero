@@ -1,15 +1,15 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
+#include "main.h"
+
+t_log *logger;
+t_config *config;
 
 int main(int argc, char *argv[])
 {
     char *modulo = "kernel";
-    t_log *logger = crear_logger(modulo);
+    logger = crear_logger(modulo);
     log_info(logger, "Iniciando Kernel ...");
 
-    t_config *config = iniciar_config(logger, "kernel.config");
+    config = iniciar_config(logger, "kernel.config");
 
     int conexion;
     // Provisorio
@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     switch (modo_ejecucion)
     {
     case SERVIDOR:
-        int server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA");
+        int server_fd = iniciar_servidor(logger, obtener_puerto_escucha());
         log_info(logger, "Kernel listo para recibir clientes");
         int cliente_fd = esperar_cliente(logger, server_fd);
         log_info(logger, "Se conectó un cliente!");
@@ -39,13 +39,13 @@ int main(int argc, char *argv[])
 
         if (puerto == 0)
         {
-            conexion = conectar_a(config, logger, "IP_CPU", "PUERTO_CPU_DISPATCH");
+            conexion = crear_conexion(logger, obtener_ip_cpu(), obtener_puerto_cpu_dispatch());
             int32_t handshake = 5;
             int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         }
         else if (puerto == 1)
         {
-            conexion = conectar_a(config, logger, "IP_CPU", "PUERTO_CPU_INTERRUPT");
+            conexion = crear_conexion(logger, obtener_ip_cpu(), obtener_puerto_cpu_interrupt());
             int32_t handshake = 6;
             int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         }
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     case CONEXION_MEMORIA:
     {
-        conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+        conexion = crear_conexion(logger, obtener_ip_memoria(), obtener_puerto_memoria());
         int32_t handshake = 1;
         int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         terminar_programa(conexion, logger, config);
