@@ -1,6 +1,10 @@
 #ifndef KERNEL_PCB_H_
 #define KERNEL_PCB_H_
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 typedef enum estado_proceso
 {
     NEW,
@@ -21,7 +25,7 @@ typedef struct
     int PID;
     int PC; // no se si esto va, porque tambien esta en los registros de CPU
     int quantum;
-    t_registros_cpu registros_cpu;
+    t_registros_cpu *registros_cpu;
     estado_proceso estado;
 } t_pcb;
 

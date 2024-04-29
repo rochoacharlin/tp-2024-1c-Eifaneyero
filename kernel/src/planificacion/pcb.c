@@ -2,8 +2,8 @@
 
 t_pcb *crear_pcb()
 {
-    t_pcb pcb = malloc(sizeof(t_pcb));
-    pcb->pid = procesos_creados++;
+    t_pcb *pcb = malloc(sizeof(t_pcb));
+    pcb->PID = procesos_creados++;
     pcb->quantum = 0; // provisional
     pcb->registros_cpu = crear_registros_cpu();
     pcb->estado = NEW;
