@@ -38,20 +38,10 @@ int crear_conexion(t_log *logger, char *ip, char *puerto)
     return socket_cliente;
 }
 
-int conectar_a(t_config *config, t_log *logger, char *clave_ip, char *clave_puerto)
-{
-    char *ip = config_get_string_value(config, clave_ip);
-    char *puerto = config_get_string_value(config, clave_puerto);
-    int conexion = crear_conexion(logger, ip, puerto);
-
-    return conexion;
-}
-
-int iniciar_servidor(t_config *config, t_log *logger, char *clave_puerto)
+int iniciar_servidor(t_log *logger, char *puerto)
 {
     struct addrinfo hints, *servinfo;
     int s;
-    char *puerto = config_get_string_value(config, clave_puerto);
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;

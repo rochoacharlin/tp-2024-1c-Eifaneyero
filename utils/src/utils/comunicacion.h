@@ -23,8 +23,7 @@ typedef struct
 } addrinfo;
 
 int crear_conexion(t_log *logger, char *ip, char *puerto);
-int conectar_a(t_config *config, t_log *logger, char *clave_ip, char *clave_puerto);
-int iniciar_servidor(t_config *config, t_log *logger, char *clave_puerto);
+int iniciar_servidor(t_log *logger, char *puerto);
 int esperar_cliente(t_log *logger, int server_socket);
 void terminar_programa(int conexion, t_log *logger, t_config *config);
 int handshake_cliente(t_log *logger, int conexion, int handshake);
