@@ -1,17 +1,17 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
+#include "main.h"
+
+t_log *logger;
+t_config *config;
 
 int main(int argc, char *argv[])
 {
     char *modulo = "memoria";
-    t_log *logger = crear_logger(modulo);
+    logger = crear_logger(modulo);
     log_info(logger, "Iniciando Memoria ...");
 
-    t_config *config = iniciar_config(logger, "memoria.config");
+    config = iniciar_config(logger, "memoria.config");
 
-    int server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA");
+    int server_fd = iniciar_servidor(logger, obtener_puerto_escucha());
     log_info(logger, "Memoria lista para recibir clientes");
     int cliente_fd = esperar_cliente(logger, server_fd);
     log_info(logger, "Se conectó un cliente!");
