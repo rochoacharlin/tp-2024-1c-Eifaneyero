@@ -1,16 +1,16 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
+#include "main.h"
+
+t_log *logger;
+t_config *config;
 
 int main(int argc, char *argv[])
 {
     int conexion;
     char *modulo = "entradasalida";
-    t_log *logger = crear_logger(modulo);
+    logger = crear_logger(modulo);
     log_info(logger, "Iniciando Interfaz de I/O ...");
 
-    t_config *config = iniciar_config(logger, "entradasalida.config");
+    config = iniciar_config(logger, "entradasalida.config");
 
     int modo_ejecucion;
     printf("Elija su modo de ejecución (numerico) \n - 2 (Conectar a Memoria) \n - 3 (Conectar a Kernel) \n");
@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     {
     case CONEXION_KERNEL:
     {
-        conexion = conectar_a(config, logger, "IP_KERNEL", "PUERTO_KERNEL");
+        conexion = crear_conexion(logger, obtener_ip_kernel(), obtener_puerto_kernel());
         int32_t handshake = 4;
         int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         terminar_programa(conexion, logger, config);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     case CONEXION_MEMORIA:
     {
-        conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+        conexion = crear_conexion(logger, obtener_ip_memoria(), obtener_puerto_memoria());
         int32_t handshake = 1;
         int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         terminar_programa(conexion, logger, config);
