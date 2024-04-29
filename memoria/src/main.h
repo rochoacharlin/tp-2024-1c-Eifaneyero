@@ -13,5 +13,6 @@
 #define obtener_retardo_respuesta() config_get_int_value(config, "RETARDO_RESPUESTA")
 
 extern t_config *config;
+extern t_log *logger;
 
 #endif
