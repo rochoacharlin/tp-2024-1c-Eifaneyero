@@ -19,5 +19,6 @@
 #define obtener_grado_multiprogramacion() config_get_int_value(config, "GRADO_MULTIPROGRAMACION")
 
 extern t_config *config;
+extern t_log *logger;
 
 #endif

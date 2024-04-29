@@ -29,7 +29,7 @@ typedef struct
     estado_proceso estado;
 } t_pcb;
 
-int32_t procesos_creados = 0;
+extern int32_t procesos_creados;
 
 t_pcb *crear_pcb();
 t_registros_cpu *crear_registros_cpu(); // supongo que despues esto va a estar en utils ya que lo utiliza tanto el Kernel como la CPU
