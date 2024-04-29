@@ -1,15 +1,15 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
+#include "main.h"
+
+t_log *logger;
+t_config *config;
 
 int main(int argc, char *argv[])
 {
     char *modulo = "cpu";
-    t_log *logger = crear_logger(modulo);
+    logger = crear_logger(modulo);
     log_info(logger, "Iniciando CPU ...");
 
-    t_config *config = iniciar_config(logger, "cpu.config");
+    config = iniciar_config(logger, "cpu.config");
 
     int modo_ejecucion;
     printf("Elija su modo de ejecución (numerico) \n - 0 (Servidor) \n - 2 (Conectar a Memoria) \n");
@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
         scanf("%d", &puerto);
 
         if (puerto == 0)
-            server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA_DISPATCH");
+            server_fd = iniciar_servidor(logger, obtener_puerto_escucha_dispatch());
         else if (puerto == 1)
-            server_fd = iniciar_servidor(config, logger, "PUERTO_ESCUCHA_INTERRUPT");
+            server_fd = iniciar_servidor(logger, obtener_puerto_escucha_interrupt());
         else
             log_error(logger, "Puerto de escucha invalido");
 
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
         break;
 
     case CONEXION_MEMORIA:
-        int conexion = conectar_a(config, logger, "IP_MEMORIA", "PUERTO_MEMORIA");
+        int conexion = crear_conexion(logger, obtener_ip_memoria(), obtener_puerto_memoria());
         int32_t handshake = 1;
         int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
         terminar_programa(conexion, logger, config);
