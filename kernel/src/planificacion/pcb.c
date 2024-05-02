@@ -3,8 +3,9 @@
 t_pcb *crear_pcb()
 {
     t_pcb *pcb = malloc(sizeof(t_pcb));
-    pcb->PID = procesos_creados++;
-    pcb->quantum = 0; // provisional
+    pcb->PID = procesos_creados++; // le asigno un PID y luego lo incremento
+    pcb->PC = 0;                   // no se si esto va, porque tambien esta en los registros de CPU
+    pcb->quantum = obtener_quantum();
     pcb->registros_cpu = crear_registros_cpu();
     pcb->estado = NEW;
 
@@ -40,4 +41,14 @@ void destruir_pcb(t_pcb *pcb)
 void destruir_registros_cpu(t_registros_cpu *registros_cpu)
 {
     free(registros_cpu);
+}
+
+t_pcb *desencolar_pcb(t_list *pcbs)
+{
+    return (t_pcb *)list_remove(pcbs, 0);
+}
+
+void encolar_pcb(t_list *pcbs, t_pcb *pcb)
+{
+    list_add(pcbs, (void *)pcb);
 }
