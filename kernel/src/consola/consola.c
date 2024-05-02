@@ -25,11 +25,11 @@ void consola_interactiva(void)
             PID = atoi(string_substring_from(leido, strlen("FINALIZAR_SCRIPT") + 1));
             // TODO
         }
-        else if (string_starts_with(leido, "DETENER_PLANIFICACION"))
+        else if (strcmp(leido, "DETENER_PLANIFICACION") == 0)
         {
             // TODO
         }
-        else if (string_starts_with(leido, "INICIAR_PLANIFICACION"))
+        else if (strcmp(leido, "INICIAR_PLANIFICACION") == 0)
         {
             // TODO
         }
@@ -38,9 +38,9 @@ void consola_interactiva(void)
             valor = atoi(string_substring_from(leido, strlen("MULTIPROGRAMACION") + 1));
             // TODO
         }
-        else if (string_starts_with(leido, "PROCESO_ESTADO"))
+        else if (strcmp(leido, "PROCESO_ESTADO") == 0)
         {
-            // TODO
+            listar_procesos_por_cada_estado();
         }
         else
         {
@@ -52,4 +52,23 @@ void consola_interactiva(void)
     }
 
     free(leido);
+}
+
+void listar_procesos_por_cada_estado(void)
+{
+    // listar_procesos_por_estado("NEW", pcbs_en_NEW);
+    listar_procesos_por_estado("READY", pcbs_en_READY);
+    // listar_procesos_por_estado("EXEC", pcbs_en_EXEC);
+    // listar_procesos_por_estado("BLOCKED", pcbs_en_BLOCKED);
+    // listar_procesos_por_estado("EXIT", pcbs_en_EXIT);
+}
+
+void listar_procesos_por_estado(char *estado, t_list lista)
+{
+    printf("%s:", estado);
+    while (list_iterator_has_next(lista))
+    {
+        t_pcb *pcb = list_iterator_next(lista);
+        printf("    PID: %d", pcb->PID);
+    }
 }
