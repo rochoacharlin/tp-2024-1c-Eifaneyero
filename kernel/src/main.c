@@ -2,7 +2,6 @@
 
 t_log *logger;
 t_config *config;
-int32_t procesos_creados = 0; // provisional
 
 int main(int argc, char *argv[])
 {
