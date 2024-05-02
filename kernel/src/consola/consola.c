@@ -1,5 +1,8 @@
 #include "consola.h"
 
+pthread_t hilo_planificador_largo_plazo;
+pthread_t hilo_planificador_corto_plazo;
+
 void consola_interactiva(void)
 {
     char *leido;
@@ -18,7 +21,10 @@ void consola_interactiva(void)
         else if (string_starts_with(leido, "INICIAR_PROCESO"))
         {
             path = string_substring_from(leido, strlen("INICIAR_PROCESO") + 1);
-            // TODO
+            // COMPLETAR
+            inicializar_listas_planificacion();
+            t_pcb *pcb = crear_pcb();
+            ingresar_pcb_a_NEW(pcb);
         }
         else if (string_starts_with(leido, "FINALIZAR_SCRIPT"))
         {
@@ -27,11 +33,24 @@ void consola_interactiva(void)
         }
         else if (strcmp(leido, "DETENER_PLANIFICACION") == 0)
         {
-            // TODO
+            // REVISAR
+            pthread_detach(hilo_planificador_largo_plazo);
+            pthread_detach(hilo_planificador_corto_plazo);
+            destruir_semaforos_planificacion();
+            destruir_listas_planificacion();
         }
         else if (strcmp(leido, "INICIAR_PLANIFICACION") == 0)
         {
-            // TODO
+            // REVISAR
+            inicializar_semaforos_planificacion();
+
+            if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
+                log_error(logger, "Error creando el hilo del planificador de largo plazo");
+            if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
+                log_error(logger, "Error creando el hilo del planificador de corto plazo");
+
+            pthread_join(hilo_planificador_largo_plazo, NULL);
+            pthread_join(hilo_planificador_corto_plazo, NULL);
         }
         else if (string_starts_with(leido, "MULTIPROGRAMACION"))
         {
