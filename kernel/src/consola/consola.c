@@ -63,12 +63,12 @@ void listar_procesos_por_cada_estado(void)
     // listar_procesos_por_estado("EXIT", pcbs_en_EXIT);
 }
 
-void listar_procesos_por_estado(char *estado, t_list lista)
+void listar_procesos_por_estado(char *estado, t_list *lista)
 {
     printf("%s:", estado);
-    while (list_iterator_has_next(lista))
+    for (int i = 0; i < list_size(lista); i++)
     {
-        t_pcb *pcb = list_iterator_next(lista);
+        t_pcb *pcb = (t_pcb *)list_get(lista, i);
         printf("    PID: %d", pcb->PID);
     }
 }

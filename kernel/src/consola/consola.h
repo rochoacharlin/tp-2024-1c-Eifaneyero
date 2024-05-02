@@ -11,6 +11,6 @@ extern t_list *pcbs_en_READY;
 
 void consola(void);
 void listar_procesos_por_cada_estado(void);
-void listar_procesos_por_estado(char *estado, t_list lista);
+void listar_procesos_por_estado(char *estado, t_list *lista);
 
 #endif
