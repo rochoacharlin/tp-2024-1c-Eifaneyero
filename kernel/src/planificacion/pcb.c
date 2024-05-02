@@ -1,5 +1,7 @@
 #include "pcb.h"
 
+char *lista_PIDS;
+
 t_pcb *crear_pcb()
 {
     t_pcb *pcb = malloc(sizeof(t_pcb));
@@ -51,4 +53,17 @@ t_pcb *desencolar_pcb(t_list *pcbs)
 void encolar_pcb(t_list *pcbs, t_pcb *pcb)
 {
     list_add(pcbs, (void *)pcb);
+}
+
+void mostrar_PIDS(t_list *lista_pcbs)
+{
+    list_iterate(lista_pcbs, agregar_PID_a_lista_PIDS);
+}
+
+void agregar_PID_a_lista_PIDS(void *valor)
+{
+    t_pcb *pcb = (t_pcb *)valor;
+    char *PID = string_itoa(pcb->PID);
+    string_append_with_format(&lista_PIDS, " %s,", PID);
+    free(PID);
 }

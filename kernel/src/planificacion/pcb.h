@@ -32,7 +32,7 @@ typedef struct
 } t_pcb;
 
 extern int32_t procesos_creados;
-extern t_list *pcbs_en_READY;
+extern char *lista_PIDS;
 
 t_pcb *crear_pcb();
 t_registros_cpu *crear_registros_cpu(); // supongo que despues esto va a estar en utils ya que lo utiliza tanto el Kernel como la CPU
@@ -41,5 +41,7 @@ void destruir_registros_cpu(t_registros_cpu *registros_cpu); // supongo que desp
 
 t_pcb *desencolar_pcb(t_list *pcbs);
 void encolar_pcb(t_list *pcbs, t_pcb *pcb);
+void mostrar_PIDS(t_list *pcbs);
+void agregar_PID_a_lista_PIDS(void *pcb);
 
 #endif
