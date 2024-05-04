@@ -10,6 +10,8 @@ void consola_interactiva(void)
     int PID;
     int valor;
 
+    inicializar_listas_planificacion();
+
     leido = readline("> ");
     while (1)
     {
@@ -22,7 +24,6 @@ void consola_interactiva(void)
         {
             path = string_substring_from(leido, strlen("INICIAR_PROCESO") + 1);
             // COMPLETAR
-            inicializar_listas_planificacion();
             t_pcb *pcb = crear_pcb();
             ingresar_pcb_a_NEW(pcb);
         }
@@ -43,14 +44,15 @@ void consola_interactiva(void)
         {
             // REVISAR
             inicializar_semaforos_planificacion();
+            planificar_a_largo_plazo();
 
-            if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
+            /*if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
                 log_error(logger, "Error creando el hilo del planificador de largo plazo");
             if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
-                log_error(logger, "Error creando el hilo del planificador de corto plazo");
+                log_error(logger, "Error creando el hilo del planificador de corto plazo");*/
 
-            pthread_join(hilo_planificador_largo_plazo, NULL);
-            pthread_join(hilo_planificador_corto_plazo, NULL);
+            // pthread_join(hilo_planificador_largo_plazo, NULL);
+            // pthread_join(hilo_planificador_corto_plazo, NULL);
         }
         else if (string_starts_with(leido, "MULTIPROGRAMACION"))
         {
@@ -75,8 +77,8 @@ void consola_interactiva(void)
 
 void listar_procesos_por_cada_estado(void)
 {
-    // listar_procesos_por_estado("NEW", pcbs_en_NEW);
-    listar_procesos_por_estado("READY", pcbs_en_READY);
+    listar_procesos_por_estado("NEW", pcbs_en_NEW);
+    // listar_procesos_por_estado("READY", pcbs_en_READY);
     // listar_procesos_por_estado("EXEC", pcbs_en_EXEC);
     // listar_procesos_por_estado("BLOCKED", pcbs_en_BLOCKED);
     // listar_procesos_por_estado("EXIT", pcbs_en_EXIT);
@@ -84,10 +86,10 @@ void listar_procesos_por_cada_estado(void)
 
 void listar_procesos_por_estado(char *estado, t_list *lista)
 {
-    printf("%s:", estado);
+    printf("%s: \n", estado);
     for (int i = 0; i < list_size(lista); i++)
     {
         t_pcb *pcb = (t_pcb *)list_get(lista, i);
-        printf("    PID: %d", pcb->PID);
+        printf("    PID: %d\n", pcb->PID);
     }
 }

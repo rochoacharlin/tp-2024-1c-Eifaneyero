@@ -64,6 +64,6 @@ void agregar_PID_a_lista_PIDS(void *valor)
 {
     t_pcb *pcb = (t_pcb *)valor;
     char *PID = string_itoa(pcb->PID);
-    string_append_with_format(&lista_PIDS, " %s,", PID);
+    string_append_with_format(&lista_PIDS, " %s ", PID);
     free(PID);
 }

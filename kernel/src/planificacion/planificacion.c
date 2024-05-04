@@ -15,14 +15,10 @@ char *estados[5] = {"NEW", "READY", "EXEC", "BLOCKED", "EXIT"};
 
 void planificar_a_largo_plazo(void)
 {
-    printf("LLegue");
     while (1)
     {
-        printf("LLegue");
-        sem_wait(&hay_pcbs_NEW);
-        printf("Pase");
-        sem_wait(&sem_grado_multiprogramacion);
-        printf("Pase 2");
+        // sem_wait(&hay_pcbs_NEW); -> tira error y no se porque
+        // sem_wait(&sem_grado_multiprogramacion);
 
         t_pcb *pcb = obtener_siguiente_pcb_READY();
 
@@ -68,6 +64,7 @@ void ingresar_pcb_a_NEW(t_pcb *pcb)
     // log minimo y obligatorio
     loggear_creacion_proceso(pcb);
     pthread_mutex_unlock(&mutex_lista_NEW);
+    sem_post(&hay_pcbs_NEW);
 }
 
 void planificar_a_corto_plazo_segun_algoritmo(void)
@@ -122,6 +119,7 @@ void inicializar_listas_planificacion(void)
 {
     pcbs_en_NEW = list_create();
     pcbs_en_READY = list_create();
+    pcbs_en_memoria = list_create();
 }
 
 void destruir_listas_planificacion(void)
