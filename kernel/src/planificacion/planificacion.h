@@ -13,6 +13,7 @@ extern sem_t hay_pcbs_NEW;
 extern pthread_mutex_t mutex_lista_NEW;
 extern pthread_mutex_t mutex_lista_READY;
 extern t_list *pcbs_en_memoria;
+extern sem_t planificacion_liberada;
 
 extern sem_t hay_pcbs_READY;
 extern int *instancias_recursos;

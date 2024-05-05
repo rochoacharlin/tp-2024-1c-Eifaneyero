@@ -6,6 +6,8 @@ sem_t sem_grado_multiprogramacion;
 t_list *pcbs_en_memoria;
 pthread_mutex_t mutex_lista_NEW;
 pthread_mutex_t mutex_lista_READY;
+sem_t planificacion_liberada;
+sem_t planificacion_pausada;
 
 t_list *pcbs_en_READY;
 sem_t hay_pcbs_READY;
@@ -17,8 +19,9 @@ void planificar_a_largo_plazo(void)
 {
     while (1)
     {
-        // sem_wait(&hay_pcbs_NEW); -> tira error y no se porque
-        // sem_wait(&sem_grado_multiprogramacion);
+        sem_wait(&hay_pcbs_NEW);
+        sem_wait(&sem_grado_multiprogramacion);
+        sem_wait(&planificacion_liberada);
 
         t_pcb *pcb = obtener_siguiente_pcb_READY();
 
@@ -27,8 +30,11 @@ void planificar_a_largo_plazo(void)
         estado anterior = pcb->estado;
         pcb->estado = READY;
         list_add(pcbs_en_memoria, pcb);
+
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
+
+        sem_post(&planificacion_liberada);
         ingresar_pcb_a_READY(pcb);
     }
 }
@@ -45,7 +51,6 @@ void ingresar_pcb_a_READY(t_pcb *pcb)
 {
     pthread_mutex_lock(&mutex_lista_READY);
     encolar_pcb(pcbs_en_READY, pcb);
-
     pthread_mutex_unlock(&mutex_lista_READY);
 
     sem_post(&hay_pcbs_READY);
@@ -61,9 +66,10 @@ void ingresar_pcb_a_NEW(t_pcb *pcb)
 {
     pthread_mutex_lock(&mutex_lista_NEW);
     encolar_pcb(pcbs_en_NEW, pcb);
+    pthread_mutex_unlock(&mutex_lista_NEW);
+
     // log minimo y obligatorio
     loggear_creacion_proceso(pcb);
-    pthread_mutex_unlock(&mutex_lista_NEW);
     sem_post(&hay_pcbs_NEW);
 }
 
@@ -135,6 +141,7 @@ void inicializar_semaforos_planificacion(void)
     sem_init(&hay_pcbs_NEW, 0, 0);
     sem_init(&hay_pcbs_READY, 0, 0);
     sem_init(&sem_grado_multiprogramacion, 0, obtener_grado_multiprogramacion());
+    sem_init(&planificacion_liberada, 0, 1);
 }
 void destruir_semaforos_planificacion(void)
 {
