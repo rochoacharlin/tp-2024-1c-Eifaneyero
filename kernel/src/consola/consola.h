@@ -8,6 +8,8 @@
 #include "../planificacion/planificacion.h"
 
 extern t_list *pcbs_en_READY;
+extern sem_t planificacion_liberada;
+extern sem_t planificacion_pausada;
 
 void consola_interactiva(void);
 void listar_procesos_por_cada_estado(void);
