@@ -5,6 +5,8 @@
 #include <semaphore.h>
 #include "pcb.h"
 #include "recursos.h"
+#include <string.h>
+#include "../configuraciones.h"
 
 extern sem_t sem_grado_multiprogramacion;
 extern int grado_multiprogramacion;
@@ -37,10 +39,5 @@ void destruir_semaforos_planificacion(void);
 void planificar_a_corto_plazo_segun_algoritmo(void);
 void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
 t_pcb *proximo_a_ejecutar_segun_FIFO(void);
-
-// loggeos minimos y necesarios
-void loggear_cambio_de_estado(int PID, estado anterior, estado actual);
-void loggear_ingreso_a_READY(char *lista_PIDS);
-void loggear_creacion_proceso(t_pcb *pcb);
 
 #endif

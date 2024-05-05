@@ -13,8 +13,6 @@ t_list *pcbs_en_READY;
 sem_t hay_pcbs_READY;
 int32_t procesos_creados = 0;
 
-char *estados[5] = {"NEW", "READY", "EXEC", "BLOCKED", "EXIT"};
-
 void planificar_a_largo_plazo(void)
 {
     while (1)
@@ -69,7 +67,7 @@ void ingresar_pcb_a_NEW(t_pcb *pcb)
     pthread_mutex_unlock(&mutex_lista_NEW);
 
     // log minimo y obligatorio
-    loggear_creacion_proceso(pcb);
+    loggear_creacion_proceso(pcb->PID);
     sem_post(&hay_pcbs_NEW);
 }
 
@@ -150,19 +148,4 @@ void destruir_semaforos_planificacion(void)
     sem_close(&hay_pcbs_NEW);
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
-}
-
-void loggear_cambio_de_estado(int PID, estado anterior, estado actual)
-{
-    log_info(logger, "PID: <%d> - Estado Anterior: <%s> - Estado Actual: <%s>", PID, estados[anterior], estados[actual]);
-}
-
-void loggear_ingreso_a_READY(char *lista_PIDS)
-{
-    log_info(logger, "Cola Ready <%s>: [%s]", obtener_algoritmo_planificacion(), lista_PIDS);
-}
-
-void loggear_creacion_proceso(t_pcb *pcb)
-{
-    log_info(logger, "Se crea el proceso <%d> en NEW", pcb->PID);
 }

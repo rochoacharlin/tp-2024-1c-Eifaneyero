@@ -4,8 +4,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <commons/string.h>
 #include <commons/collections/list.h>
-#include "../main.h"
+#include "../configuraciones.h"
 
 typedef enum estado
 {

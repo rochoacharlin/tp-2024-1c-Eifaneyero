@@ -4,7 +4,7 @@
 #include <commons/collections/list.h>
 #include <commons/string.h>
 #include <stdlib.h>
-#include "../main.h"
+#include "../configuraciones.h"
 
 extern int *instancias_recursos;
 extern t_list *recursos;

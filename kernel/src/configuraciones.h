@@ -1,10 +1,8 @@
-#ifndef KERNEL_MAIN_H
-#define KERNEL_MAIN_H
+#ifndef KERNEL_CONFIGURACIONES_H
+#define KERNEL_CONFIGURACIONES_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
+#include <commons/log.h>
+#include <commons/config.h>
 
 #define obtener_puerto_escucha() config_get_string_value(config, "PUERTO_ESCUCHA")
 #define obtener_ip_memoria() config_get_string_value(config, "IP_MEMORIA")
@@ -18,7 +16,12 @@
 #define obtener_instancias_recursos() config_get_array_value(config, "INSTANCIAS_RECURSOS")
 #define obtener_grado_multiprogramacion() config_get_int_value(config, "GRADO_MULTIPROGRAMACION")
 
-extern t_config *config;
 extern t_log *logger;
+extern t_config *config;
+
+// Logs minimos y obligatorios
+void loggear_cambio_de_estado(int PID, int anterior, int actual);
+void loggear_ingreso_a_READY(char *lista_PIDS);
+void loggear_creacion_proceso(int pcbPID);
 
 #endif
