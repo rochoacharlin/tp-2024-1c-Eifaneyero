@@ -20,8 +20,11 @@ extern t_log *logger;
 extern t_config *config;
 
 // Logs minimos y obligatorios
-void loggear_cambio_de_estado(int PID, int anterior, int actual);
-void loggear_ingreso_a_READY(char *lista_PIDS);
 void loggear_creacion_proceso(int pcbPID);
+void loggear_fin_de_proceso(int PID, int motivo);
+void loggear_cambio_de_estado(int PID, int anterior, int actual);
+void loggear_motivo_de_bloqueo(int PID, char *interfaz_o_recurso);
+void loggear_fin_de_quantum(int PID);
+void loggear_ingreso_a_READY(char *lista_PIDS);
 
 #endif
