@@ -13,34 +13,37 @@ void consola_interactiva(void)
         if (string_starts_with(leido, "EJECUTAR_SCRIPT"))
         {
             path = string_substring_from(leido, strlen("EJECUTAR_SCRIPT") + 1);
-            // TODO
+            // TODO: Leer un archivo de comandos y correrlos.
         }
         else if (string_starts_with(leido, "INICIAR_PROCESO"))
         {
             path = string_substring_from(leido, strlen("INICIAR_PROCESO") + 1);
-            // COMPLETAR
+            // COMPLETAR: Falta toda la parte de la memoria y filesystem.
             t_pcb *pcb = crear_pcb();
             ingresar_pcb_a_NEW(pcb);
         }
-        else if (string_starts_with(leido, "FINALIZAR_SCRIPT"))
+        else if (string_starts_with(leido, "FINALIZAR_PROCESO"))
         {
             PID = atoi(string_substring_from(leido, strlen("FINALIZAR_SCRIPT") + 1));
-            // TODO
+            // TODO: Finalizar proceso, liberar recursos, archivos y memoria
         }
         else if (strcmp(leido, "DETENER_PLANIFICACION") == 0)
         {
+            // COMPLETAR: El proceso que se encuentra en ejecución NO es desalojado,
+            //            pero una vez que salga de EXEC se va a pausar el manejo de su motivo de desalojo.
             sem_wait(&planificacion_liberada);
             sem_post(&planificacion_pausada);
         }
         else if (strcmp(leido, "INICIAR_PLANIFICACION") == 0)
         {
-            sem_wait(&planificacion_pausada); // para asegurar que libere la planificacion cuando este pausada
+            sem_wait(&planificacion_pausada); // para asegurar que libere la planificacion cuando este pausada.
             sem_post(&planificacion_liberada);
         }
         else if (string_starts_with(leido, "MULTIPROGRAMACION"))
         {
             valor = atoi(string_substring_from(leido, strlen("MULTIPROGRAMACION") + 1));
-            // TODO
+            // TODO: Cambiar el nivel de multiprogramacion
+            // Lo cambiamos directamente en el archivo de configuracion o en una variable del codigo?
         }
         else if (strcmp(leido, "PROCESO_ESTADO") == 0)
         {
