@@ -1,5 +1,5 @@
-#ifndef ENTRADASALIDA_MAIN_H
-#define ENTRADASALIDA_MAIN_H
+#ifndef ENTRADASALIDA_CONFIGURACIONES_H
+#define ENTRADASALIDA_CONFIGURACIONES_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,5 +19,15 @@
 
 extern t_config *config;
 extern t_log *logger;
+
+// Logs minimos y obligatorios
+void loggear_operacion(int PID, char *operacion);
+void loggear_dialfs_crear_archivo(int PID, char *nombre);
+void loggear_dialfs_eliminar_archivo(int PID, char *nombre);
+void loggear_dialfs_truncar_archivo(int PID, char *nombre, int tamanio);
+void loggear_dialfs_leer_archivo(int PID, char *nombre, int tamanio, int puntero);
+void loggear_dailfs_escribir_archivo(int PID, char *nombre, int tamanio, int puntero);
+void loggear_dailfs_inicio_compactacion(int PID);
+void loggear_dailfs_fin_compactacion(int PID);
 
 #endif
