@@ -1,5 +1,5 @@
-#ifndef MEMORIA_MAIN_H
-#define MEMORIA_MAIN_H
+#ifndef MEMORIA_CONFIGURACIONES_H
+#define MEMORIA_CONFIGURACIONES_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,5 +14,12 @@
 
 extern t_config *config;
 extern t_log *logger;
+
+// Logs minimos y obligatorios
+void loggear_creacion_destruccion_tabla_de_paginas(int PID, int cantidad_paginas);
+void loggear_acceso_tablas_de_paginas(int PID, int pagina, int marco);
+void loggear_ampliacion_de_proceso(int PID, int tamanio_actual, int tamanio_a_ampliar);
+void loggear_reduccion_de_proceso(int PID, int tamanio_actual, int tamanio_a_reducir);
+void loggear_acceso_a_espacio_de_usuario(int PID, int accion, int direccion_fisica, int tamanio);
 
 #endif
