@@ -1,4 +1,4 @@
-#include "main.h"
+#include "configuraciones.h"
 
 t_log *logger;
 t_config *config;
