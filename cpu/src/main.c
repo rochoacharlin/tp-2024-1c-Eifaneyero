@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
         int conexion = crear_conexion(logger, obtener_ip_memoria(), obtener_puerto_memoria());
         int32_t handshake = 1;
         int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
+
         terminar_programa(conexion, logger, config);
         break;
 

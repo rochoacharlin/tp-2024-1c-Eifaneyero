@@ -7,6 +7,7 @@
 #include <commons/string.h>
 #include <commons/collections/list.h>
 #include "../configuraciones.h"
+#include "../../../utils/src/utils/estructuras_compartidas.h"
 
 typedef enum estado
 {
@@ -16,12 +17,6 @@ typedef enum estado
     BLOCKED,
     EXIT,
 } estado;
-
-typedef struct // supongo que despues esto va a estar en utils ya que lo utiliza tanto el Kernel como la CPU
-{
-    uint8_t AX, BX, CX, DX;
-    uint32_t EAX, EBX, ECX, EDX, PC, SI, DI;
-} t_registros_cpu;
 
 typedef struct
 {
@@ -36,9 +31,7 @@ extern int32_t procesos_creados;
 extern char *lista_PIDS;
 
 t_pcb *crear_pcb();
-t_registros_cpu *crear_registros_cpu(); // supongo que despues esto va a estar en utils ya que lo utiliza tanto el Kernel como la CPU
 void destruir_pcb(t_pcb *pcb);
-void destruir_registros_cpu(t_registros_cpu *registros_cpu); // supongo que despues esto va a estar en utils ya que lo utiliza tanto el Kernel como la CPU
 
 t_pcb *desencolar_pcb(t_list *pcbs);
 void encolar_pcb(t_list *pcbs, t_pcb *pcb);
