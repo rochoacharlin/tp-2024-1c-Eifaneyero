@@ -1,7 +1,9 @@
 #include "configuraciones.h"
+#include "../../utils/src/utils/estructuras_compartidas.h"
 
 t_log *logger;
 t_config *config;
+t_registros_cpu *registros_cpu;
 
 int main(int argc, char *argv[])
 {
@@ -10,6 +12,8 @@ int main(int argc, char *argv[])
     log_info(logger, "Iniciando CPU ...");
 
     config = iniciar_config(logger, "cpu.config");
+
+    registros_cpu = crear_registros_cpu;
 
     int modo_ejecucion;
     printf("Elija su modo de ejecución (numerico) \n - 0 (Servidor) \n - 2 (Conectar a Memoria) \n");
@@ -52,6 +56,9 @@ int main(int argc, char *argv[])
         int conexion = crear_conexion(logger, obtener_ip_memoria(), obtener_puerto_memoria());
         int32_t handshake = 1;
         int handshake_respuesta = handshake_cliente(logger, conexion, handshake);
+
+        // en una futura implementacion utilizaremos la MMU:  solicitar_instrucion(pid, nro_pagina, desplazamiento);
+        solicitar_lectura_de_instruccion(conexion, "instruciones_prueba", registros_cpu->PC); // provisoriamente lo hacemos con readline: solicitar _instrucion(path, desplazamiento)
 
         terminar_programa(conexion, logger, config);
         break;
