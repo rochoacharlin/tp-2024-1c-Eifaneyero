@@ -1,5 +1,5 @@
-#ifndef UTILS_ESTRUCTURAS_PLANIFICACION_H_
-#define UTILS_ESTRUCTURAS_PLANIFICACION_H_
+#ifndef UTILS_ESTRUCTURAS_COMPARTIDAS_H_
+#define UTILS_ESTRUCTURAS_COMPARTIDAS_H_
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -7,13 +7,24 @@
 #include <commons/string.h>
 #include <commons/collections/list.h>
 
-typedef struct // supongo que despues esto va a estar en utils ya que lo utiliza tanto el Kernel como la CPU
+// REGISTROS DE CPU,  CPU-KERNEL
+typedef struct
 {
     uint8_t AX, BX, CX, DX;
     uint32_t EAX, EBX, ECX, EDX, PC, SI, DI;
 } t_registros_cpu;
 
-t_registros_cpu *crear_registros_cpu();                      // supongo que despues esto va a estar en utils ya que lo utiliza tanto el Kernel como la CPU
-void destruir_registros_cpu(t_registros_cpu *registros_cpu); // supongo que despues esto va a estar en utils ya que lo utiliza tanto el Kernel como la CPU
+t_registros_cpu *crear_registros_cpu();
+void destruir_registros_cpu(t_registros_cpu *registros_cpu);
+
+// PROVISORIO solicitud_de_instruccion
+typedef struct
+{
+    char *path;
+    uint32_t desplazamiento;
+} t_solicitud_de_instruccion;
+
+t_solicitud_de_instruccion *crear_solicitud_de_instruccion();
+void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *t_solicitud_de_instruccion);
 
 #endif
