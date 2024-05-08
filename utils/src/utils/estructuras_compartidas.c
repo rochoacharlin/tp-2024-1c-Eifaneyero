@@ -41,7 +41,7 @@ t_solicitud_de_instruccion *crear_solicitud_de_instruccion()
     return solicitud_de_instruccion;
 }
 
-void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud_de_instruccion);
+void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud_de_instruccion)
 {
     free(solicitud_de_instruccion);
 }
