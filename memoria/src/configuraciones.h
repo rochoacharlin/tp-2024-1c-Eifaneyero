@@ -13,7 +13,8 @@
 #define obtener_retardo_respuesta() config_get_int_value(config, "RETARDO_RESPUESTA")
 
 extern t_config *config;
-extern t_log *logger;
+extern t_log *logger_propio;
+extern t_log *logger_obligatorio;
 
 // Logs minimos y obligatorios
 void loggear_creacion_destruccion_tabla_de_paginas(int PID, int cantidad_paginas);
