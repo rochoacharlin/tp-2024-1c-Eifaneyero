@@ -24,6 +24,13 @@ typedef struct
     uint32_t desplazamiento;
 } t_solicitud_de_instruccion;
 
+typedef struct
+{
+    int PID;
+    t_registros_cpu t_registros_cpu;
+    int rafaga_CPU_ejecutada;
+} t_contexto_ejecucion;
+
 t_solicitud_de_instruccion *crear_solicitud_de_instruccion();
 void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *t_solicitud_de_instruccion);
 
