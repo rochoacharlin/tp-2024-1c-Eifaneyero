@@ -21,7 +21,6 @@ typedef enum estado
 typedef struct
 {
     int PID;
-    int PC; // no se si esto va, porque tambien esta en los registros de CPU
     int quantum;
     t_registros_cpu *registros_cpu;
     estado estado;
