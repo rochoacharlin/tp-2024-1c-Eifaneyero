@@ -1,3 +1,4 @@
+
 #include "configuraciones.h"
 
 t_log *logger_obligatorio;
@@ -19,6 +20,20 @@ int main(int argc, char *argv[])
 
     int32_t handshake_esperado = 1;
     int handshake_respuesta = handshake_servidor(logger_propio, cliente_fd, handshake_esperado);
+
+    // Por cada Hilo
+    /*recibir_paquete(cliente_fd);
+
+    switch (codigo_operacion)
+    {
+    case (SOLICITUD_INSTRUCCION):
+        // TODO: proceso de busqueda y envio de instrucciones
+        break;
+
+    default:
+        break;
+    }
+    */
 
     close(cliente_fd); // TODO es provisional
     terminar_programa(server_fd, logger_propio, config);
