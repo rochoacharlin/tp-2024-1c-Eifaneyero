@@ -12,19 +12,25 @@ void consola_interactiva(void)
     {
         if (string_starts_with(leido, "EJECUTAR_SCRIPT"))
         {
-            path = string_substring_from(leido, strlen("EJECUTAR_SCRIPT") + 1);
+            // if (strlen(leido) > strlen("EJECUTAR_SCRIPT") + 1)
+            // path = string_substring_from(leido, strlen("EJECUTAR_SCRIPT") + 1);
+
             // TODO: Leer un archivo de comandos y correrlos.
         }
         else if (string_starts_with(leido, "INICIAR_PROCESO"))
         {
-            path = string_substring_from(leido, strlen("INICIAR_PROCESO") + 1);
+            // if (strlen(leido) > strlen("INICIAR_PROCESO") + 1)
+            // path = string_substring_from(leido, strlen("INICIAR_PROCESO") + 1);
+
             // COMPLETAR: Falta toda la parte de la memoria y filesystem.
             t_pcb *pcb = crear_pcb();
             ingresar_pcb_a_NEW(pcb);
         }
         else if (string_starts_with(leido, "FINALIZAR_PROCESO"))
         {
-            PID = atoi(string_substring_from(leido, strlen("FINALIZAR_SCRIPT") + 1));
+            // if (strlen(leido) > strlen("FINALIZAR_SCRIPT") + 1)
+            // PID = atoi(string_substring_from(leido, strlen("FINALIZAR_SCRIPT") + 1));
+
             // TODO: Finalizar proceso, liberar recursos, archivos y memoria
         }
         else if (strcmp(leido, "DETENER_PLANIFICACION") == 0)
@@ -41,7 +47,9 @@ void consola_interactiva(void)
         }
         else if (string_starts_with(leido, "MULTIPROGRAMACION"))
         {
-            valor = atoi(string_substring_from(leido, strlen("MULTIPROGRAMACION") + 1));
+            // if (strlen(leido) > strlen("FINALIZAR_SCRIPT") + 1)
+            // valor = atoi(string_substring_from(leido, strlen("MULTIPROGRAMACION") + 1));
+
             // TODO: Cambiar el nivel de multiprogramacion
             // Lo cambiamos directamente en el archivo de configuracion o en una variable del codigo?
         }
@@ -55,6 +63,7 @@ void consola_interactiva(void)
         }
 
         free(leido);
+        sleep(1); // es una mala practica? se puede hacer en este caso?
         leido = readline("> ");
     }
 

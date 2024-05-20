@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "../planificacion/pcb.h"
 #include "../planificacion/planificacion.h"
+#include <unistd.h>
 
 extern t_list *pcbs_en_READY;
 extern sem_t planificacion_liberada;
