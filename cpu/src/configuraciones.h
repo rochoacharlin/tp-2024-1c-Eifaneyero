@@ -14,7 +14,8 @@
 #define obtener_algoritmo_tlb() config_get_string_value(config, "ALGORITMO_TLB")
 
 extern t_config *config;
-extern t_log *logger;
+extern t_log *logger_obligatorio;
+extern t_log *logger_propio;
 
 // Logs minimos y obligatorios
 void loggear_fetch_instrucccion(int PID, int PC);
