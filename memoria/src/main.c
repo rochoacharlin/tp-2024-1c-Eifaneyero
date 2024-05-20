@@ -7,7 +7,7 @@ t_config *config;
 int main(int argc, char *argv[])
 {
     logger_obligatorio = crear_logger("memoria_obligatorio");
-    logger_propio = crear_logger("memoria_obligatorio");
+    logger_propio = crear_logger("memoria_propio");
     log_info(logger_propio, "Iniciando Memoria ...");
 
     config = iniciar_config(logger_propio, "memoria.config");
