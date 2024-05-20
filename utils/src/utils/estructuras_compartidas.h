@@ -17,19 +17,19 @@ typedef struct
 t_registros_cpu *crear_registros_cpu();
 void destruir_registros_cpu(t_registros_cpu *registros_cpu);
 
-// PROVISORIO solicitud_de_instruccion
-typedef struct
-{
-    char *path;
-    uint32_t desplazamiento;
-} t_solicitud_de_instruccion;
-
+// CONTEXTO DE EJECUCION, KERNEL<->CPU
 typedef struct
 {
     int PID;
     t_registros_cpu t_registros_cpu;
     int rafaga_CPU_ejecutada;
 } t_contexto_ejecucion;
+
+// PROVISORIO solicitud_de_instruccion
+typedef struct
+{
+    uint32_t desplazamiento;
+} t_solicitud_de_instruccion;
 
 t_solicitud_de_instruccion *crear_solicitud_de_instruccion();
 void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *t_solicitud_de_instruccion);
