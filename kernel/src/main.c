@@ -4,30 +4,32 @@
 #include <utils/comunicacion.h>
 #include "conexiones/conexiones.h"
 
-t_log *logger;
+t_log *logger_obligatorio;
+t_log *logger_propio;
 t_config *config;
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
 
 int main(int argc, char *argv[])
 {
-    char *modulo = "kernel";
-    logger = crear_logger(modulo);
-    log_info(logger, "Iniciando Kernel ...");
+    logger_obligatorio = crear_logger("kernel_obligatorio");
+    logger_propio = crear_logger("kernel_propio");
+    log_info(logger_propio, "Iniciando Kernel ...");
 
-    config = iniciar_config(logger, "kernel.config");
+    config = iniciar_config(logger_propio, "kernel.config");
+
+    // servidor();
+    // conexion_dispatch_con_CPU();
+    // conexion_interrupt_con_CPU();
+    // conexion_con_memoria();
 
     inicializar_listas_planificacion();
     inicializar_semaforos_planificacion();
 
-    // servidor();
-    // conexion_con_CPU();
-    // conexion_con_memoria();
-
     if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
-        log_error(logger, "Error creando el hilo del planificador de largo plazo");
+        log_error(logger_propio, "Error creando el hilo del planificador de largo plazo");
     if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
-        log_error(logger, "Error creando el hilo del planificador de corto plazo");
+        log_error(logger_propio, "Error creando el hilo del planificador de corto plazo");
 
     consola_interactiva();
 

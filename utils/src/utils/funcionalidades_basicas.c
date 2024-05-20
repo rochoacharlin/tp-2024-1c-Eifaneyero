@@ -1,6 +1,6 @@
 #include <utils/funcionalidades_basicas.h>
 
-t_log *crear_logger(char *modulo) // Podria ampliarse o cambiarse
+t_log *crear_logger(char *modulo)
 {
     char *nombre_logger = string_duplicate(modulo);
     char *log = ".log";

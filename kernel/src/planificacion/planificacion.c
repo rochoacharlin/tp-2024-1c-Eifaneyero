@@ -89,7 +89,7 @@ void planificar_a_corto_plazo_segun_algoritmo(void)
     }
     else
     {
-        log_error(logger, "Algoritmo invalido. Debe ingresar FIFO, RR o VRR");
+        log_error(logger_propio, "Algoritmo invalido. Debe ingresar FIFO, RR o VRR");
         abort();
     }
 }

@@ -51,7 +51,7 @@ void consola_interactiva(void)
         }
         else
         {
-            log_error(logger, "Comando invalido.");
+            log_error(logger_propio, "Comando invalido.");
         }
 
         free(leido);
