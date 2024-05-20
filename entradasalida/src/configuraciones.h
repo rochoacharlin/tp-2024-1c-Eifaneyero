@@ -18,7 +18,8 @@
 #define obtener_retraso_compactacion() config_get_int_value(config, "RETRASO_COMPACTACION")
 
 extern t_config *config;
-extern t_log *logger;
+extern t_log *logger_propio;
+extern t_log *logger_obligatorio;
 
 // Logs minimos y obligatorios
 void loggear_operacion(int PID, char *operacion);
