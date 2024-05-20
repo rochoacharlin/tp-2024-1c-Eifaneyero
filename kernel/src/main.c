@@ -33,5 +33,10 @@ int main(int argc, char *argv[])
 
     consola_interactiva();
 
+    // creo que falta terminar las conexiones
+    log_destroy(logger_obligatorio);
+    log_destroy(logger_propio);
+    config_destroy(config);
+
     return 0;
 }
