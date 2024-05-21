@@ -23,6 +23,25 @@ t_dictionary *crear_registros_cpu()
     return registros_cpu;
 }
 
+uint32_t obtener_valor_registro(t_dictionary registros_cpu, char *nombre_registro)
+{
+    uint32_t valor;
+
+    if (strlen(nombre_registro) == 3 || !strcmp(nombre_registro, "SI") || !strcmp(nombre_registro, "DI") || !strcmp(nombre_registro, "PC")) // caso registros de 4 bytes
+    {
+        uint32_t *registro = dictionary_get(registros_cpu, nombre_registro);
+        valor = *registro;
+    }
+
+    else if (strlen(nombre_registro) == 2) // caso registros de 1 bytes
+    {
+        uint8_t *registro = dictionary_get(registros_cpu, nombre_registro);
+        valor = *registro;
+    }
+
+    return valor;
+}
+
 void destruir_registros_cpu(t_dictionary *registros_cpu)
 {
     dictionary_destroy_and_destroy_elements(registros_cpu, free());
