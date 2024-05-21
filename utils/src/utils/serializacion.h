@@ -10,8 +10,7 @@
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <string.h>
-#include <assert.h>          // ?
-#include "configuraciones.h" // ?
+#include <assert.h> // ?
 
 extern t_log *logger;
 extern t_config *config;
