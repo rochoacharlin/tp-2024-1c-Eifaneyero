@@ -7,6 +7,12 @@ t_log *logger_propio;
 t_config *config;
 t_dictionary *registros_cpu;
 
+void set(char *nombre_registro, void *valor);
+void sum(char *nombre_destino, char *nombre_origen);
+void sub(char *nombre_destino, char *nombre_origen);
+void jnz(char *nombre_registro, void *nro_instruccion);
+void io_gen_sleep(char *nombre_interfaz, void *unidades_de_trabajo);
+
 int main(int argc, char *argv[])
 {
     logger_obligatorio = crear_logger("cpu_obligatorio");
@@ -77,14 +83,48 @@ int main(int argc, char *argv[])
 
 void set(char *nombre_registro, void *valor)
 {
-    if (strlen(nombre_registro) == 3 || !strcmp(nombre_registro, "SI") || !strcmp(nombre_registro, "DI")) // caso registros de 4 bytes
+    if (strlen(nombre_registro) == 3 || !strcmp(nombre_registro, "SI") || !strcmp(nombre_registro, "DI") || !strcmp(nombre_registro, "PC")) // caso registros de 4 bytes
     {
         uint32_t *registro = dictionary_get(registros_cpu, nombre_registro);
-        *registro = (uint32_t)valor;
+        uint32_t *val = (uint32_t *)valor;
+        *registro = *val;
+        free(val);
     }
     else if (strlen(nombre_registro) == 2) // caso registros de 1 bytes
     {
         uint8_t *registro = dictionary_get(registros_cpu, nombre_registro);
-        *registro = (uint8_t)valor;
+        uint8_t *val = (uint8_t *)valor;
+        *registro = *val;
+        free(val);
     }
+}
+
+void sum(char *nombre_destino, char *nombre_origen)
+{
+    uint32_t val_destino = obtener_valor_registro(registros_cpu, nombre_destino);
+    uint32_t val_origen = obtener_valor_registro(registros_cpu, nombre_origen);
+    val_destino += val_origen;
+    set(nombre_destino, &val_destino);
+}
+
+void sub(char *nombre_destino, char *nombre_origen)
+{
+    uint32_t val_destino = obtener_valor_registro(registros_cpu, nombre_destino);
+    uint32_t val_origen = obtener_valor_registro(registros_cpu, nombre_origen);
+    val_destino -= val_origen;
+    set(nombre_destino, &val_destino);
+}
+
+void jnz(char *nombre_registro, void *nro_instruccion)
+{
+    uint32_t val = obtener_valor_registro(registros_cpu, nombre_registro);
+    if (val != 0)
+    {
+        set("PC", nro_instruccion);
+    }
+}
+
+void io_gen_sleep(char *nombre_interfaz, void *unidades_de_trabajo)
+{
+    // TODO falta que la CPU le pueda enviar un proceso al Kernel
 }
