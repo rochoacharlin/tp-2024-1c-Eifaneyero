@@ -22,7 +22,7 @@ typedef struct
 {
     int PID;
     int quantum;
-    t_registros_cpu *registros_cpu;
+    t_dictionary *registros_cpu;
     estado estado;
 } t_pcb;
 

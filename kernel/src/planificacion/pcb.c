@@ -6,7 +6,6 @@ t_pcb *crear_pcb()
 {
     t_pcb *pcb = malloc(sizeof(t_pcb));
     pcb->PID = procesos_creados++; // le asigno un PID y luego lo incremento
-    pcb->PC = 0;                   // no se si esto va, porque tambien esta en los registros de CPU
     pcb->quantum = obtener_quantum();
     pcb->registros_cpu = crear_registros_cpu();
     pcb->estado = NEW;
