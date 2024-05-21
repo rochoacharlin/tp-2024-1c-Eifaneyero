@@ -5,7 +5,7 @@
 t_log *logger_obligatorio;
 t_log *logger_propio;
 t_config *config;
-t_registros_cpu *registros_cpu;
+t_dictionary *registros_cpu;
 
 int main(int argc, char *argv[])
 {
@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     config = iniciar_config(logger_propio, "cpu.config");
 
-    registros_cpu = crear_registros_cpu;
+    registros_cpu = crear_registros_cpu();
 
     int modo_ejecucion;
     printf("Elija su modo de ejecución (numerico) \n - 0 (Servidor) \n - 2 (Conectar a Memoria) \n");
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
         int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
 
         // en una futura implementacion utilizaremos la MMU:  solicitar_instrucion(pid, nro_pagina, desplazamiento);
-        solicitar_lectura_de_instruccion(conexion, "instruciones_prueba", registros_cpu->PC); // provisoriamente lo hacemos con readline: solicitar _instrucion(path, desplazamiento)
+        // solicitar_lectura_de_instruccion(conexion, "instruciones_prueba", dictionary_get(registros_cpu, "PC")); // provisoriamente lo hacemos con readline: solicitar _instrucion(path, desplazamiento)
 
         terminar_programa(conexion, logger_propio, config);
         break;
@@ -73,4 +73,18 @@ int main(int argc, char *argv[])
     }
 
     return 0;
+}
+
+void set(char *nombre_registro, void *valor)
+{
+    if (strlen(nombre_registro) == 3 || !strcmp(nombre_registro, "SI") || !strcmp(nombre_registro, "DI")) // caso registros de 4 bytes
+    {
+        uint32_t *registro = dictionary_get(registros_cpu, nombre_registro);
+        *registro = (uint32_t)valor;
+    }
+    else if (strlen(nombre_registro) == 2) // caso registros de 1 bytes
+    {
+        uint8_t *registro = dictionary_get(registros_cpu, nombre_registro);
+        *registro = (uint8_t)valor;
+    }
 }
