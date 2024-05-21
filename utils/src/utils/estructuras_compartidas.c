@@ -2,29 +2,30 @@
 
 // REGISTROS DE CPU
 
-t_registros_cpu *crear_registros_cpu()
+t_dictionary *crear_registros_cpu()
 {
-    t_registros_cpu *registros_cpu = malloc(sizeof(t_registros_cpu));
-    if (registros_cpu != NULL)
+    t_dictionary *registros_cpu = dictionary_create();
+    if (!dictionary_size(registros_cpu))
     {
-        registros_cpu->AX = 0;
-        registros_cpu->BX = 0;
-        registros_cpu->CX = 0;
-        registros_cpu->DX = 0;
-        registros_cpu->EAX = 0;
-        registros_cpu->EBX = 0;
-        registros_cpu->ECX = 0;
-        registros_cpu->EDX = 0;
-        registros_cpu->PC = 0;
-        registros_cpu->SI = 0;
-        registros_cpu->DI = 0;
+        dictionary_put(registros_cpu, "PX", memset(malloc(sizeof(uint32_t *)), 0, 4));
+        dictionary_put(registros_cpu, "AX", memset(malloc(sizeof(uint8_t *)), 0, 1));
+        dictionary_put(registros_cpu, "BX", memset(malloc(sizeof(uint8_t *)), 0, 1));
+        dictionary_put(registros_cpu, "CX", memset(malloc(sizeof(uint8_t *)), 0, 1));
+        dictionary_put(registros_cpu, "DX", memset(malloc(sizeof(uint8_t *)), 0, 1));
+        dictionary_put(registros_cpu, "EAX", memset(malloc(sizeof(uint32_t *)), 0, 4));
+        dictionary_put(registros_cpu, "EBX", memset(malloc(sizeof(uint32_t *)), 0, 4));
+        dictionary_put(registros_cpu, "ECX", memset(malloc(sizeof(uint32_t *)), 0, 4));
+        dictionary_put(registros_cpu, "EDX", memset(malloc(sizeof(uint32_t *)), 0, 4));
+        dictionary_put(registros_cpu, "SI", memset(malloc(sizeof(uint32_t *)), 0, 4));
+        dictionary_put(registros_cpu, "DI", memset(malloc(sizeof(uint32_t *)), 0, 4));
     }
+
     return registros_cpu;
 }
 
-void destruir_registros_cpu(t_registros_cpu *registros_cpu)
+void destruir_registros_cpu(t_dictionary *registros_cpu)
 {
-    free(registros_cpu);
+    dictionary_destroy_and_destroy_elements(registros_cpu, free());
 }
 
 // PROVISORIO solicitud_de_instruccion

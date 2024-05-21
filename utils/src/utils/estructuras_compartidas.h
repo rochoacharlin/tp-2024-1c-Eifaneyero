@@ -8,20 +8,14 @@
 #include <commons/collections/list.h>
 
 // REGISTROS DE CPU,  CPU-KERNEL
-typedef struct
-{
-    uint8_t AX, BX, CX, DX;
-    uint32_t EAX, EBX, ECX, EDX, PC, SI, DI;
-} t_registros_cpu;
-
-t_registros_cpu *crear_registros_cpu();
-void destruir_registros_cpu(t_registros_cpu *registros_cpu);
+t_dictionary *crear_registros_cpu();
+void destruir_registros_cpu(t_dictionary *registros_cpu);
 
 // CONTEXTO DE EJECUCION, KERNEL<->CPU
 typedef struct
 {
     int PID;
-    t_registros_cpu t_registros_cpu;
+    t_dictionary registros_cpu;
     int rafaga_CPU_ejecutada;
 } t_contexto_ejecucion;
 
