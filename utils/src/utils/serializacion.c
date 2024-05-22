@@ -1,4 +1,4 @@
-#include <utils/serializacion.h>
+#include "serializacion.h"
 
 // ------------------------ CLIENTE ------------------------ //
 
@@ -98,7 +98,7 @@ void agregar_a_paquete_uint32(t_paquete *paquete, uint32_t data)
 
 void agregar_a_paquete_uint8(t_paquete *paquete, uint8_t data)
 {
-    agregar_a_paquete(buffer, &data, sizeof(uint8_t));
+    agregar_a_paquete(paquete, &data, sizeof(uint8_t));
 }
 
 // ------------------------ SERVIDOR ------------------------ //

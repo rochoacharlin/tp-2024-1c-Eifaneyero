@@ -31,3 +31,5 @@ void enviar_contexto_actualizado(int socket);
 void recibir_contexto_actualizado(int socket);
 // Los registros tienen una deserialización particular porque no guardan tamaño before each value
 // TODO: void deserializar_registros(void *buffer, int *desplazamiento);
+
+#endif
