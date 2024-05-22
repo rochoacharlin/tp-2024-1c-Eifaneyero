@@ -66,7 +66,8 @@ int main(int argc, char *argv[])
         int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
 
         // en una futura implementacion utilizaremos la MMU:  solicitar_instrucion(pid, nro_pagina, desplazamiento);
-        // solicitar_lectura_de_instruccion(conexion, "instruciones_prueba", dictionary_get(registros_cpu, "PC")); // provisoriamente lo hacemos con readline: solicitar _instrucion(path, desplazamiento)
+        solicitar_lectura_de_instruccion(conexion, dictionary_get(registros_cpu, "PC")); // provisoriamente lo hacemos con readline: solicitar _instrucion(conexon,desplazamiento)
+        log_info(logger_propio, "CPU Solicita Lectura de Instruccion a Memoria");
 
         terminar_programa(conexion, logger_propio, config);
         break;

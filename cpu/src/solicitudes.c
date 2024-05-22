@@ -2,17 +2,20 @@
 
 void solicitar_lectura_de_instruccion(int conexion_memoria, uint32_t desplazamiento) // TODO: faltan implementar bien las fuciones
 {
-    t_solicitud_de_instruccion solicitud = crear_solicitud_de_instruccion();
+    t_solicitud_de_instruccion *solicitud = crear_solicitud_de_instruccion();
     solicitud->desplazamiento;
-
-    t_paquete paquete = crear_paquete();
-    paquete->codigo_operacion = SOLICITUD_INSTRUCCION;
+    t_paquete *paquete = crear_paquete();
+    paquete->codigo_operacion = 0; // TODO: ENUM OPERACIONES "SOLICITUD_INSTRUCCION"
     // TODO: falta hacer tamanio_solicitud_de_instruccion, procesar_solicitud_instruccion
-    paquete->buffer = serializar_estructura(solicitud, tamanio_solicitud_instruccion, serealizar_solicitud_instruccion);
+    // paquete->buffer = serializar_estructura(solicitud, tamanio_solicitud_instruccion, serealizar_solicitud_instruccion)
 
-    t_buffer heap = serializar_paquete(paquete);
+    serializar_solicitud_de_instruccion(solicitud, paquete);
 
-    enviar_mensaje(conexion_memoria, paquete);
+    int tamanio_paquete = sizeof(op_code) + paquete->buffer->size;
+
+    serializar_paquete(paquete, tamanio_paquete);
+
+    enviar_paquete(paquete, conexion_memoria);
 
     destruir_solicitud_de_instruccion(solicitud);
     destruir_paquete(paquete);
