@@ -7,7 +7,7 @@ t_dictionary *crear_registros_cpu()
     t_dictionary *registros_cpu = dictionary_create();
     if (!dictionary_size(registros_cpu))
     {
-        dictionary_put(registros_cpu, "PX", memset(malloc(sizeof(uint32_t *)), 0, 4));
+        dictionary_put(registros_cpu, "PC", memset(malloc(sizeof(uint32_t *)), 0, 4));
         dictionary_put(registros_cpu, "AX", memset(malloc(sizeof(uint8_t *)), 0, 1));
         dictionary_put(registros_cpu, "BX", memset(malloc(sizeof(uint8_t *)), 0, 1));
         dictionary_put(registros_cpu, "CX", memset(malloc(sizeof(uint8_t *)), 0, 1));
