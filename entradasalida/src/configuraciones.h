@@ -3,8 +3,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <utils/funcionalidades_basicas.h>
 #include <utils/comunicacion.h>
+#include <utils/serializacion.h>
+#include <commons/string.h>
 
 #define obtener_tipo_interfaz() config_get_string_value(config, "TIPO_INTERFAZ")
 #define obtener_tiempo_unidad_trabajo() config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO")
