@@ -108,7 +108,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
-        // contexto_ejecucion = procesar_pcb(pcb_proximo);
+        // contexto_ejecucion = procesar_pcb_segun_algoritmo(pcb_proximo,algoritmo);
         // int rafaga_CPU = contexto_ejecucion->rafaga_CPU_ejecutada;
         // retorno_contexto(pcb_proximo, contexto_ejecucion);
     }
@@ -149,3 +149,80 @@ void destruir_semaforos_planificacion(void)
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
 }
+
+/*
+t_contexto_ejecucion *procesar_pbc_segun_algoritmo(t_contexto_ejecucion *contexto,char * algoritmo){
+
+
+
+}
+*/
+
+void ejecutar_segun_RR(t_contexto_ejecucion *contexto)
+{
+
+    // enviar_contexto_actualizado(contexto_de_ejecucion, conexion_dispatch);
+    // int quantum = rafaga_a_ejecutar(contexto_de_ejecucion);
+    int quantum = obtener_quantum();
+    slepp(quantum);
+
+    if (!termino_de_ejecutar(contexto->PID))
+    {
+
+        enviar_interrupcion(contexto->PID, conexion_interrupt);
+        // t_contexto_de_ejecucion =
+    }
+}
+
+void enviar_interrupcion(int PID, int fd)
+{
+
+    t_interrupcion *interrupcion = malloc(sizeof(interrupcion));
+    interupcion->tipo_interrupcion = FIN_DE_QUANTUM;
+    t_interrupcion->PID = PID;
+    t_paquete *paquete = crear_paquete_interrupcion(interrupcion);
+    enviar_paquete(paquete, fd);
+}
+
+t_paquete *crear_paquete_interrupcion(t_interrupcion *interr)
+{
+
+    t_paquete *paquete = malloc(sizeof(t_paquete));
+    paquete->codigo_operacion = INTERRUPCION;
+    paquete->buffer = malloc(sizeof(t_buffer));
+    paquete->buffer->size = sizeof(desalojo) + sizeof(int);
+    paquete->buffer->stream = malloc(buffer->size);
+
+    int offset = 0;
+
+    memcpy(paquete->buffer->stream + offset, &(interrupcion->motivo_interrupcion), sizeof(desalojo));
+    offset += sizeof(desalojo);
+
+    memcpy(paquete->buffer->stream + offset, &(interrupcion->pid), sizeof(int));
+
+    return paquete;
+}
+
+/*
+struct
+{
+
+    desalojo tipo_interrupcion;
+    int proceso_PID;
+} t_interrupcion;
+
+enum
+{
+    EXIT // este  para cuando haya que eliminar un proceso
+    FIN_DE_QUANTUM
+    ERROR
+} desalojo;
+//
+enum
+{
+
+    INTERRUPCION
+    DISPATCH
+} t_conexion;
+
+*/
