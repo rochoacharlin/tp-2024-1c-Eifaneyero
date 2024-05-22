@@ -41,3 +41,16 @@ void agregar_PID_a_lista_PIDS(void *valor)
     string_append_with_format(&lista_PIDS, " %s ", PID);
     free(PID);
 }
+
+t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, int PID)
+{
+    t_pcb *pcb;
+    for (int i = 0; i < list_size(lista_pcbs); i++)
+    {
+        pcb = list_get(lista_pcbs, i);
+        if (pcb->PID == PID)
+            return pcb;
+    }
+
+    return NULL;
+}

@@ -8,19 +8,23 @@
 #include <string.h>
 #include "../configuraciones.h"
 
+extern t_list *pcbs_en_NEW;
+extern t_list *pcbs_en_memoria;
+extern t_list *pcbs_en_READY;
+extern t_list *pcbs_en_EXEC;
+extern t_list *pcbs_en_BLOCKED;
+extern t_list *pcbs_en_EXIT;
+
 extern sem_t sem_grado_multiprogramacion;
 extern int grado_multiprogramacion;
-extern t_list *pcbs_en_NEW;
+
 extern sem_t hay_pcbs_NEW;
 extern pthread_mutex_t mutex_lista_NEW;
 extern pthread_mutex_t mutex_lista_READY;
-extern t_list *pcbs_en_memoria;
 extern sem_t planificacion_liberada;
-
 extern sem_t hay_pcbs_READY;
-extern int *instancias_recursos;
 
-extern t_list *pcbs_en_READY;
+extern int *instancias_recursos;
 extern char *estadosProcesos[5];
 
 // largo plazo

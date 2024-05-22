@@ -1,70 +1,28 @@
 #include "consola.h"
 
+t_comando comandos[] = {
+    {"EJECUTAR_SCRIPT", ejecutar_script},
+    {"INICIAR_PROCESO", iniciar_proceso},
+    {"FINALIZAR_PROCESO", finalizar_proceso},
+    {"DETENER_PLANIFICACION", detener_planificacion},
+    {"INICIAR_PLANIFICACION", iniciar_planificacion},
+    {"MULTIPROGRAMACION", cambiar_grado_multiprogramacion},
+    {"PROCESO_ESTADO", listar_procesos_por_cada_estado},
+};
+
 void consola_interactiva(void)
 {
-    char *leido;
-    char *path;
-    int PID;
-    int valor;
+    char *leido = readline("> ");
+    char *token = strtok(leido, " ");
 
-    leido = readline("> ");
     while (1)
     {
-        if (string_starts_with(leido, "EJECUTAR_SCRIPT"))
-        {
-            // if (strlen(leido) > strlen("EJECUTAR_SCRIPT") + 1)
-            // path = string_substring_from(leido, strlen("EJECUTAR_SCRIPT") + 1);
-
-            // TODO: Leer un archivo de comandos y correrlos.
-        }
-        else if (string_starts_with(leido, "INICIAR_PROCESO"))
-        {
-            // if (strlen(leido) > strlen("INICIAR_PROCESO") + 1)
-            // path = string_substring_from(leido, strlen("INICIAR_PROCESO") + 1);
-
-            // COMPLETAR: Falta toda la parte de la memoria y filesystem.
-            t_pcb *pcb = crear_pcb();
-            ingresar_pcb_a_NEW(pcb);
-        }
-        else if (string_starts_with(leido, "FINALIZAR_PROCESO"))
-        {
-            // if (strlen(leido) > strlen("FINALIZAR_SCRIPT") + 1)
-            // PID = atoi(string_substring_from(leido, strlen("FINALIZAR_SCRIPT") + 1));
-
-            // TODO: Finalizar proceso, liberar recursos, archivos y memoria
-        }
-        else if (strcmp(leido, "DETENER_PLANIFICACION") == 0)
-        {
-            // COMPLETAR: El proceso que se encuentra en ejecución NO es desalojado,
-            //            pero una vez que salga de EXEC se va a pausar el manejo de su motivo de desalojo.
-            sem_wait(&planificacion_liberada);
-            sem_post(&planificacion_pausada);
-        }
-        else if (strcmp(leido, "INICIAR_PLANIFICACION") == 0)
-        {
-            sem_wait(&planificacion_pausada); // para asegurar que libere la planificacion cuando este pausada.
-            sem_post(&planificacion_liberada);
-        }
-        else if (string_starts_with(leido, "MULTIPROGRAMACION"))
-        {
-            // if (strlen(leido) > strlen("FINALIZAR_SCRIPT") + 1)
-            // valor = atoi(string_substring_from(leido, strlen("MULTIPROGRAMACION") + 1));
-
-            // TODO: Cambiar el nivel de multiprogramacion
-            // Lo cambiamos directamente en el archivo de configuracion o en una variable del codigo?
-        }
-        else if (strcmp(leido, "PROCESO_ESTADO") == 0)
-        {
-            listar_procesos_por_cada_estado();
-        }
-        else
-        {
-            log_error(logger_propio, "Comando invalido.");
-        }
+        buscar_y_ejecutar_comando(token);
 
         free(leido);
         sleep(1); // es una mala practica? se puede hacer en este caso?
         leido = readline("> ");
+        token = strtok(leido, " ");
     }
 
     free(leido);
@@ -72,13 +30,59 @@ void consola_interactiva(void)
     destruir_listas_planificacion();
 }
 
+void ejecutar_script(char *path)
+{
+    // TODO: Leer un archivo de comandos y correrlos.
+}
+
+void iniciar_proceso(char *path)
+{
+    // COMPLETAR: Falta toda la parte de la memoria y filesystem.
+    t_pcb *pcb = crear_pcb();
+    ingresar_pcb_a_NEW(pcb);
+}
+
+void finalizar_proceso(char *PID)
+{
+    // TODO: Liberar recursos, archivos y memoria
+    t_pcb *pcb = buscar_pcb_por_PID(pcbs_en_memoria, PID);
+    if (pcb == NULL)
+        log_error(logger_propio, "No existe un PCB con ese PID.");
+    else
+    {
+        list_remove_element(pcbs_en_memoria, pcb);
+        pcb->estado = EXIT;
+        list_add(pcbs_en_EXIT, pcb);
+    }
+}
+
+void detener_planificacion(void)
+{
+    // COMPLETAR: El proceso que se encuentra en ejecución NO es desalojado,
+    //            pero una vez que salga de EXEC se va a pausar el manejo de su motivo de desalojo.
+    sem_wait(&planificacion_liberada);
+    sem_post(&planificacion_pausada);
+}
+
+void iniciar_planificacion(void)
+{
+    sem_wait(&planificacion_pausada); // para asegurar que libere la planificacion cuando este pausada.
+    sem_post(&planificacion_liberada);
+}
+
+void cambiar_grado_multiprogramacion(char *valor)
+{
+    // TODO: Cambiar el nivel de multiprogramacion
+    // Lo cambiamos directamente en el archivo de configuracion o en una variable del codigo?
+}
+
 void listar_procesos_por_cada_estado(void)
 {
     listar_procesos_por_estado("NEW", pcbs_en_NEW);
     listar_procesos_por_estado("READY", pcbs_en_READY);
-    // listar_procesos_por_estado("EXEC", pcbs_en_EXEC);
-    // listar_procesos_por_estado("BLOCKED", pcbs_en_BLOCKED);
-    // listar_procesos_por_estado("EXIT", pcbs_en_EXIT);
+    listar_procesos_por_estado("EXEC", pcbs_en_EXEC);
+    listar_procesos_por_estado("BLOCKED", pcbs_en_BLOCKED);
+    listar_procesos_por_estado("EXIT", pcbs_en_EXIT);
 }
 
 void listar_procesos_por_estado(char *estado, t_list *lista)
@@ -89,4 +93,21 @@ void listar_procesos_por_estado(char *estado, t_list *lista)
         t_pcb *pcb = (t_pcb *)list_get(lista, i);
         printf("    PID: %d\n", pcb->PID);
     }
+}
+
+void buscar_y_ejecutar_comando(char *token)
+{
+    int i;
+    for (i = 0; i < sizeof(comandos) / sizeof(t_comando); i++)
+    {
+        if (strcmp(token, comandos[i].nombre) == 0)
+        {
+            token = strtok(NULL, " ");
+            comandos[i].funcion_de_comando(token);
+            break;
+        }
+    }
+
+    if (i == sizeof(comandos) / sizeof(t_comando))
+        log_error(logger_propio, "Comando invalido.");
 }
