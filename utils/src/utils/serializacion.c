@@ -17,7 +17,7 @@ void *serializar_paquete(t_paquete *paquete, int bytes)
     return magic; // paquete serializado: OpCode + tamaño + stream
 }
 
-t_paquete *crear_paquete(op_code codigo_operacion) /
+t_paquete *crear_paquete(op_code codigo_operacion)
 {
     t_paquete *paquete = malloc(sizeof(t_paquete));
     paquete->codigo_operacion = codigo_operacion;
