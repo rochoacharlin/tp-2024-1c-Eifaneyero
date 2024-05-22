@@ -4,20 +4,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
-#include <unistd.h> // ?
-#include <netdb.h>  // ?
+#include <unistd.h> // library for ssize_t data type
+#include <netdb.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <string.h>
-#include <assert.h> // ?
+#include <assert.h> // testing
 
 extern t_log *logger;
 extern t_config *config;
 
 // ------------------------ CLIENTE ------------------------ //
-
-// #define SEGS_ANTES_DE_REINTENTO 3
 
 /**
  * @struct t_paquete
@@ -61,23 +59,23 @@ typedef enum
 {
     MENSAJE,
     PAQUETE,
-    CONTEXTOEJECUCION, /*
-    TABLADESEGMENTOS,
-    READ,
-    WRITE,
-    NEWPCB,
-    ENDPCB,
-    CREATE_SEGMENT_OP,
-    DELETE_SEGMENT_OP,
-    TERMINAR_KERNEL,
-    SUCCESS,
-    OUTOFMEMORY,
-    COMPACTACION,
-    FOPEN,
-    FCREATE,
-    FTRUNCATE,
-    FREAD,
-    FWRITE */
+    CONTEXTOEJECUCION /*,
+     TABLADESEGMENTOS,
+     READ,
+     WRITE,
+     NEWPCB,
+     ENDPCB,
+     CREATE_SEGMENT_OP,
+     DELETE_SEGMENT_OP,
+     TERMINAR_KERNEL,
+     SUCCESS,
+     OUTOFMEMORY,
+     COMPACTACION,
+     FOPEN,
+     FCREATE,
+     FTRUNCATE,
+     FREAD,
+     FWRITE */
 
 } op_code;
 
@@ -145,6 +143,10 @@ void crear_buffer(t_paquete *paquete);
  * @return Se retorna el formato serializado como un void*.
  */
 void *serializar_paquete(t_paquete *paquete, int bytes);
+
+void agregar_a_paquete_uint32(t_paquete *paquete, uint32_t data);
+
+void agregar_a_paquete_uint8(t_paquete *paquete, uint8_t data);
 
 // ------------------------ SERVIDOR ------------------------ //
 

@@ -1,4 +1,4 @@
-#include "utils/serializacion.h"
+#include <utils/serializacion.h>
 
 // ------------------------ CLIENTE ------------------------ //
 
@@ -14,13 +14,13 @@ void *serializar_paquete(t_paquete *paquete, int bytes)
     memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
     desplazamiento += paquete->buffer->size;
 
-    return magic;
+    return magic; // paquete serializado: OpCode + tamaño + stream
 }
 
-t_paquete *crear_paquete(void) // No debería recibir OpCode?
+t_paquete *crear_paquete(op_code codigo_operacion) /
 {
     t_paquete *paquete = malloc(sizeof(t_paquete));
-    paquete->codigo_operacion = PAQUETE;
+    paquete->codigo_operacion = codigo_operacion;
     crear_buffer(paquete);
     return paquete;
 }
@@ -35,17 +35,17 @@ void crear_buffer(t_paquete *paquete)
 
 void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio)
 {
-    paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
+    paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + sizeof(int) + tamanio); // Tamaño previo + int que contendrá tamañoDeDatoNuevo + tamanioDatoNuevo
 
-    memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));
-    memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio);
+    memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int));        // Agrego tamaño del dato nuevo al paquete
+    memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio); // Agrego dato nuevo al paquete
 
     paquete->buffer->size += tamanio + sizeof(int);
 }
 
 void enviar_paquete(t_paquete *paquete, int socket)
 {
-    int bytes = paquete->buffer->size + 2 * sizeof(int);
+    int bytes = paquete->buffer->size + 2 * sizeof(int); // tamaño del stream + int con streamSize + opCode
     void *a_enviar = serializar_paquete(paquete, bytes);
 
     // debug ("Enviando paquete con tamaño %d, de %d bytes.", paquete->buffer->size, bytes);
@@ -55,7 +55,7 @@ void enviar_paquete(t_paquete *paquete, int socket)
     free(a_enviar);
 }
 
-void enviar_cod_op(op_code codigo_de_operacion, int socket) // What's it used for?
+void enviar_cod_op(op_code codigo_de_operacion, int socket)
 {
     void *buffer = malloc(sizeof(int));
     memcpy(buffer, &(codigo_de_operacion), sizeof(int));
@@ -89,27 +89,21 @@ void eliminar_paquete(t_paquete *paquete)
     free(paquete->buffer);
     free(paquete);
 }
-// -------------------------
+// ------------------------ Funciones por tipo de dato ------------------------ //
 
-void buffer_agregar_uint32(t_paquete *paquete, uint32_t data)
+void agregar_a_paquete_uint32(t_paquete *paquete, uint32_t data)
 {
     agregar_a_paquete(paquete, &data, sizeof(uint32_t));
 }
 
-void buffer_agregar_uint8(t_paquete *paquete, uint8_t data)
+void agregar_a_paquete_uint8(t_paquete *paquete, uint8_t data)
 {
     agregar_a_paquete(buffer, &data, sizeof(uint8_t));
 }
 
-void buffer_agregar_string(t_paquete *paquete, uint32_t tamanio, char *string)
-{
-    buffer_agregar_uint32(paquete, tamanio);
-    agregar_a_paquete(paquete, string, tamanio);
-}
-
 // ------------------------ SERVIDOR ------------------------ //
 
-int recibir_operacion(int socket) // En base a operacion recibida -> efino como deserializar el buffer
+int recibir_operacion(int socket) // En base a operacion recibida -> defino como deserializar el buffer
 {
     int cod_op;
     if (recv(socket, &cod_op, sizeof(int), MSG_WAITALL) > 0)
