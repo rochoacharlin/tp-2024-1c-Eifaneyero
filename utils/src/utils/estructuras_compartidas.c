@@ -44,7 +44,7 @@ uint32_t obtener_valor_registro(t_dictionary *registros_cpu, char *nombre_regist
 
 void destruir_registros_cpu(t_dictionary *registros_cpu)
 {
-    // dictionary_destroy_and_destroy_elements(registros_cpu, free()); ???
+    dictionary_destroy_and_destroy_elements(registros_cpu, free);
 }
 
 // PROVISORIO solicitud_de_instruccion
