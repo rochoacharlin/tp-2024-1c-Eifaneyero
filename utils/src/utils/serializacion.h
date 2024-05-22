@@ -24,7 +24,7 @@ typedef enum
 {
     MENSAJE,
     PAQUETE,
-    CONTEXTOEJECUCION /*,
+    CONTEXTO_EJECUCION /*,
      TABLADESEGMENTOS,
      READ,
      WRITE,

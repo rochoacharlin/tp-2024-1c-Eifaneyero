@@ -13,7 +13,7 @@ void iniciar_contexto()
 
 void enviar_contexto_actualizado(int socket)
 {
-    t_paquete *paquete = crear_paquete(contexto_ejecucion);
+    t_paquete *paquete = crear_paquete(CONTEXTO_EJECUCION);
 
     agregar_a_paquete(paquete, (void *)&contexto_ejecucion->PID, sizeof(contexto_ejecucion->PID));
     agregar_registros_cpu_a_paquete(paquete, contexto_ejecucion->registros_cpu);

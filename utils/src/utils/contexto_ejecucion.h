@@ -8,7 +8,7 @@
 typedef struct
 {
     uint8_t PID;
-    t_dictionary registros_cpu;
+    t_dictionary *registros_cpu;
     uint8_t rafaga_cpu_ejecutada;
 } t_contexto_ejecucion;
 

@@ -23,7 +23,7 @@ t_dictionary *crear_registros_cpu()
     return registros_cpu;
 }
 
-uint32_t obtener_valor_registro(t_dictionary registros_cpu, char *nombre_registro)
+uint32_t obtener_valor_registro(t_dictionary *registros_cpu, char *nombre_registro)
 {
     uint32_t valor;
 
@@ -44,7 +44,7 @@ uint32_t obtener_valor_registro(t_dictionary registros_cpu, char *nombre_registr
 
 void destruir_registros_cpu(t_dictionary *registros_cpu)
 {
-    dictionary_destroy_and_destroy_elements(registros_cpu, free());
+    // dictionary_destroy_and_destroy_elements(registros_cpu, free()); ???
 }
 
 // PROVISORIO solicitud_de_instruccion
@@ -67,7 +67,7 @@ void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud_de_
 
 void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_paquete *paquete)
 {
-    agregar_a_paquete(paquete, solicitud, tamanio_solicitud_de_instruccion(solicitud);
+    agregar_a_paquete(paquete, solicitud, tamanio_solicitud_de_instruccion(solicitud));
 }
 
 void deserializar_solicitud_de_instruccion()
@@ -75,7 +75,7 @@ void deserializar_solicitud_de_instruccion()
     // TODO
 }
 
-void tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud)
+int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud)
 {
     return sizeof(int32_t); // por ahora
 }
