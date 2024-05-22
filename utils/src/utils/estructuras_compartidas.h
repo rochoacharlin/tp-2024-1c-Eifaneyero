@@ -7,6 +7,7 @@
 #include <commons/string.h>
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
+#include "utils/serializacion.h"
 
 // REGISTROS DE CPU,  CPU-KERNEL
 t_dictionary *crear_registros_cpu();
@@ -29,5 +30,8 @@ typedef struct
 
 t_solicitud_de_instruccion *crear_solicitud_de_instruccion();
 void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *t_solicitud_de_instruccion);
+void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_paquete *paquete);
+void deserializar_solicitud_de_instruccion();
+int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud);
 
 #endif
