@@ -54,3 +54,19 @@ t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, uint32_t PID)
 
     return NULL;
 }
+
+void actualizar_pcb(t_pcb *proceso)
+{
+    proceso->PID = contexto_ejecucion->PID;
+    dictionary_destroy_and_destroy_elements(proceso->registros_cpu, free);
+    proceso->registros_cpu = copiar_registros_cpu(contexto_ejecucion->registros_cpu);
+    contexto_ejecucion->rafaga_cpu_ejecutada = 7; // TODO!
+}
+
+void asignar_valores_pcb_a_contexto(t_pcb *proceso)
+{
+    contexto_ejecucion->PID = proceso->PID;
+    dictionary_destroy_and_destroy_elements(contexto_ejecucion->registros_cpu, free);
+    contexto_ejecucion->registros_cpu = copiar_registros_cpu(proceso->registros_cpu);
+    contexto_ejecucion->rafaga_cpu_ejecutada = 7; // TODO!
+}

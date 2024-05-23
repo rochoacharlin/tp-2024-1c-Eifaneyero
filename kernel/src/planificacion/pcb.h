@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 #include "../configuraciones.h"
 #include "../../../utils/src/utils/estructuras_compartidas.h"
 
@@ -37,5 +38,11 @@ void encolar_pcb(t_list *pcbs, t_pcb *pcb);
 void mostrar_PIDS(t_list *pcbs);
 void agregar_PID_a_lista_PIDS(void *pcb);
 t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, uint32_t PID);
+
+// Actualizo PCB en base a contexto de ejecución global
+void actualizar_pcb(t_pcb *proceso);
+
+// Toma valores de un pcb y asigno a contexto de ejecucion para pasar a CPU
+void asignar_valores_pcb_a_contexto(t_pcb *proceso);
 
 #endif
