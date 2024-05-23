@@ -1,15 +1,19 @@
 #include "planificacion.h"
 
-sem_t hay_pcbs_NEW;
+t_list *pcbs_en_EXIT;
+t_list *pcbs_en_READY;
 t_list *pcbs_en_NEW;
-sem_t sem_grado_multiprogramacion;
 t_list *pcbs_en_memoria;
+t_list *pcbs_en_EXEC;
+t_list *pcbs_en_BLOCKED;
+
+sem_t hay_pcbs_NEW;
+sem_t hay_pcbs_READY;
+sem_t sem_grado_multiprogramacion;
 pthread_mutex_t mutex_lista_NEW;
 pthread_mutex_t mutex_lista_READY;
 sem_t planificacion_liberada;
 sem_t planificacion_pausada;
-t_list *pcbs_en_READY;
-sem_t hay_pcbs_READY;
 int32_t procesos_creados = 0;
 
 void planificar_a_largo_plazo(void)
@@ -80,12 +84,11 @@ void planificar_a_corto_plazo_segun_algoritmo(void)
     }
     else if (strcmp(algoritmo, "RR") == 0)
     {
-        planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO);
+        // TODO: Solucion RR
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
         // TODO: Solucion VRR
-        // si encuntra que hay pcbs en la cola_ready+, se ejecutara ese
     }
     else
     {
@@ -104,12 +107,15 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
 
         estado anterior = pcb_proximo->estado;
         pcb_proximo->estado = EXEC;
+        list_add(pcbs_en_EXEC, pcb_proximo);
 
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
         // contexto_ejecucion = procesar_pcb_segun_algoritmo(pcb_proximo,algoritmo);
         // int rafaga_CPU = contexto_ejecucion->rafaga_CPU_ejecutada;
+        list_remove_element(pcbs_en_EXEC, pcb_proximo);
+        list_add(pcbs_en_BLOCKED, pcb_proximo); // provisional
         // retorno_contexto(pcb_proximo, contexto_ejecucion);
     }
 }
@@ -124,12 +130,19 @@ void inicializar_listas_planificacion(void)
     pcbs_en_NEW = list_create();
     pcbs_en_READY = list_create();
     pcbs_en_memoria = list_create();
+    pcbs_en_EXEC = list_create();
+    pcbs_en_BLOCKED = list_create();
+    pcbs_en_EXIT = list_create();
 }
 
 void destruir_listas_planificacion(void)
 {
     list_destroy_and_destroy_elements(pcbs_en_NEW, (void *)destruir_pcb);
     list_destroy_and_destroy_elements(pcbs_en_READY, (void *)destruir_pcb);
+    list_destroy_and_destroy_elements(pcbs_en_memoria, (void *)destruir_pcb);
+    list_destroy_and_destroy_elements(pcbs_en_EXEC, (void *)destruir_pcb);
+    list_destroy_and_destroy_elements(pcbs_en_BLOCKED, (void *)destruir_pcb);
+    list_destroy_and_destroy_elements(pcbs_en_EXIT, (void *)destruir_pcb);
 }
 
 void inicializar_semaforos_planificacion(void)
@@ -149,7 +162,6 @@ void destruir_semaforos_planificacion(void)
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
 }
-
 /*
 t_contexto_ejecucion *procesar_pbc_segun_algoritmo(t_contexto_ejecucion *contexto,char * algoritmo){
 
