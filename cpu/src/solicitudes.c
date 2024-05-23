@@ -16,5 +16,5 @@ void solicitar_lectura_de_instruccion(int conexion_memoria, uint32_t desplazamie
     enviar_paquete(paquete, conexion_memoria);
 
     destruir_solicitud_de_instruccion(solicitud);
-    destruir_paquete(paquete);
+    eliminar_paquete(paquete);
 }
