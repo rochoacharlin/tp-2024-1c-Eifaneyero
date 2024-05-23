@@ -1,6 +1,5 @@
 #include "conexiones.h"
 
-t_buffer *buffer_contexto;
 int conexion_a_cpu_dispatch;  // socket
 int conexion_a_cpu_interrupt; // socket
 
