@@ -7,20 +7,12 @@
 #include <commons/string.h>
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
-#include "utils/serializacion.h"
+#include "serializacion.h"
 
 // REGISTROS DE CPU,  CPU-KERNEL
 t_dictionary *crear_registros_cpu();
 uint32_t obtener_valor_registro(t_dictionary *registros_cpu, char *nombre_registro);
 void destruir_registros_cpu(t_dictionary *registros_cpu);
-
-// CONTEXTO DE EJECUCION, KERNEL<->CPU
-typedef struct
-{
-    int PID;
-    t_dictionary registros_cpu;
-    int rafaga_CPU_ejecutada;
-} t_contexto_ejecucion;
 
 // PROVISORIO solicitud_de_instruccion
 typedef struct
