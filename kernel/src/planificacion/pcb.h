@@ -20,7 +20,7 @@ typedef enum estado
 
 typedef struct
 {
-    int PID;
+    uint32_t PID;
     int quantum;
     t_dictionary *registros_cpu;
     estado estado;
@@ -36,6 +36,6 @@ t_pcb *desencolar_pcb(t_list *pcbs);
 void encolar_pcb(t_list *pcbs, t_pcb *pcb);
 void mostrar_PIDS(t_list *pcbs);
 void agregar_PID_a_lista_PIDS(void *pcb);
-t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, int PID);
+t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, uint32_t PID);
 
 #endif
