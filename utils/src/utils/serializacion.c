@@ -25,7 +25,6 @@ t_paquete *crear_paquete(op_code codigo_operacion)
     return paquete;
 }
 
-// lo que hacen las funciones crear buffer y crear paquete ya lo hace la funcion enviar mensaje
 void crear_buffer(t_paquete *paquete)
 {
     paquete->buffer = malloc(sizeof(t_buffer));
@@ -48,8 +47,6 @@ void enviar_paquete(t_paquete *paquete, int socket)
     int bytes = paquete->buffer->size + 2 * sizeof(int); // tamaño del stream + int con streamSize + opCode
     void *a_enviar = serializar_paquete(paquete, bytes);
 
-    // debug ("Enviando paquete con tamaño %d, de %d bytes.", paquete->buffer->size, bytes);
-
     send(socket, a_enviar, bytes, 0);
 
     free(a_enviar);
@@ -62,8 +59,8 @@ void enviar_cod_op(op_code codigo_de_operacion, int socket)
     send(socket, buffer, sizeof(int), 0);
     free(buffer);
 }
-
-void enviar_mensaje(char *mensaje, int socket) // What's it used for?
+// Crea buffer y crear paquete previo al envio
+void enviar_mensaje(char *mensaje, int socket) // ?
 {
     t_paquete *paquete = malloc(sizeof(t_paquete));
 
@@ -115,6 +112,7 @@ int recibir_operacion(int socket) // En base a operacion recibida -> defino como
     }
 }
 
+// Paso puntero a entero (size) para guardar tamaño del buffer (usado para deserializar)
 void *recibir_buffer(int socket, int *size) //
 {
     void *buffer;
@@ -123,11 +121,10 @@ void *recibir_buffer(int socket, int *size) //
     buffer = malloc(*size);
     recv(socket, buffer, *size, MSG_WAITALL);
 
-    // debug("Recibido paquete con tamaño %d", *(size));
     return buffer;
 }
 
-char *recibir_mensaje(int socket) // What's it used for?
+char *recibir_mensaje(int socket) // ?
 {
     int size;
     char *buffer = recibir_buffer(socket, &size);
