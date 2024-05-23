@@ -1,4 +1,4 @@
-#include "utils/contexto_ejecucion.h"
+#include "contexto_ejecucion.h"
 
 t_contexto_ejecucion *contexto_ejecucion = NULL;
 
@@ -6,9 +6,15 @@ void iniciar_contexto()
 {
     contexto_ejecucion = malloc(sizeof(t_contexto_ejecucion));
     contexto_ejecucion->PID = 0;
-    // contexto_ejecucion->program_counter = 0; Definimos que queda en los registros de CPU nada mas?
-    contexto_ejecucion->registros_cpu = dictionary_create(); // ó crear_diccionario_registros_de_cpu()
+    contexto_ejecucion->registros_cpu = dictionary_create();
     contexto_ejecucion->rafaga_cpu_ejecutada = 0;
+}
+
+void destruir_contexto()
+{
+    dictionary_destroy_and_destroy_elements(contexto_ejecucion->registros_cpu, free);
+    free(contexto_ejecucion);
+    contexto_ejecucion = NULL;
 }
 
 void enviar_contexto_actualizado(int socket)
@@ -32,79 +38,51 @@ void agregar_registros_cpu_a_paquete(t_paquete *paquete, t_dictionary *registros
         char *registroAX = (char *)dictionary_get(registros_cpu, name);
         char *registroEAX = (char *)dictionary_get(registros_cpu, long_name);
 
-        agregar_a_paquete(paquete, (void *)registroAX, sizeof(char) * 8);   // "A/B/C/D X"
-        agregar_a_paquete(paquete, (void *)registroEAX, sizeof(char) * 32); //  "E A/B/C/D X"
+        agregar_a_paquete(paquete, (void *)registroAX, sizeof(uint8_t));   // "A/B/C/D X"
+        agregar_a_paquete(paquete, (void *)registroEAX, sizeof(uint32_t)); //  "E A/B/C/D X"
 
         name[0]++;
         long_name[1]++;
     }
 
-    agregar_a_paquete(paquete, (void *)dictionary_get(registros_cpu, "PC"), sizeof(char) * 32);
-    agregar_a_paquete(paquete, (void *)dictionary_get(registros_cpu, "SI"), sizeof(char) * 32);
-    agregar_a_paquete(paquete, (void *)dictionary_get(registros_cpu, "DI"), sizeof(char) * 32);
+    agregar_a_paquete(paquete, (void *)dictionary_get(registros_cpu, "PC"), sizeof(uint32_t));
+    agregar_a_paquete(paquete, (void *)dictionary_get(registros_cpu, "SI"), sizeof(uint32_t));
+    agregar_a_paquete(paquete, (void *)dictionary_get(registros_cpu, "DI"), sizeof(uint32_t));
 }
 
-// Hay otra función para recibir OpCode
-/* TODO:
-void recibir_contexto_actualizado(int socket)
+// HORRIBLE? Si. Probar
+void recibir_contexto_y_actualizar_global(int socket)
 {
     if (contexto_ejecucion != NULL)
         destruir_contexto();
     iniciar_contexto();
-    int size, desplazamiento = 0;
-    void *buffer;
+    t_list *registros_contexto = recibir_paquete(socket);
 
-    buffer = recibir_buffer(socket, &size);
+    memcpy(&(contexto_ejecucion->PID), (uint32_t *)list_get(registros_contexto, 0), sizeof(uint32_t));
+    dictionary_put(contexto_ejecucion->registros_cpu, "AX",
+                   memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 1), 1));
+    dictionary_put(contexto_ejecucion->registros_cpu, "EAX",
+                   memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 2), 4));
+    dictionary_put(contexto_ejecucion->registros_cpu, "BX",
+                   memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 3), 1));
+    dictionary_put(contexto_ejecucion->registros_cpu, "EBX",
+                   memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 4), 4));
+    dictionary_put(contexto_ejecucion->registros_cpu, "CX",
+                   memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 5), 1));
+    dictionary_put(contexto_ejecucion->registros_cpu, "ECX",
+                   memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 6), 4));
+    dictionary_put(contexto_ejecucion->registros_cpu, "DX",
+                   memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 7), 1));
+    dictionary_put(contexto_ejecucion->registros_cpu, "EDX",
+                   memset(malloc(sizeof(uint32_t *)), *(uint8_t *)list_get(registros_contexto, 8), 4));
+    dictionary_put(contexto_ejecucion->registros_cpu, "PC",
+                   memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 9), 4));
+    dictionary_put(contexto_ejecucion->registros_cpu, "SI",
+                   memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 10), 4));
+    dictionary_put(contexto_ejecucion->registros_cpu, "DI",
+                   memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 11), 4));
+    memcpy(&(contexto_ejecucion->rafaga_cpu_ejecutada),
+           (uint64_t *)list_get(registros_contexto, 12), sizeof(uint64_t));
 
-    // Desplazamiento: Tamaño de PID, PID, y tamaño de program_counter.
-    desplazamiento += sizeof(int); // tamaño del opCode
-    memcpy(&(contexto_ejecucion->pid), buffer + desplazamiento, sizeof(uint32_t));
-    desplazamiento += sizeof(contexto_ejecucion->pid) + sizeof(int);
-
-    deserializar_registros(buffer, &desplazamiento);
-
-    // Desplazamiento: Tamaño de la rafaga de CPU ejecutada.
-    desplazamiento += sizeof(int);
-    memcpy(&(contexto_ejecucion->rafaga_cpu_ejecutada), buffer + desplazamiento, sizeof(uint64_t));
-
-    free(buffer);
+    list_destroy_and_destroy_elements(registros_contexto, free);
 }
-*/
-/*
-TODO:
-
-void deserializar_registros(void * buffer, int * desplazamiento) {
-    dictionary_clean_and_destroy_elements(contexto_ejecucion->registros_cpu, free);
-
-    char *temp, nombre[3] = "AX", nombre_largo[4] = "EAX";
-
-    for (int i = 0; i < 4; i++) {
-        ssize_t tamanio_actual = sizeof(char) * (4 * pow(2, i) + 1);
-        for (int j = 0; j < 4; j++) {
-            temp = malloc(tamanio_actual);
-
-            // Desplazamiento: Registro actual y tamaño del proximo registro.
-            // (Para el ultimo registro pasa a ser el tamaño del comando de desalojo)
-            memcpy(temp, buffer + (*desplazamiento), tamanio_actual);
-            (*desplazamiento) += tamanio_actual + sizeof(int);
-            //debug("%s", temp);
-
-            //char * auxiliar =
-                //string_substring(temp, 0, tamanio_actual - 1);
-            dictionary_put(contexto_ejecucion->registros_cpu, (i) ? nombre_largo : nombre, temp);
-            //free(temp);
-            nombre[0]++, nombre_largo[1]++;
-        }
-        nombre_largo[1] = 'A', nombre_largo[0] = (i == 1) ? 'R' : 'E';
-    }
-}
-*/
-
-/*
-
-void destruir_contexto() {
-    dictionary_destroy_and_destroy_elements(contexto_ejecucion->registros_cpu, free);
-    free(contexto_ejecucion);
-    contexto_ejecucion = NULL;
-}
-*/
