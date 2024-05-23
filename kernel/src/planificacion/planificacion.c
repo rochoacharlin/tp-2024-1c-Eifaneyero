@@ -15,6 +15,7 @@ pthread_mutex_t mutex_lista_READY;
 sem_t planificacion_liberada;
 sem_t planificacion_pausada;
 int32_t procesos_creados = 0;
+pthread_t hilo_Q;
 
 void planificar_a_largo_plazo(void)
 {
@@ -78,17 +79,14 @@ void planificar_a_corto_plazo_segun_algoritmo(void)
 {
     char *algoritmo = obtener_algoritmo_planificacion();
 
-    if (strcmp(algoritmo, "FIFO") == 0)
+    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0)
     {
         planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO);
-    }
-    else if (strcmp(algoritmo, "RR") == 0)
-    {
-        // TODO: Solucion RR
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
         // TODO: Solucion VRR
+        // se debe fija la lista_ready+
     }
     else
     {
@@ -112,7 +110,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
-        // contexto_ejecucion = procesar_pcb_segun_algoritmo(pcb_proximo,algoritmo);
+        contexto_ejecucion = procesar_pcb_segun_algoritmo(pcb_proximo, algoritmo);
         // int rafaga_CPU = contexto_ejecucion->rafaga_CPU_ejecutada;
         list_remove_element(pcbs_en_EXEC, pcb_proximo);
         list_add(pcbs_en_BLOCKED, pcb_proximo); // provisional
@@ -162,20 +160,47 @@ void destruir_semaforos_planificacion(void)
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
 }
-/*
-t_contexto_ejecucion *procesar_pbc_segun_algoritmo(t_contexto_ejecucion *contexto,char * algoritmo){
 
+t_contexto_ejecucion *procesar_pbc_segun_algoritmo(t_pcb *pcb, char *algoritmo)
+{
 
+    t_contexto_ejecucion *contexto_ejecucion;
 
+    if (strcmp(algoritmo, "FIFO") == 0)
+    {
+        // contexto_ejecucion=ejecutar_segun_FIFO
+    }
+    else if (strcmp(algoritmo, "RR") == 0)
+    {
+        contexto_ejecucion = ejecutar_segun_RR(pcb);
+    }
+    else if (strcmp(algoritmo, "VRR") == 0)
+    {
+        // TODO
+    }
+    else
+    {
+        log_error(logger_propio, "Algoritmo invalido. Debe ingresar FIFO, RR o VRR");
+        abort();
+    }
+
+    return contexto_ejecucion;
+}
+
+/* //
+t_contexto_ejecucion* ejecutar_segun_FIFO(){
+
+    //TODO
 }
 */
 
+// Implementacion a probar
 t_contexto_ejecucion *ejecutar_segun_RR(t_pcb *pcb)
 {
 
     enviar_contexto_actualizado(pcb->contexto, conexion_dispatch);
     int quantum = obtener_quantum();
-    pthread_t hilo_Q;
+
     pthread_create(&hilo_Q, NULL, ejecutar_quamtum, (*void)&pcb);
     pthread_detach(hilo_Q);
     t_contexto_ejecucion *contexto;
@@ -187,8 +212,8 @@ t_contexto_ejecucion *ejecutar_segun_RR(t_pcb *pcb)
 
 t_contexto_ejecucion *esperar_contexto()
 {
-    // TODO
-    // recv(conexion_dispatch,*buffer_contexto,tamanio,0 )
+    // Probar si funciona o implementar de otra manera
+    // recibir_contexto_y_actualizar(conexion_dispacht )
 }
 
 void *ejecutar_quamtum(void *pcb)
@@ -233,7 +258,7 @@ t_paquete *crear_paquete_interrupcion(t_interrupcion *interr)
 
 /*
 
-// No se a donde
+// ponerlo en uitl, pero primero pregunatar si se podria usar asi
 
 struct
 {
@@ -248,7 +273,9 @@ enum
     FIN_DE_QUANTUM
     ERROR
 } desalojo;
-//
+
+// iria en CPU,pero falta ver como se implementa ciclo de instruccion.
+
 enum
 {
 
@@ -257,5 +284,5 @@ enum
 
 } t_conexion;
 
-en cpu
+
 */
