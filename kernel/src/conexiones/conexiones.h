@@ -12,6 +12,9 @@
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
 
+extern int conexion_a_cpu_dispatch;  // socket
+extern int conexion_a_cpu_interrupt; // socket
+
 void servidor(void);
 void conexion_dispatch_con_CPU(void);
 void conexion_interrupt_con_CPU(void);
