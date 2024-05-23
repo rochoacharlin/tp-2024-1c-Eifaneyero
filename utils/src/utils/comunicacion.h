@@ -10,6 +10,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#define obtener_configuracion(clave) config_get_string_value(config, clave)
+
+extern t_config *config;
+
 typedef struct
 {
     int ai_flags;
@@ -22,11 +26,16 @@ typedef struct
     struct addrinfo *ai_next;
 } addrinfo;
 
-int crear_conexion(t_log *logger, char *ip, char *puerto);
+void terminar_programa(int conexion, t_log *logger, t_config *config);
+
+//----SERVIDOR----
 int iniciar_servidor(t_log *logger, char *puerto);
 int esperar_cliente(t_log *logger, int server_socket);
-void terminar_programa(int conexion, t_log *logger, t_config *config);
-int handshake_cliente(t_log *logger, int conexion, int handshake);
-int handshake_servidor(t_log *logger, int conexion, int handshake);
+int handshake_servidor(t_log *logger, int conexion, int32_t handshake);
+
+//----CLIENTE----
+int crear_conexion(t_log *logger, char *ip, char *puerto);
+int handshake_cliente(t_log *logger, int conexion, int32_t handshake);
+int conectar_a(char *servidor, t_log *logger, int tiempo_de_reintento_seg);
 
 #endif

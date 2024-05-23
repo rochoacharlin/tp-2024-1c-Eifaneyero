@@ -147,3 +147,31 @@ int handshake_servidor(t_log *logger, int conexion, int32_t handshake_esperado)
         return 0;
     }
 }
+
+int conectar_a(char *servidor, t_log *logger, int tiempo_de_reintento_seg)
+{
+    // tomo el puerto y el ip de un servidor de forma generica
+    char *claves[] = {
+        string_from_format("PUERTO_%s", servidor),
+        string_from_format("IP_%s", servidor),
+    };
+    char *puerto = obtener_configuracion(claves[0]);
+    free(claves[0]);
+    char *ip = obtener_configuracion(claves[1]);
+    free(claves[1]);
+    int conexion = -1;
+
+    // mientras la conexion es fallida
+    while (conexion == -1)
+    {
+        conexion = crear_conexion(logger, ip, puerto);
+        if (conexion == -1)
+        {
+            log_warning(logger, "No se pudo conectar a %s, en %d segundos se reintentara conectar.", servidor, tiempo_de_reintento_seg);
+            sleep(tiempo_de_reintento_seg);
+        }
+    }
+    log_info(logger, "Conectado a %s, en socket %d", servidor, conexion);
+
+    return conexion;
+}
