@@ -3,7 +3,7 @@
 // socket
 int conexion_cpu_memoria;
 
-void void servidor_dispatch(void)
+void servidor_dispatch(void)
 {
     int server_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha_dispatch());
     log_info(logger_propio, "CPU lista para recibir clientes (dispatch)");
