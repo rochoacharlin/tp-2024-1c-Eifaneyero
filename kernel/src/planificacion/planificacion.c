@@ -1,19 +1,15 @@
 #include "planificacion.h"
 
-t_list *pcbs_en_EXIT;
-t_list *pcbs_en_READY;
-t_list *pcbs_en_NEW;
-t_list *pcbs_en_memoria;
-t_list *pcbs_en_EXEC;
-t_list *pcbs_en_BLOCKED;
-
 sem_t hay_pcbs_NEW;
-sem_t hay_pcbs_READY;
+t_list *pcbs_en_NEW;
 sem_t sem_grado_multiprogramacion;
+t_list *pcbs_en_memoria;
 pthread_mutex_t mutex_lista_NEW;
 pthread_mutex_t mutex_lista_READY;
 sem_t planificacion_liberada;
 sem_t planificacion_pausada;
+t_list *pcbs_en_READY;
+sem_t hay_pcbs_READY;
 int32_t procesos_creados = 0;
 
 void planificar_a_largo_plazo(void)
@@ -84,11 +80,12 @@ void planificar_a_corto_plazo_segun_algoritmo(void)
     }
     else if (strcmp(algoritmo, "RR") == 0)
     {
-        // TODO: Solucion RR
+        planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
         // TODO: Solucion VRR
+        // si encuntra que hay pcbs en la cola_ready+, se ejecutara ese
     }
     else
     {
@@ -107,15 +104,12 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
 
         estado anterior = pcb_proximo->estado;
         pcb_proximo->estado = EXEC;
-        list_add(pcbs_en_EXEC, pcb_proximo);
 
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
         // contexto_ejecucion = procesar_pcb_segun_algoritmo(pcb_proximo,algoritmo);
         // int rafaga_CPU = contexto_ejecucion->rafaga_CPU_ejecutada;
-        list_remove_element(pcbs_en_EXEC, pcb_proximo);
-        list_add(pcbs_en_BLOCKED, pcb_proximo); // provisional
         // retorno_contexto(pcb_proximo, contexto_ejecucion);
     }
 }
@@ -130,19 +124,12 @@ void inicializar_listas_planificacion(void)
     pcbs_en_NEW = list_create();
     pcbs_en_READY = list_create();
     pcbs_en_memoria = list_create();
-    pcbs_en_EXEC = list_create();
-    pcbs_en_BLOCKED = list_create();
-    pcbs_en_EXIT = list_create();
 }
 
 void destruir_listas_planificacion(void)
 {
     list_destroy_and_destroy_elements(pcbs_en_NEW, (void *)destruir_pcb);
     list_destroy_and_destroy_elements(pcbs_en_READY, (void *)destruir_pcb);
-    list_destroy_and_destroy_elements(pcbs_en_memoria, (void *)destruir_pcb);
-    list_destroy_and_destroy_elements(pcbs_en_EXEC, (void *)destruir_pcb);
-    list_destroy_and_destroy_elements(pcbs_en_BLOCKED, (void *)destruir_pcb);
-    list_destroy_and_destroy_elements(pcbs_en_EXIT, (void *)destruir_pcb);
 }
 
 void inicializar_semaforos_planificacion(void)
@@ -171,23 +158,36 @@ t_contexto_ejecucion *procesar_pbc_segun_algoritmo(t_contexto_ejecucion *context
 }
 */
 
-void ejecutar_segun_RR(t_contexto_ejecucion *contexto)
+t_contexto_ejecucion *ejecutar_segun_RR(t_pcb *pcb)
 {
 
-    // enviar_contexto_actualizado(contexto_de_ejecucion, conexion_dispatch);
-    // int quantum = rafaga_a_ejecutar(contexto_de_ejecucion);
+    enviar_contexto_actualizado(pcb->contexto, conexion_dispatch);
     int quantum = obtener_quantum();
-    slepp(quantum);
+    pthread_t hilo_Q;
+    pthread_create(&hilo_Q, NULL, ejecutar_quamtum, (*void)&pcb);
+    pthread_detach(hilo_Q);
+    t_contexto_ejecucion *contexto;
+    contexto = esperar_contexto();
+    pthread_cancel(hilo_Q);
 
-    if (!termino_de_ejecutar(contexto->PID))
-    {
-
-        enviar_interrupcion(contexto->PID, conexion_interrupt);
-        // t_contexto_de_ejecucion =
-    }
+    return contexto;
 }
 
-void enviar_interrupcion(int PID, int fd)
+t_contexto_ejecucion *esperar_contexto()
+{
+    // TODO
+    // recv(conexion_dispatch,*buffer_contexto,tamanio,0 )
+}
+
+void *ejecutar_quamtum(void *pcb)
+{
+    t_pcb *pcb_q = (t_pcb *)pcb;
+
+    usleep(pcb_q->quamtum);
+    enviar_interrupcion_FIN_Q(pcb->PID, conexion_interrupt);
+}
+
+void enviar_interrupcion_FIN_Q(int PID, int fd)
 {
 
     t_interrupcion *interrupcion = malloc(sizeof(interrupcion));
@@ -195,6 +195,9 @@ void enviar_interrupcion(int PID, int fd)
     t_interrupcion->PID = PID;
     t_paquete *paquete = crear_paquete_interrupcion(interrupcion);
     enviar_paquete(paquete, fd);
+
+    liberar_interrupcion(interrupcion);
+    liberar_paquete(paquete);
 }
 
 t_paquete *crear_paquete_interrupcion(t_interrupcion *interr)
@@ -217,6 +220,9 @@ t_paquete *crear_paquete_interrupcion(t_interrupcion *interr)
 }
 
 /*
+
+// No se a donde
+
 struct
 {
 
@@ -236,6 +242,8 @@ enum
 
     INTERRUPCION
     DISPATCH
+
 } t_conexion;
 
+en cpu
 */
