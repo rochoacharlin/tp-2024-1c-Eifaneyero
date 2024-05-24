@@ -7,11 +7,9 @@ void solicitar_lectura_de_instruccion(int conexion_memoria, uint32_t desplazamie
     // TODO: falta hacer tamanio_solicitud_de_instruccion, procesar_solicitud_instruccion
     // paquete->buffer = serializar_estructura(solicitud, tamanio_solicitud_instruccion, serealizar_solicitud_instruccion)
 
+    // enviar_cod_op(SOLICITUD_INSTRUCCION, conexion_memoria);
+
     serializar_solicitud_de_instruccion(solicitud, paquete);
-
-    int tamanio_paquete = sizeof(op_code) + paquete->buffer->size;
-
-    serializar_paquete(paquete, tamanio_paquete);
 
     enviar_paquete(paquete, conexion_memoria);
 
