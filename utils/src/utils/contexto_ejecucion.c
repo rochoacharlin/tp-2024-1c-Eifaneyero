@@ -61,6 +61,8 @@ void recibir_contexto_y_actualizar_global(int socket)
     memcpy(&(contexto_ejecucion->PID), (uint32_t *)list_get(registros_contexto, 0), sizeof(uint32_t));
     dictionary_put(contexto_ejecucion->registros_cpu, "AX",
                    memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 1), 1));
+    // dictionary_put(contexto_ejecucion->registros_cpu, "AX",
+    //                memcpy(malloc(sizeof(uint8_t)), list_get(registros_contexto, 1), sizeof(uint8_t))); Correcto?
     dictionary_put(contexto_ejecucion->registros_cpu, "EAX",
                    memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 2), 4));
     dictionary_put(contexto_ejecucion->registros_cpu, "BX",
