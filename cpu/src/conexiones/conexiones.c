@@ -25,9 +25,10 @@ void servidor_interrupt(void)
     int handshake_respuesta = handshake_servidor(logger_propio, cliente_fd, handshake_esperado);
 }
 
-void conexion_con_memoria(void)
+int conexion_con_memoria(void)
 {
-    conexion_cpu_memoria = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
+    int conexion = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
     int32_t handshake = 1;
-    int handshake_respuesta = handshake_cliente(logger_propio, conexion_cpu_memoria, handshake);
+    int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
+    return conexion;
 }

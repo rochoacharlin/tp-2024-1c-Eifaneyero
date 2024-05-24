@@ -7,6 +7,6 @@
 #include <utils/comunicacion.h>
 #include <utils/estructuras_compartidas.h>
 
-void solicitar_instruccion(int conexion_memoria, uint32_t desplazamiento);
+void solicitar_lectura_de_instruccion(int conexion_memoria, uint32_t desplazamiento);
 
 #endif

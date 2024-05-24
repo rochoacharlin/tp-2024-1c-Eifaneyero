@@ -15,6 +15,6 @@ extern int conexion_cpu_memoria;
 
 void servidor_dispatch(void);
 void servidor_interrupt(void);
-void conexion_con_memoria(void);
+int conexion_con_memoria(void);
 
 #endif
