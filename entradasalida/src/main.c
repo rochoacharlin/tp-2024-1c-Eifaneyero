@@ -69,7 +69,7 @@ void atender_gen(int conexion)
 
     uint8_t respuesta;
     t_list *valores = list_create();
-    op_code cod_op;
+    t_id cod_op;
     while (1)
     {
         respuesta = OK;
@@ -84,7 +84,8 @@ void atender_gen(int conexion)
         if (cod_op == IO_GEN_SLEEP)
         {
             valores = recibir_paquete(conexion);
-            int unidades_de_trabajo = atoi((char *)list_get(valores, 0));
+            loggear_operacion((int *)list_get(valores, 0), comandos[cod_op]);
+            int unidades_de_trabajo = atoi((char *)list_get(valores, 1));
             uint32_t tiempo_de_espera_ms = calcular_tiempo_de_espera(unidades_de_trabajo) * 1000;
             usleep((__useconds_t)tiempo_de_espera_ms);
         }
