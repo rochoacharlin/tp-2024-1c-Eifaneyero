@@ -87,12 +87,13 @@ void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud_de_
 
 void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_paquete *paquete)
 {
-    agregar_a_paquete(paquete, solicitud, tamanio_solicitud_de_instruccion(solicitud));
+    agregar_a_paquete(paquete, &(solicitud->desplazamiento), tamanio_solicitud_de_instruccion(solicitud));
 }
 
-void deserializar_solicitud_de_instruccion()
+void deserializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_paquete *paquete)
 {
-    // TODO
+    // Obtener el desplazamiento del paquete
+    solicitud->desplazamiento = *(uint32_t *)(paquete->buffer->stream);
 }
 
 int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud)
