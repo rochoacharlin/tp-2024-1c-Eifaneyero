@@ -18,11 +18,11 @@ extern t_log *logger_obligatorio;
 extern t_log *logger_propio;
 
 // Logs minimos y obligatorios
-void loggear_fetch_instrucccion(int PID, int PC);
-void loggear_instrucion_ejecutada(int PID, int instruccion, int parametros); // ni idea si estos son los tipos de datos correctos
-void loggear_tlb_hit(int PID, int numero_pagina);
-void loggear_tlb_miss(int PID, int numero_pagina);
-void loggear_obtener_marco(int PID, int numero_pagina, int numero_marco);
-void loggear_lectura_o_escritura_memoria(int PID, char accion, int direccion_fisica, int valor);
+void loggear_fetch_instrucccion(uint32_t PID, uint32_t PC);
+// void loggear_instrucion_ejecutada(uint32_t PID, t_instruccion instruccion);
+void loggear_tlb_hit(uint32_t PID, int numero_pagina);
+void loggear_tlb_miss(uint32_t PID, int numero_pagina);
+void loggear_obtener_marco(uint32_t PID, int numero_pagina, int numero_marco);
+void loggear_lectura_o_escritura_memoria(uint32_t PID, char accion, int direccion_fisica, int valor);
 
 #endif
