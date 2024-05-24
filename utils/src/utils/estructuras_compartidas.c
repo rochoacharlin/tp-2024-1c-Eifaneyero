@@ -90,10 +90,10 @@ void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, 
     agregar_a_paquete(paquete, &(solicitud->desplazamiento), tamanio_solicitud_de_instruccion(solicitud));
 }
 
-void deserializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_paquete *paquete)
+void generar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_list *valores)
 {
     // Obtener el desplazamiento del paquete
-    solicitud->desplazamiento = *(uint32_t *)(paquete->buffer->stream);
+    solicitud->desplazamiento = *(uint32_t *)(valores->head->data);
 }
 
 int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud)
