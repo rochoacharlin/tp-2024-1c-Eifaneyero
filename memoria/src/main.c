@@ -30,9 +30,9 @@ int main(int argc, char *argv[])
 
     // Por cada Hilo
 
-    t_paquete *paquete = paquete_recibir(cliente_fd);
+    t_list *valores_paquete;
 
-    op_code codigo_operacion = paquete->codigo_operacion;
+    op_code codigo_operacion = recibir_operacion(cliente_fd);
 
     log_info(logger_propio, "se recibio un paquete");
 
@@ -43,9 +43,14 @@ int main(int argc, char *argv[])
     case (SOLICITUD_INSTRUCCION):
 
         t_solicitud_de_instruccion *solicitud = crear_solicitud_de_instruccion();
-        deserializar_solicitud_de_instruccion(solicitud, paquete);
 
-        log_info(logger_propio, "se recibio una solicitud desde cpu \n el valor del PC es:", solicitud->desplazamiento);
+        valores_paquete = recibir_paquete(cliente_fd);
+
+        void generar_solicitud_de_instruccion(solicitud, valores_solicitud);
+
+        int pc = solicitud->desplazamiento;
+
+        log_info(logger_propio, "se recibio una solicitud desde cpu \n el valor del PC es:", pc);
 
         /*t_instruccion instruccion = leerInstruccion(solicitud->desplazamiento);
          enviar a cpu la instruccion
@@ -57,7 +62,7 @@ int main(int argc, char *argv[])
         break;
     }
 
-    eliminar_paquete(paquete);
+    list_destroy(valores_paquete);
 
     close(cliente_fd); // TODO es provisional
     terminar_programa(server_fd, logger_propio, config);
@@ -67,7 +72,7 @@ int main(int argc, char *argv[])
 }
 
 // alternativa a serializar
-
+/*
 t_paquete *paquete_recibir(int socket)
 {
     int size;
@@ -96,3 +101,4 @@ t_paquete *paquete_deserializar(void *buffer, int size)
 
     return paquete;
 }
+*/
