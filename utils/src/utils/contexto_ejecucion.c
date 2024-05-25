@@ -51,7 +51,7 @@ void agregar_registros_cpu_a_paquete(t_paquete *paquete, t_dictionary *registros
 }
 
 // HORRIBLE? Si. Probar
-void recibir_contexto_y_actualizar_global(int socket)
+void recibir_contexto_y_actualizar_global(int socket) // SIN opCode
 {
     if (contexto_ejecucion != NULL)
         destruir_contexto();
