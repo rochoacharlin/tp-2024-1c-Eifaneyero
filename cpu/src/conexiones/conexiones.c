@@ -38,9 +38,9 @@ void iniciar_servidor_interrupt(void)
 
 void iniciar_conexion_memoria(void)
 {
-    conexion = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
+    conexion_cpu_memoria = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
     int32_t handshake = 1;
-    int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
+    int handshake_respuesta = handshake_cliente(logger_propio, conexion_cpu_memoria, handshake);
 }
 
 void iniciar_conexiones()
@@ -59,25 +59,21 @@ void iniciar_conexiones()
 void atender_dispatch()
 {
     log_info(logger_propio, "CPU escuchando puerto dispatch");
-    /*
+
     while (1)
     {
-        t_contexto_ejecucion *contexto = recibir_contexto_de_kernel(conexion_cpu_kernel_dispatch);
-        ciclo_de_instruccion(contexto, socket_kernel_dispatch);
-        destruir_contexto();
+        t_contexto *contexto = recibir_contexto(conexion_cpu_kernel_dispatch);
+        ciclo_de_instruccion(contexto);
+        destruir_contexto(contexto);
     }
-    */
 }
 
 void atender_interrupt()
 {
-    log_info(cpuLogger, "CPU escuchando puerto interrupt");
-    /*
+    log_info(logger_propio, "CPU escuchando puerto interrupt");
     while (1)
     {
-        // TODO: interrupcion = recibir_interrupcion_kernel(conexion_cpu_kernel_interrupt);
-        // Necesitaría recibir algo en particular? O solo quedar a la espera de mensajes de interrupción?
+        motivo_interrupcion = recibir_interrupcion(); // TODO: free(): Liberar motivo de instruccion luego de usar
         hay_interrupcion = true;
     }
-    */
 }
