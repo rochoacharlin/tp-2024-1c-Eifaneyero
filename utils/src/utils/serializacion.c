@@ -97,6 +97,10 @@ void agregar_a_paquete_uint8(t_paquete *paquete, uint8_t data)
 {
     agregar_a_paquete(paquete, &data, sizeof(uint8_t));
 }
+void agregar_a_paquete_string(t_paquete *paquete, char *data)
+{
+    agregar_a_paquete(paquete, &data, strlen(data) + 1);
+}
 
 // ------------------------ SERVIDOR ------------------------ //
 

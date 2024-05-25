@@ -70,6 +70,7 @@ void crear_buffer(t_paquete *paquete);
 void *serializar_paquete(t_paquete *paquete, int bytes);
 void agregar_a_paquete_uint32(t_paquete *paquete, uint32_t data);
 void agregar_a_paquete_uint8(t_paquete *paquete, uint8_t data);
+void agregar_a_paquete_string(t_paquete *paquete, char *data);
 
 // ------------------------ SERVIDOR ------------------------ //
 
