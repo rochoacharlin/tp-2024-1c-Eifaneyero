@@ -25,7 +25,7 @@ typedef struct
 
 t_solicitud_de_instruccion *crear_solicitud_de_instruccion();
 void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *t_solicitud_de_instruccion);
-void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_paquete *paquete);
+void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, void *buffer);
 void generar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_list *valores);
 int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud);
 
