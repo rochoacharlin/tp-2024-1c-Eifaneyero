@@ -1,34 +1,33 @@
 #include <ciclo_de_instruccion.h>
 
 pthread_mutex_t mutex_interrupt;
-
+char *motivo_interrupcion;
 bool continua_ejecucion = true;
 bool hay_interrupcion = false;
 bool enviar_interrupcion = false;
 
-void ciclo_de_instruccion(t_contexto_ejecucion contexto)
+void ciclo_de_instruccion(t_contexto contexto)
 {
-
     continua_ejecucion = true;
     hay_interrupcion = false;
 
-    while (continua_ejecucion && !hay_interrupcion)
+    while (continua_ejecucion)
     {
-        t_instruccion *instruccion = fetch();
+        t_instruccion *instruccion = fetch(contexto);
         decode(instruccion); // No hace nada, por ahora
         execute(instruccion);
-        check_interrupt();
+        check_interrupt(contexto);
     }
 }
 
 // -------------------- FETCH -------------------- //
 
-t_instruccion *fetch(void)
+t_instruccion *fetch(t_contexto contexto)
 {
     t_instruccion *instruccion_recibida = malloc(sizeof(t_instruccion));
-    uint64_t desplazamiento; // ¬¬
-    // Enunciado: C/instrucción deberá ser pedida a Memoria utilizando el PC <->  Nehuen: "denme el desplazamiento"
-    solicitar_instruccion_memoria(conexion_cpu_memoria, desplazamiento); // TODO: No sé que hacer acá @Nehuen
+    uint32_t desplazamiento = obtener_valor_registro(contexto->registros_cpu, "PC"); // TODO: Desplazamiento real?
+
+    solicitar_lectura_instruccion_memoria(conexion_cpu_memoria, desplazamiento);
 
     char *instruccion_string = recibir_instruccion_string_memoria(conexion_cpu_memoria); // TODO: Entiendo que me va a llegar un paquete: int + string
 
@@ -97,7 +96,7 @@ t_instruccion *inicializar_instruccion(t_instruccion *instruccion)
     return instruccion;
 }
 
-// Recibo instruccion en string y necesito enum para switch. Se aceptan sugerencias.
+// Recibo instruccion en string y casteo a enum para switch.
 // Si llega una instruccion desconocida sale por EXIT.
 t_id string_id_to_enum_id(char *id_string)
 {
@@ -210,25 +209,50 @@ bool instruccion_bloqueante(t_id id_instruccion)
 
 // -------------------- CHECK INTERRUPT -------------------- //
 
-void check_interrupt(void)
+void check_interrupt(t_contexto *contexto)
 {
-
     pthread_mutex_lock(&mutex_interrupt);
 
-    if (hay_interrupcion || instruccion_bloqueante(instruccion->id))
+    if (hay_interrupcion)
     {
         enviar_interrupcion = true;
+        char *motivo = malloc(sizeof(char) * 14) //"matar_proceso\0" o "planificacion\0"
+            *motivo = *motivo_interrupcion;      // Por si llega ora interrupcion y cambia el motivo
         hay_interrupcion = false;
     }
 
     pthread_mutex_unlock(&mutex_interrupt);
 
+    // Si hay interrupcion, envio contexto y no continua ejecución. Se reinicia ciclo con nuevo contexto.
     if (enviar_interrupcion)
     {
-        // Dependo de como se envía el contexto para saber como plantearlo: Mismo envio por interrupccion que por syscall?
-        // enviar_contexto_a_kernel(contexto_ejecucion, motivo, parametros); //TODO: enviar contexto a kernel.
-        // TODO: contexto_de_ejecucion = recibir_contexto_de_ejecucion();
+        t_list *lista_null = NULL;                       // Solo para pasar a devolver contexto
+        devolver_contexto(contexto, motivo, lista_null); // TODO: No llega el motivo a acá. Mierda
+        continua_ejecucion = false;
         enviar_interrupcion = false;
+        // free(string); Cuando te libero?
+    }
+
+    // TODO: @R8A Interpreto que ya devolviste el contexto en la ejecucion de la instruccion?
+    // Quien tiene prioridad Syscall o Interrupcion? :|
+    if (instruccion_bloqueante(instruccion->id))
+        continua_ejecucion = false;
+}
+
+char *recibir_interrupcion() // TODO: Chequear y poner donde vaya.
+{
+    if (recibir_operacion(conexion_cpu_kernel_interrupt) == INTERRUPCION) //
+    {
+        int *size = malloc(sizeof(int));
+        recv(conexion_cpu_kernel_interrupt, size, sizeof(int), MSG_WAITALL);
+        void *buffer = malloc(*size);
+        recv(conexion_cpu_kernel_interrupt, buffer, *size, MSG_WAITALL); //"matar_proceso\0" o "planificacion\0"
+        free(size);
+        return (char *)buffer;
+    }
+    else
+    {
+        // No hay else
     }
 }
 
@@ -280,22 +304,23 @@ void jnz(char *nombre_registro, void *nro_instruccion)
 void io_gen_sleep(char *nombre, char *unidades)
 {
     t_list *param = create_list();
-    list_add(param, unidades)
-        devolver_contexto(nombre, param);
+    list_add(param, unidades);
+    // devolver_contexto(nombre, motivo, param); //TODO: Inconsistencia de parametros.
+    // La instruccion no tiene el contexto. Lo hacemos global? Iba acá devolver contexto? Ya estoy quemado.
 }
 
-void devolver_contexto(char *motivo_desalojo, t_list *param)
+void devolver_contexto(t_contexto *contexto, char *motivo_desalojo, t_list *param)
 {
     t_id operacion = string_id_to_enum_id(motivo_desalojo);
     t_paquete paquete = crear_paquete(operacion);
-    agregar_registros_cpu_a_paquete();
+    agregar_contexto_a_paquete(contexto, paquete);
 
-    for (int i = 0, i < list_size(param); i++)
+    for (int i = 0; i < list_size(param); i++)
     {
-        agregar_a_paquete_string(paquete, list_get(param, i));
+        agregar_string_a_paquete(paquete, list_get(param, i)); // TODO: agregar_string_a_paquete(t_paquete, char*)
     }
 
-    enviar_paquete(paquete);
+    enviar_paquete(paquete, conexion_cpu_kernel_dispatch);
     destruir_paquete(paquete);
     destruir_contexto(contexto);
 }

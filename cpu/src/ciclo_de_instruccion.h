@@ -77,21 +77,20 @@ typedef struct
 
 extern bool hay_interrupcion;
 extern pthread_mutex_t mutex_interrupt;
+extern char *motivo_interrupcion;
 
 // -------------------- CICLO DE INSTRUCCION -------------------- //
 
-void ciclo_de_instruccion(t_contexto_ejecucion contexto);
-t_instruccion *fetch(void);
+void ciclo_de_instruccion(t_contexto contexto);
+t_instruccion *fetch(t_contexto contexto);
 void decode(t_instruccion *instruccion);
 void execute(t_instruccion *instruccion);
-void check_interrupt(void);
+void check_interrupt(t_contexto contexto);
 
 // -------------------- CICLO DE INSTRUCCION: Secundarias -------------------- //
 
 // ---------- FETCH ---------- //
 
-// void solicitar_instruccion_memoria(int socket, uint64_t desplazamiento);
-// char* recibir_instruccion_string_memoria(int socket);
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string);
 t_instruccion *inicializar_instruccion(t_instruccion *instruccion);
 t_id string_id_to_enum_id(char *id_string);
