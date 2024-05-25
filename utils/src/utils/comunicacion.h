@@ -13,6 +13,7 @@
 #define obtener_configuracion(clave) config_get_string_value(config, clave)
 
 extern t_config *config;
+extern t_log *logger_propio;
 
 typedef struct
 {
@@ -32,6 +33,7 @@ void terminar_programa(int conexion, t_log *logger, t_config *config);
 int iniciar_servidor(t_log *logger, char *puerto);
 int esperar_cliente(t_log *logger, int server_socket);
 int handshake_servidor(t_log *logger, int conexion, int32_t handshake);
+void esperar_a(char *tipo, int *socket, int server);
 
 //----CLIENTE----
 int crear_conexion(t_log *logger, char *ip, char *puerto);

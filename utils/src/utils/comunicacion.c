@@ -176,3 +176,17 @@ int conectar_a(char *servidor, t_log *logger, int tiempo_de_reintento_seg)
 
     return conexion;
 }
+
+esperar_a(char *tipo, int *cliente, int server)
+{
+    char *aviso = string_new();
+    string_append(&aviso, "Esperando ");
+    string_append(&aviso, tipo);
+    string_append(&aviso, "...");
+
+    log_info(logger_propio, aviso);
+    *cliente = esperar_cliente(logger_propio, server);
+
+    int32_t handshake_esperado = 1;
+    int handshake_respuesta = handshake_servidor(logger_propio, *cliente, handshake_esperado);
+}
