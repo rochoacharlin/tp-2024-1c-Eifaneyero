@@ -30,6 +30,7 @@ typedef struct
 
 extern int32_t procesos_creados;
 extern char *lista_PIDS;
+extern t_contexto *contexto_ejecucion;
 
 t_pcb *crear_pcb();
 void destruir_pcb(t_pcb *pcb);
