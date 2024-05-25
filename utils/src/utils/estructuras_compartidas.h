@@ -34,4 +34,10 @@ typedef struct
     char *instruccion;
 } t_instruccion;
 
+t_instruccion *crear_instruccion();
+void destruir_instruccion(t_instruccion *instruccion);
+void serializar_instruccion(t_instruccion *instruccion, void *buffer);
+void generar_instruccion(t_instruccion *instruccion, void *buffer);
+int tamanio_instruccion(t_instruccion *instruccion);
+
 #endif

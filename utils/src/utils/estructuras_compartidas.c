@@ -85,9 +85,15 @@ void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud_de_
     free(solicitud_de_instruccion);
 }
 
-void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_paquete *paquete)
+void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, void *buffer)
 {
-    agregar_a_paquete(paquete, &(solicitud->desplazamiento), tamanio_solicitud_de_instruccion(solicitud));
+    int tamanio_solicitud = tamanio_solicitud_de_instruccion(solicitud);
+    int buffer_tamanio = sizeof(int) + tamanio_solicitud;
+
+    buffer = realloc(buffer, buffer_tamanio);
+
+    memcpy(buffer_tamanio, tamanio_solicitud, sizeof(int));                             // Agrego tamaño del dato nuevo al paquete
+    memcpy(buffer_tamanio + sizeof(int), solicitud->desplazamiento, tamanio_solicitud); // Agrego dato nuevo al paquete
 }
 
 void generar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_list *valores)
@@ -99,4 +105,67 @@ void generar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_l
 int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud)
 {
     return sizeof(int32_t); // por ahora
+}
+
+// PROVISORIO INSTRUCCIONES
+
+t_instruccion *crear_instruccion()
+{
+    t_instruccion *instruccion = malloc(sizeof(char *));
+    if (instruccion != NULL)
+    {
+        instrucciones->instruccion = NULL;
+    }
+    instrucciones->instruccion = NULL; // Inicialmente no hay instrucción
+    return instrucciones;
+}
+
+void destruir_instruccion(t_instruccion *instruccion)
+{
+    if (instruccion->instruccion != NULL)
+    {
+        free(instruccion->instruccion);
+    }
+    free(instruccion);
+}
+
+void serializar_instruccion(t_instruccion *instruccion, void *buffer)
+{
+    int desplazamiento = 0;
+    uint32_t longitud_instruccion = strlen(instruccion->instruccion) + 1; // +1 para incluir el null terminator
+
+    memcpy(buffer + desplazamiento, &longitud_instruccion, sizeof(uint32_t));
+    desplazamiento += sizeof(uint32_t);
+    memcpy(buffer + desplazamiento, instruccion->instruccion, longitud_instruccion);
+}
+
+void generar_instruccion(t_instruccion *instruccion, t_list *valores)
+{
+    // Calcular el tamaño total necesario para la instrucción
+    int longitud_total = 0;
+    for (int i = 0; i < list_size(valores); i++)
+    {
+        char *valor = list_get(valores, i);
+        longitud_total += strlen(valor) + 1; // +1 para el espacio o el terminador nulo
+    }
+
+    // Reservar memoria para la instrucción
+    instruccion->instruccion = malloc(longitud_total);
+    instruccion->instruccion[0] = '\0'; // Inicializar cadena vacía
+
+    // Concatenar los valores en una sola cadena
+    for (int i = 0; i < list_size(valores); i++)
+    {
+        char *valor = list_get(valores, i);
+        strcat(instruccion->instruccion, valor);
+        if (i < list_size(valores) - 1)
+        {
+            strcat(instruccion->instruccion, " "); // Agregar espacio entre valores
+        }
+    }
+}
+
+int tamanio_instruccion(t_instruccion *instruccion)
+{
+    return sizeof(uint32_t) + strlen(instruccion->instruccion) + 1; // +1 para incluir el null terminator
 }
