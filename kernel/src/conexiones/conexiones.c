@@ -30,6 +30,7 @@ void conexion_dispatch_con_CPU(void)
 
 void iniciar_conexion_memoria(void)
 {
+    usleep(1000 * 500);
     int conexion = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
     int32_t handshake = 1;
     int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
