@@ -1,15 +1,15 @@
 #include "lectura.h"
 
-t_instruccion *leerInstruccion(int desplazamiento)
+t_instruccion_cadena *leer_instruccion(int desplazamiento)
 {
-    FILE *file = fopen(obtener_path_instrucciones(), "r");
+    FILE *file = fopen("instrucciones_prueba.txt", "r");
     if (file == NULL)
     {
         log_info(logger_propio, "Error al abrir el archivo de instrucciones");
         return NULL;
     }
 
-    t_instruccion *instruccion = crear_instruccion();
+    t_instruccion_cadena *instruccion = crear_instruccion();
     char *linea = NULL;
     size_t tamanio = 0;
     ssize_t valor_leido;

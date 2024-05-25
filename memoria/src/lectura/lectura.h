@@ -10,4 +10,6 @@
 extern t_log *logger_obligatorio;
 extern t_log *logger_propio;
 
+t_instruccion_cadena *leer_instruccion(int desplazamiento);
+
 #endif
