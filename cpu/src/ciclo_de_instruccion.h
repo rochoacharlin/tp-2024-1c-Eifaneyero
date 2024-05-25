@@ -12,6 +12,7 @@
 #include "utils/contexto_ejecucion.h"
 #include "utils/estructuras_compartidas.h"
 #include "configuraciones.h"
+#include "conexiones/conexiones.h" //Para usar conexiones globales
 
 // ID instruccion
 typedef enum
@@ -74,9 +75,12 @@ typedef struct
 //     char* parametros[];
 // }t_instruccion;
 
+extern bool hay_interrupcion;
+extern pthread_mutex_t mutex_interrupt;
+
 // -------------------- CICLO DE INSTRUCCION -------------------- //
 
-void ciclo_de_instruccion(t_contexto_ejecucion contexto, int socket_kernel);
+void ciclo_de_instruccion(t_contexto_ejecucion contexto);
 t_instruccion *fetch(void);
 void decode(t_instruccion *instruccion);
 void execute(t_instruccion *instruccion);
@@ -102,6 +106,10 @@ void set(char *nombre_registro, void *valor);
 void sum(char *nombre_destino, char *nombre_origen);
 void sub(char *nombre_destino, char *nombre_origen);
 void jnz(char *nombre_registro, void *nro_instruccion);
-void io_gen_sleep(char *nombre_interfaz, void *unidades_de_trabajo);
+void io_gen_sleep(char *nombre, char *unidades);
+
+// -------------------- MANEJO DE CONTEXTO -------------------- //
+
+void devolver_contexto(char *motivo_desalojo, t_list *param);
 
 #endif

@@ -1,12 +1,12 @@
 #include <ciclo_de_instruccion.h>
 
-// int conexion_cpu_memoria;
+pthread_mutex_t mutex_interrupt;
 
 bool continua_ejecucion = true;
 bool hay_interrupcion = false;
 bool enviar_interrupcion = false;
 
-void ciclo_de_instruccion(t_contexto_ejecucion contexto, int socket_kernel)
+void ciclo_de_instruccion(t_contexto_ejecucion contexto)
 {
 
     continua_ejecucion = true;
@@ -17,11 +17,6 @@ void ciclo_de_instruccion(t_contexto_ejecucion contexto, int socket_kernel)
         t_instruccion *instruccion = fetch();
         decode(instruccion); // No hace nada, por ahora
         execute(instruccion);
-
-        if (instruccion_bloqueante(instruccion->id))
-            continua_ejecucion = false;
-        free(instruccion);
-
         check_interrupt();
     }
 }
@@ -218,19 +213,21 @@ bool instruccion_bloqueante(t_id id_instruccion)
 void check_interrupt(void)
 {
 
-    // pthread_mutex_lock(&mutex_interrupt); //TODO: semaforo
+    pthread_mutex_lock(&mutex_interrupt);
 
-    if (hay_interrupcion)
+    if (hay_interrupcion || instruccion_bloqueante(instruccion->id))
     {
         enviar_interrupcion = true;
         hay_interrupcion = false;
     }
 
-    // pthread_mutex_unlock(&mutex_interrupt);
+    pthread_mutex_unlock(&mutex_interrupt);
 
     if (enviar_interrupcion)
     {
-        // enviar_contexto_a_kernel(contexto_ejecucion, socket_kernel_dispatch); //TODO: enviar contexto a kernel.
+        // Dependo de como se envía el contexto para saber como plantearlo: Mismo envio por interrupccion que por syscall?
+        // enviar_contexto_a_kernel(contexto_ejecucion, motivo, parametros); //TODO: enviar contexto a kernel.
+        // TODO: contexto_de_ejecucion = recibir_contexto_de_ejecucion();
         enviar_interrupcion = false;
     }
 }
@@ -295,10 +292,12 @@ void devolver_contexto(char *motivo_desalojo, t_list *param)
 
     for (int i = 0, i < list_size(param); i++)
     {
-        agregar_a_paquete_string(ppaquete, list_get(param, i));
+        agregar_a_paquete_string(paquete, list_get(param, i));
     }
 
     enviar_paquete(paquete);
     destruir_paquete(paquete);
     destruir_contexto(contexto);
 }
+
+// TODO: POSIBLE ERROR. Qué puede ser? Enviar contexto a kernel -> terminar proceeso
