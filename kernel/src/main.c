@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     // servidor();
     // conexion_dispatch_con_CPU();
     // conexion_interrupt_con_CPU();
-    // conexion_con_memoria();
+    // iniciar_conexion_memoria();
 
     inicializar_listas_planificacion();
     inicializar_semaforos_planificacion();
