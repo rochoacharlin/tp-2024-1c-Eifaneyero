@@ -37,7 +37,7 @@ typedef struct
 t_instruccion *crear_instruccion();
 void destruir_instruccion(t_instruccion *instruccion);
 void serializar_instruccion(t_instruccion *instruccion, void *buffer);
-void generar_instruccion(t_instruccion *instruccion, void *buffer);
+void generar_instruccion(t_instruccion *instruccion, t_list *valores);
 int tamanio_instruccion(t_instruccion *instruccion);
 
 #endif
