@@ -12,7 +12,7 @@
 // #include <commons/collections/list.h>
 // #include <commons/collections/dictionary.h>
 
-extern pthread_mutex_t *mutex_interrupt;
+pthread_mutex_t *mutex_interrupt;
 extern int conexion_cpu_memoria;
 extern int conexion_kernel_dispatch;
 extern int conexion_kernel_interrupt;
