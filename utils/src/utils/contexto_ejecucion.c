@@ -1,29 +1,27 @@
 #include "contexto_ejecucion.h"
 
-t_contexto_ejecucion *contexto_ejecucion = NULL;
-
-void iniciar_contexto()
+t_contexto *iniciar_contexto()
 {
-    contexto_ejecucion = malloc(sizeof(t_contexto_ejecucion));
-    contexto_ejecucion->PID = 0;
-    contexto_ejecucion->registros_cpu = dictionary_create();
-    contexto_ejecucion->rafaga_cpu_ejecutada = 0;
+    t_contexto *contexto = malloc(sizeof(t_contexto));
+    contexto->PID = 0;
+    contexto->registros_cpu = dictionary_create();
+    contexto->rafaga_cpu_ejecutada = 0;
+    return contexto;
 }
 
-void destruir_contexto()
+void destruir_contexto(t_contexto *contexto)
 {
-    dictionary_destroy_and_destroy_elements(contexto_ejecucion->registros_cpu, free);
-    free(contexto_ejecucion);
-    contexto_ejecucion = NULL;
+    dictionary_destroy_and_destroy_elements(contexto->registros_cpu, free);
+    free(contexto);
 }
 
-void enviar_contexto_actualizado(int socket)
+void enviar_contexto(int socket, t_contexto *contexto)
 {
     t_paquete *paquete = crear_paquete(CONTEXTO_EJECUCION);
 
-    agregar_a_paquete(paquete, (void *)&contexto_ejecucion->PID, sizeof(contexto_ejecucion->PID));
-    agregar_registros_cpu_a_paquete(paquete, contexto_ejecucion->registros_cpu);
-    agregar_a_paquete(paquete, (void *)&contexto_ejecucion->rafaga_cpu_ejecutada, sizeof(contexto_ejecucion->rafaga_cpu_ejecutada));
+    agregar_a_paquete(paquete, (void *)&contexto->PID, sizeof(contexto->PID));
+    agregar_registros_cpu_a_paquete(paquete, contexto->registros_cpu);
+    agregar_a_paquete(paquete, (void *)&contexto->rafaga_cpu_ejecutada, sizeof(contexto->rafaga_cpu_ejecutada));
 
     enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
@@ -50,41 +48,48 @@ void agregar_registros_cpu_a_paquete(t_paquete *paquete, t_dictionary *registros
     agregar_a_paquete(paquete, (void *)dictionary_get(registros_cpu, "DI"), sizeof(uint32_t));
 }
 
-// HORRIBLE? Si. Probar
-void recibir_contexto_y_actualizar_global(int socket) // SIN opCode
+void agregar_contexto_a_paquete(t_contexto *contexto, t_paquete *paquete)
 {
-    if (contexto_ejecucion != NULL)
-        destruir_contexto();
-    iniciar_contexto();
+    agregar_a_paquete(paquete, (void *)&contexto->PID, sizeof(contexto->PID));
+    agregar_registros_cpu_a_paquete(paquete, contexto->registros_cpu);
+    agregar_a_paquete(paquete, (void *)&contexto->rafaga_cpu_ejecutada, sizeof(contexto->rafaga_cpu_ejecutada));
+}
+
+// TODO: Probar
+t_contexto *recibir_contexto(int socket) // SIN opCode
+{
+    t_contexto *contexto = iniciar_contexto();
     t_list *registros_contexto = recibir_paquete(socket);
 
-    memcpy(&(contexto_ejecucion->PID), (uint32_t *)list_get(registros_contexto, 0), sizeof(uint32_t));
-    dictionary_put(contexto_ejecucion->registros_cpu, "AX",
+    memcpy(&(contexto->PID), (uint32_t *)list_get(registros_contexto, 0), sizeof(uint32_t)); //
+    dictionary_put(contexto->registros_cpu, "AX",
                    memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 1), 1));
-    // dictionary_put(contexto_ejecucion->registros_cpu, "AX",
+    // dictionary_put(contexto->registros_cpu, "AX",
     //                memcpy(malloc(sizeof(uint8_t)), list_get(registros_contexto, 1), sizeof(uint8_t))); Correcto?
-    dictionary_put(contexto_ejecucion->registros_cpu, "EAX",
+    dictionary_put(contexto->registros_cpu, "EAX",
                    memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 2), 4));
-    dictionary_put(contexto_ejecucion->registros_cpu, "BX",
+    dictionary_put(contexto->registros_cpu, "BX",
                    memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 3), 1));
-    dictionary_put(contexto_ejecucion->registros_cpu, "EBX",
+    dictionary_put(contexto->registros_cpu, "EBX",
                    memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 4), 4));
-    dictionary_put(contexto_ejecucion->registros_cpu, "CX",
+    dictionary_put(contexto->registros_cpu, "CX",
                    memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 5), 1));
-    dictionary_put(contexto_ejecucion->registros_cpu, "ECX",
+    dictionary_put(contexto->registros_cpu, "ECX",
                    memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 6), 4));
-    dictionary_put(contexto_ejecucion->registros_cpu, "DX",
+    dictionary_put(contexto->registros_cpu, "DX",
                    memset(malloc(sizeof(uint8_t *)), *(uint8_t *)list_get(registros_contexto, 7), 1));
-    dictionary_put(contexto_ejecucion->registros_cpu, "EDX",
+    dictionary_put(contexto->registros_cpu, "EDX",
                    memset(malloc(sizeof(uint32_t *)), *(uint8_t *)list_get(registros_contexto, 8), 4));
-    dictionary_put(contexto_ejecucion->registros_cpu, "PC",
+    dictionary_put(contexto->registros_cpu, "PC",
                    memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 9), 4));
-    dictionary_put(contexto_ejecucion->registros_cpu, "SI",
+    dictionary_put(contexto->registros_cpu, "SI",
                    memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 10), 4));
-    dictionary_put(contexto_ejecucion->registros_cpu, "DI",
+    dictionary_put(contexto->registros_cpu, "DI",
                    memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 11), 4));
-    memcpy(&(contexto_ejecucion->rafaga_cpu_ejecutada),
+    memcpy(&(contexto->rafaga_cpu_ejecutada),
            (uint64_t *)list_get(registros_contexto, 12), sizeof(uint64_t));
 
     list_destroy_and_destroy_elements(registros_contexto, free);
+
+    return contexto;
 }
