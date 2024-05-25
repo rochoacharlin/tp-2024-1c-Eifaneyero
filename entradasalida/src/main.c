@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
     strcpy(nombre, argv[1]);
     logger_obligatorio = crear_logger("entradasalida_obligatorio");
     log_info(logger_propio, "Iniciando Interfaz de I/O %s", nombre);
-    free(nombre);
 
     char *config_ruta = string_new();
     string_append(&config_ruta, "configuraciones/");
@@ -38,30 +37,30 @@ int main(int argc, char *argv[])
     int conexion_meoria = conectar_a("MEMORIA", logger_propio, 5);
 
     conexion = crear_conexion(logger_propio, obtener_ip_kernel(), obtener_puerto_kernel());
-    int32_t handshake = 4; // TODO no sé si este handshake debería seguir así o mejor hacemos que le diga su nombre
-    int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
+    t_paquete paquete = crear_paquete(PAQUETE);
+    agregar_a_paquete_string(paquete, nombre);
+    agregar_a_paquete_string(paquete, btener_tipo_interfaz());
+    enviar_paquete(paquete, conexion);
+    eliminar_paquete(paquete);
 
-    if (handshake_respuesta)
+    char *tipo_interfaz = obtener_tipo_interfaz();
+    if (strcmp(tipo_interfaz, "GENERICA") == 0)
     {
-        char *tipo_interfaz = obtener_tipo_interfaz();
-        if (strcmp(tipo_interfaz, "GENERICA") == 0)
-        {
-            atender_gen(conexion);
-        }
-        else if (strcmp(tipo_interfaz, "STDIN") == 0)
-        {
-            atender_gen(conexion);
-        }
-        else if (strcmp(tipo_interfaz, "STDOUT") == 0)
-        {
-            atender_gen(conexion);
-        }
-        else if (strcmp(tipo_interfaz, "DIALFS") == 0)
-        {
-            atender_gen(conexion);
-        }
-        free(tipo_interfaz);
+        atender_gen(conexion);
     }
+    else if (strcmp(tipo_interfaz, "STDIN") == 0)
+    {
+        atender_gen(conexion);
+    }
+    else if (strcmp(tipo_interfaz, "STDOUT") == 0)
+    {
+        atender_gen(conexion);
+    }
+    else if (strcmp(tipo_interfaz, "DIALFS") == 0)
+    {
+        atender_gen(conexion);
+    }
+    free(tipo_interfaz);
 
     terminar_programa(conexion, logger_propio, config);
 
