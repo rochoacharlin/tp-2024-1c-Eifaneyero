@@ -33,6 +33,10 @@ int main(int argc, char *argv[])
     config = iniciar_config(logger_propio, config_ruta);
     free(config_ruta);
 
+    // conectar_a
+    usleep(1000 * 100);
+    int conexion_meoria = conectar_a("MEMORIA", logger_propio, 5);
+
     conexion = crear_conexion(logger_propio, obtener_ip_kernel(), obtener_puerto_kernel());
     int32_t handshake = 4; // TODO no sé si este handshake debería seguir así o mejor hacemos que le diga su nombre
     int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
