@@ -161,10 +161,10 @@ void destruir_semaforos_planificacion(void)
     sem_close(&sem_grado_multiprogramacion);
 }
 
-t_contexto_ejecucion *procesar_pbc_segun_algoritmo(t_pcb *pcb, char *algoritmo)
+t_contexto *procesar_pbc_segun_algoritmo(t_pcb *pcb, char *algoritmo)
 {
 
-    t_contexto_ejecucion *contexto_ejecucion;
+    t_contexto *contexto_ejecucion;
 
     if (strcmp(algoritmo, "FIFO") == 0)
     {
@@ -188,14 +188,14 @@ t_contexto_ejecucion *procesar_pbc_segun_algoritmo(t_pcb *pcb, char *algoritmo)
 }
 
 /* //
-t_contexto_ejecucion* ejecutar_segun_FIFO(){
+t_contexto* ejecutar_segun_FIFO(){
 
     //TODO
 }
 */
 
 // Implementacion a probar
-t_contexto_ejecucion *ejecutar_segun_RR(t_pcb *pcb)
+t_contexto *ejecutar_segun_RR(t_pcb *pcb)
 {
 
     enviar_contexto_actualizado(pcb->contexto, conexion_dispatch);
@@ -203,14 +203,14 @@ t_contexto_ejecucion *ejecutar_segun_RR(t_pcb *pcb)
 
     pthread_create(&hilo_Q, NULL, ejecutar_quamtum, (*void)&pcb);
     pthread_detach(hilo_Q);
-    t_contexto_ejecucion *contexto;
+    t_contexto *contexto;
     contexto = esperar_contexto();
     pthread_cancel(hilo_Q);
 
     return contexto;
 }
 
-t_contexto_ejecucion *esperar_contexto()
+t_contexto *esperar_contexto()
 {
     // Probar si funciona o implementar de otra manera
     // recibir_contexto_y_actualizar(conexion_dispacht )
