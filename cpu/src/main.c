@@ -1,27 +1,32 @@
 #include "configuraciones.h"
 #include "../../utils/src/utils/estructuras_compartidas.h"
 #include "interface_cpu.h"
+#include "conexiones/conexiones.h"
 
 t_log *logger_obligatorio;
 t_log *logger_propio;
 t_config *config;
 t_dictionary *registros_cpu;
 
+int cpu_funcionando = 1; // En caso de querer terminar cpu.
+
 int main(int argc, char *argv[])
 {
     logger_obligatorio = crear_logger("cpu_obligatorio");
     logger_propio = crear_logger("cpu_propio");
     log_info(logger_propio, "Iniciando CPU ...");
-
     config = iniciar_config(logger_propio, "cpu.config");
 
-    registros_cpu = crear_registros_cpu();
+    // registros_cpu = crear_registros_cpu();
 
-    // servidor_dispatch(); Queda a espera de kernel.
-    // servidor_interrupt(); Queda a espera de kernel.
-    // conexion_con_memoria();
+    iniciar_conexiones();
 
-    // Pase funciones de conexion a conexiones
+    log_info(logger_propio, "Conexiones con kernel y Memoria exitosas");
+
+    while (cpu_funcionando)
+    {
+        // :)
+    }
 
     // en una futura implementacion utilizaremos la MMU:  solicitar_instrucion(pid, nro_pagina, desplazamiento);
     // solicitar_lectura_de_instruccion(conexion, dictionary_get(registros_cpu, "PC"));
