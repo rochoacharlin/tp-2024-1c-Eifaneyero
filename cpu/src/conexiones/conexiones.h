@@ -6,15 +6,25 @@
 #include <string.h>
 #include "../configuraciones.h"
 #include "utils/comunicacion.h"
+#include "ciclo_de_instruccion.h" //Compartir hay_interrupcion
 // #include "utils/serializacion.h"
 // #include "utils/contexto_ejecucion.h"
 // #include <commons/collections/list.h>
 // #include <commons/collections/dictionary.h>
 
+extern pthread_mutex_t *mutex_interrupt;
 extern int conexion_cpu_memoria;
+extern int conexion_kernel_dispatch;
+extern int conexion_kernel_interrupt;
 
-void servidor_dispatch(void);
-void servidor_interrupt(void);
-int conexion_con_memoria(void);
+void iniciar_servidor_dispatch(void);
+void iniciar_servidor_interrupt(void);
+void iniciar_conexion_memoria(void);
+
+// Inicia conexiones kernel y memoria. Crea hilos para cada conexion con kernel.
+void iniciar_conexiones();
+
+void atender_dispatch();
+void atender_interrupt();
 
 #endif
