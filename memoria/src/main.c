@@ -3,14 +3,11 @@
 #include <utils/serializacion.h>
 #include <utils/estructuras_compartidas.h>
 #include "conexiones/conexiones.h"
+#include "lectura/lectura.h"
 
 t_log *logger_obligatorio;
 t_log *logger_propio;
 t_config *config;
-// t_list *valores_paquete;
-
-t_paquete *paquete_recibir(int socket);
-t_paquete *paquete_deserializar(void *buffer, int size);
 
 int main(int argc, char *argv[])
 {
@@ -52,9 +49,9 @@ int main(int argc, char *argv[])
 
         log_info(logger_propio, "se recibio una solicitud desde cpu \n el valor del PC es:", pc);
 
-        /*t_instruccion instruccion = leerInstruccion(solicitud->desplazamiento);
-         enviar a cpu la instruccion
-        */
+        t_instruccion instruccion = leerInstruccion(solicitud->desplazamiento);
+
+        // enviar a cpu la instruccion
 
         break;
 
