@@ -86,6 +86,7 @@ int iniciar_servidor(t_log *logger, char *puerto)
     return socket_servidor;
 }
 
+// Retorna socket que representa conexion bidireccional
 int esperar_cliente(t_log *logger, int socket_servidor)
 {
     // Aceptamos un nuevo cliente
