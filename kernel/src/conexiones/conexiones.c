@@ -1,7 +1,7 @@
 #include "conexiones.h"
 
-int conexion_a_cpu_dispatch;  // socket
-int conexion_a_cpu_interrupt; // socket
+int conexion_kernel_cpu_dispatch;
+int conexion_kernel_cpu_interrupt;
 
 void servidor(void)
 {
@@ -16,19 +16,19 @@ void servidor(void)
 
 void conexion_interrupt_con_CPU(void)
 {
-    int conexion_a_cpu_interrupt = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_interrupt());
+    conexion_kernel_cpu_interrupt = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_interrupt());
     int32_t handshake = 5;
-    int handshake_respuesta = handshake_cliente(logger_propio, conexion_a_cpu_interrupt, handshake);
+    int handshake_respuesta = handshake_cliente(logger_propio, conexion_kernel_cpu_interrupt, handshake);
 }
 
 void conexion_dispatch_con_CPU(void)
 {
-    int conexion_a_cpu_dispatch = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_dispatch());
+    conexion_kernel_cpu_dispatch = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_dispatch());
     int32_t handshake = 5;
-    int handshake_respuesta = handshake_cliente(logger_propio, conexion_a_cpu_dispatch, handshake);
+    int handshake_respuesta = handshake_cliente(logger_propio, conexion_kernel_cpu_dispatch, handshake);
 }
 
-void conexion_con_memoria(void)
+void iniciar_conexion_memoria(void)
 {
     int conexion = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
     int32_t handshake = 1;
@@ -41,10 +41,11 @@ t_contexto_ejecucion *gestionar_ejecucion_proceso(t_pcb *proceso_en_ejecucion) /
         destruir_contexto();
     iniciar_contexto();
     asignar_valores_pcb_a_contexto(proceso_en_ejecucion);
-    enviar_contexto_actualizado(conexion_a_cpu_dispatch); // Envió para realizar ciclo de instrucción
-    if (recibir_operacion(conexion_a_cpu_dispatch) < 0)   // Solo verifico recepción de respuesta, indiferente al opCode
+    enviar_contexto_actualizado(conexion_kernel_cpu_dispatch); // Envió para realizar ciclo de instrucción
+    // Aguardo envio de contexto por parte de CPU
+    if (recibir_operacion(conexion_kernel_cpu_dispatch) < 0) // Solo verifico recepción de respuesta, indiferente al opCode
         error("Se desconectó el CPU.");
-    recibir_contexto_y_actualizar_global(conexion_a_cpu_dispatch); // Da por sentado que opCode recibido es CONTEXTO_EJECUCION
+    recibir_contexto_y_actualizar_global(conexion_kernel_cpu_dispatch); // Da por sentado que opCode recibido es CONTEXTO_EJECUCION
     actualizar_pcb(proceso_en_ejecucion);
     return contexto_ejecucion;
 }
