@@ -280,7 +280,25 @@ void jnz(char *nombre_registro, void *nro_instruccion)
     }
 }
 
-void io_gen_sleep(char *nombre_interfaz, void *unidades_de_trabajo)
+void io_gen_sleep(char *nombre, char *unidades)
 {
-    // TODO falta que la CPU le pueda enviar un proceso al Kernel
+    t_list *param = create_list();
+    list_add(param, unidades)
+        devolver_contexto(nombre, param);
+}
+
+void devolver_contexto(char *motivo_desalojo, t_list *param)
+{
+    t_id operacion = string_id_to_enum_id(motivo_desalojo);
+    t_paquete paquete = crear_paquete(operacion);
+    agregar_registros_cpu_a_paquete();
+
+    for (int i = 0, i < list_size(param); i++)
+    {
+        agregar_a_paquete_string(ppaquete, list_get(param, i));
+    }
+
+    enviar_paquete(paquete);
+    destruir_paquete(paquete);
+    destruir_contexto(contexto);
 }

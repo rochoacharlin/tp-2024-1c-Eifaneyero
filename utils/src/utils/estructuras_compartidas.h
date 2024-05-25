@@ -29,4 +29,9 @@ void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, 
 void generar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_list *valores);
 int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud);
 
+typedef struct
+{
+    char *instruccion;
+} t_instruccion;
+
 #endif
