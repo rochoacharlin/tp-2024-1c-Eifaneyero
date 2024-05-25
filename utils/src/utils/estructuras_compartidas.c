@@ -85,21 +85,17 @@ void destruir_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud_de_
     free(solicitud_de_instruccion);
 }
 
-void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, void *buffer)
+void serializar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_paquete *paquete)
 {
     int tamanio_solicitud = tamanio_solicitud_de_instruccion(solicitud);
-    int buffer_tamanio = sizeof(int) + tamanio_solicitud;
 
-    buffer = realloc(buffer, buffer_tamanio);
-
-    memcpy(buffer_tamanio, tamanio_solicitud, sizeof(int));                             // Agrego tamaño del dato nuevo al paquete
-    memcpy(buffer_tamanio + sizeof(int), solicitud->desplazamiento, tamanio_solicitud); // Agrego dato nuevo al paquete
+    agregar_a_paquete(paquete, &(solicitud->desplazamiento), tamanio_solicitud);
 }
 
 void generar_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud, t_list *valores)
 {
     // Obtener el desplazamiento del paquete
-    solicitud->desplazamiento = *(uint32_t *)(valores->head->data);
+    solicitud->desplazamiento = *(int32_t *)(valores->head->data);
 }
 
 int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud)
@@ -109,18 +105,18 @@ int tamanio_solicitud_de_instruccion(t_solicitud_de_instruccion *solicitud)
 
 // PROVISORIO INSTRUCCIONES
 
-t_instruccion *crear_instruccion()
+t_instruccion_cadena *crear_instruccion()
 {
-    t_instruccion *instruccion = malloc(sizeof(char *));
+    t_instruccion_cadena *instruccion = malloc(sizeof(char *));
     if (instruccion != NULL)
     {
-        instrucciones->instruccion = NULL;
+        instruccion->instruccion = NULL;
     }
-    instrucciones->instruccion = NULL; // Inicialmente no hay instrucción
-    return instrucciones;
+    instruccion->instruccion = NULL; // Inicialmente no hay instrucción
+    return instruccion;
 }
 
-void destruir_instruccion(t_instruccion *instruccion)
+void destruir_instruccion(t_instruccion_cadena *instruccion)
 {
     if (instruccion->instruccion != NULL)
     {
@@ -129,17 +125,20 @@ void destruir_instruccion(t_instruccion *instruccion)
     free(instruccion);
 }
 
-void serializar_instruccion(t_instruccion *instruccion, void *buffer)
+void serializar_instruccion(t_instruccion_cadena *instruccion, t_paquete *paquete)
 {
-    int desplazamiento = 0;
-    uint32_t longitud_instruccion = strlen(instruccion->instruccion) + 1; // +1 para incluir el null terminator
+    if (instruccion->instruccion == NULL)
+    {
+        // Manejo del error
+        fprintf(stderr, "Error: La instrucción no está inicializada.\n");
+        return;
+    }
 
-    memcpy(buffer + desplazamiento, &longitud_instruccion, sizeof(uint32_t));
-    desplazamiento += sizeof(uint32_t);
-    memcpy(buffer + desplazamiento, instruccion->instruccion, longitud_instruccion);
+    uint32_t longitud_instruccion = strlen(instruccion->instruccion) + 1; // +1 para incluir el null terminator
+    agregar_a_paquete(paquete, instruccion->instruccion, longitud_instruccion);
 }
 
-void generar_instruccion(t_instruccion *instruccion, t_list *valores)
+void generar_instruccion(t_instruccion_cadena *instruccion, t_list *valores)
 {
     // Calcular el tamaño total necesario para la instrucción
     int longitud_total = 0;
@@ -150,8 +149,7 @@ void generar_instruccion(t_instruccion *instruccion, t_list *valores)
     }
 
     // Reservar memoria para la instrucción
-    instruccion->instruccion = malloc(longitud_total);
-    instruccion->instruccion[0] = '\0'; // Inicializar cadena vacía
+    instruccion->instruccion = string_new();
 
     // Concatenar los valores en una sola cadena
     for (int i = 0; i < list_size(valores); i++)
@@ -165,7 +163,7 @@ void generar_instruccion(t_instruccion *instruccion, t_list *valores)
     }
 }
 
-int tamanio_instruccion(t_instruccion *instruccion)
+int tamanio_instruccion(t_instruccion_cadena *instruccion)
 {
     return sizeof(uint32_t) + strlen(instruccion->instruccion) + 1; // +1 para incluir el null terminator
 }
