@@ -110,7 +110,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
-        contexto_ejecucion = procesar_pcb_segun_algoritmo(pcb_proximo, algoritmo);
+        t_contexto *contexto = procesar_pcb_segun_algoritmo(pcb_proximo, algoritmo);
         // int rafaga_CPU = contexto_ejecucion->rafaga_CPU_ejecutada;
         list_remove_element(pcbs_en_EXEC, pcb_proximo);
         list_add(pcbs_en_BLOCKED, pcb_proximo); // provisional
@@ -161,18 +161,17 @@ void destruir_semaforos_planificacion(void)
     sem_close(&sem_grado_multiprogramacion);
 }
 
-t_contexto *procesar_pbc_segun_algoritmo(t_pcb *pcb, char *algoritmo)
+void proximo_a_ejecutar_segun_algoritmo(t_pcb *pcb)
 {
+    char *algoritmo = obtener_algoritmo_planificacion();
 
-    t_contexto *contexto_ejecucion;
-
-    if (strcmp(algoritmo, "FIFO") == 0)
+    if (strcmp(algoritmo, "FIFO") == 0 |)
     {
-        // contexto_ejecucion=ejecutar_segun_FIFO
+        contexto = ejecutar_segun_FIFO(pcb);
     }
     else if (strcmp(algoritmo, "RR") == 0)
     {
-        contexto_ejecucion = ejecutar_segun_RR(pcb);
+        contexto = ejecutar_segun_RR(pcb);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
@@ -183,37 +182,105 @@ t_contexto *procesar_pbc_segun_algoritmo(t_pcb *pcb, char *algoritmo)
         log_error(logger_propio, "Algoritmo invalido. Debe ingresar FIFO, RR o VRR");
         abort();
     }
-
-    return contexto_ejecucion;
 }
 
-/* //
-t_contexto* ejecutar_segun_FIFO(){
+t_contexto *ejecutar_segun_FIFO()
+{
 
-    //TODO
+    // TODO
+    //  contexto = esperar_contexto()
 }
-*/
 
 // Implementacion a probar
 t_contexto *ejecutar_segun_RR(t_pcb *pcb)
 {
-
+    // falta saber si se hara con un contexto
     enviar_contexto_actualizado(pcb->contexto, conexion_dispatch);
     int quantum = obtener_quantum();
 
     pthread_create(&hilo_Q, NULL, ejecutar_quamtum, (*void)&pcb);
     pthread_detach(hilo_Q);
-    t_contexto *contexto;
-    contexto = esperar_contexto();
+    // t_contexto_ejecucion *contexto;
+    // contexto = esperar_contexto(pcb);
     pthread_cancel(hilo_Q);
 
     return contexto;
 }
-
-t_contexto *esperar_contexto()
+// podria ser un void
+t_contexto *esperar_contexto(t_pcb *pcb)
 {
     // Probar si funciona o implementar de otra manera
-    // recibir_contexto_y_actualizar(conexion_dispacht )
+    // recibir_contexto_y_actualizar(conexion_dispatch )
+    int algo = recibir_operacion(conexion_a_cpu_dispatch);
+    if (algo == IO_GENERIC_SLEPP) // pregunta si es interfaz
+    {
+        char *interfaz_s = cambiar_interfaz(IO_GENERIC);
+        int interfaz_e = IO_GENERIC;
+        t_list *lista = recibir_paquete(conexion_a_cpu_dispatch);
+        // pcb=actualizar_pcb(lista);
+        // remover_de_lista_en_ejecucion(pcb);
+        // parametros =obtener_parametros(lista);
+
+        // void*a_modificar=devolver_tipo_void*_que contiene al pcb, parametros y agregar que va a realizar
+        // pthread_create(&hilo_manejar_interfaz, NULL, manejadorr_interfaz,a_modificar);
+    }
+    else
+    {
+        // recibir_contexto_y_actualizar(conexion_dispatch)
+    }
+}
+
+void manejador_interfaz(void *arg)
+{
+    // se hace el casteo de los parametros, pcb, y a_ejecutar
+
+    // pthreaad_mutex_lock(&semaforo_lista_io))
+    // POR AHORA SOLO IMPLENTA PARA IO_GENERIC
+    t_io_list *io = buscar_interfaz(int interfaz_e);
+    if (io != NULL)
+    {
+
+        if (strcmp(io->tipo, interfaz_s))
+        {
+
+            pthread_mutex_lock(&cola_pcb_bloqueados);
+            agregar_a_lista_bloqueados(pcb);
+            pthreas_mutex_unlock(&cola_pcb_bloqueados);
+
+            pthread_mutex_lock(&generic_cola_bloqueados);
+            agregar_a_cola_io(io->cola_pcb_bloqueados, pcb);
+            pthread_mutex_unlock(&generic_cola_bloqueados);
+
+            sem_post(&semaforo_hay_procesos_en_generic);
+        }
+        if ()
+    }
+}
+
+void *ejecutar_io_generic()
+{
+
+    while (1)
+    {
+
+        sem_wait(&semaforo_hay_procesos_en_generic);
+        pthread_mutex_lock(&generic_cola_bloqueados);
+        /*
+        proceso=obtener_proceso_de_cola()
+        pthread_mutex_unlock(&generic_cola_bloqueados);
+        armar_paquete_para_io();
+        enviar_paquete();
+        respuesta= esperar_respuesta_io();
+        if(respuesta=OK){
+
+            enviar_proceso_a_ready(pcb);
+        }
+        */
+    }
+}
+
+t_io_list *buscar_interfaz(int interfaz)
+{
 }
 
 void *ejecutar_quamtum(void *pcb)
@@ -222,67 +289,98 @@ void *ejecutar_quamtum(void *pcb)
 
     usleep(pcb_q->quamtum);
     enviar_interrupcion_FIN_Q(pcb->PID, conexion_interrupt);
+    loggear_fin_de_quantum(pcb->PID);
 }
 
 void enviar_interrupcion_FIN_Q(int PID, int fd)
 {
-
-    t_interrupcion *interrupcion = malloc(sizeof(interrupcion));
-    interupcion->tipo_interrupcion = FIN_DE_QUANTUM;
-    t_interrupcion->PID = PID;
-    t_paquete *paquete = crear_paquete_interrupcion(interrupcion);
+    t_paquete *paquete = crear_paquete_interrupcion(PID);
     enviar_paquete(paquete, fd);
-
-    liberar_interrupcion(interrupcion);
-    liberar_paquete(paquete);
+    eliminar_paquete(paquete);
 }
 
-t_paquete *crear_paquete_interrupcion(t_interrupcion *interr)
+t_paquete *crear_paquete_interrupcion(int PID)
 {
 
     t_paquete *paquete = malloc(sizeof(t_paquete));
     paquete->codigo_operacion = INTERRUPCION;
+    // en aqui queres que te mande planificacion ???
     paquete->buffer = malloc(sizeof(t_buffer));
-    paquete->buffer->size = sizeof(desalojo) + sizeof(int);
+    paquete->buffer->size = sizeof(int);
     paquete->buffer->stream = malloc(buffer->size);
 
     int offset = 0;
-
-    memcpy(paquete->buffer->stream + offset, &(interrupcion->motivo_interrupcion), sizeof(desalojo));
-    offset += sizeof(desalojo);
 
     memcpy(paquete->buffer->stream + offset, &(interrupcion->pid), sizeof(int));
 
     return paquete;
 }
 
-/*
-
-// ponerlo en uitl, pero primero pregunatar si se podria usar asi
-
-struct
+void *ejecutar_espera_interfaces(void)
 {
 
-    desalojo tipo_interrupcion;
-    int proceso_PID;
-} t_interrupcion;
+    t_io_list interfaces[4];
 
-enum
+    while (1)
+    {
+
+        // conexion_de_interface= servidor(); servidor alterado - me devuelde el fd_cliente
+        int op;
+        op = recibir_operacion(conexion_de_interfaz);
+
+        switch (op)
+        {
+        case IO_GENERIC:
+            char *interfaz = "IO_GENERIC";
+            char *tipo = "SLEEP";
+            t_pcb *cola_pcb = NULL;
+
+            agregar_a_lista_global(IO_GENERIC, interfaz, tipo);
+
+            break;
+        case IO_STDIN:
+            char *interfaz = "IO_STDIN";
+            char *tipo = "READ";
+            t_pcb *cola_pcb = NULL;
+
+            agregar_a_lista_global(IO_STDIN, interfaz, tipo);
+
+        case IO_STDOUT:
+            char *interfaz = "IO_STDOUT";
+            char *tipo = "WRITE";
+            t_pcb *cola_pcb = NULL;
+
+            agregar_a_lista_global(IO_STDOUT, interfaz, tipo);
+
+        case IO_DIALFS:
+            char *interfaz = "IO_DIALFS";
+            // char *tipo = "TODO";
+            t_pcb *cola_pcb = NULL;
+
+            agregar_a_lista_global(IO_DIALFS, interfaz, tipo);
+
+        default:
+            break;
+        }
+    }
+
+    void crear_array_IO(void)
+    {
+        // TODO;
+    }
+}
+
+void agregar_a_lista_global(int interfaz, char *nombre, char *tipo)
 {
-    EXIT // este  para cuando haya que eliminar un proceso
-    FIN_DE_QUANTUM
-    ERROR
-} desalojo;
 
-// iria en CPU,pero falta ver como se implementa ciclo de instruccion.
+    interfaces[interfaz].conexion = conexion_de_interfaz;
+    strcpy(interfaces[interfaz].nombre_interfaz, nombre);
+    strcpy(interfaces[interfaz].tipo, tipo);
+    interfaces[interfaz]->cola_pcb_bloqueados = NULL
+}
 
-enum
+void inicializar_interfaz(char *nombre, char *tipo)
 {
 
-    INTERRUPCION
-    DISPATCH
-
-} t_conexion;
-
-
-*/
+    // TODO
+}

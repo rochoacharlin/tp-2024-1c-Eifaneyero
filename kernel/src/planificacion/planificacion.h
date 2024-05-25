@@ -26,6 +26,16 @@ extern sem_t hay_pcbs_READY;
 
 extern int *instancias_recursos;
 extern char *estadosProcesos[5];
+extern t_io_list interfaces[4];
+
+typedef struct
+{
+
+    int fd;
+    char *nombre;
+    char *tipo;
+    t_list *procesos_bloqueados;
+} t_io_list;
 
 // largo plazo
 void planificar_a_largo_plazo(void);
@@ -34,7 +44,7 @@ t_pcb *obtener_siguiente_pcb_READY(void);
 void ingresar_pcb_a_READY(t_pcb *pcb);
 void inicializar_listas_planificacion(void);
 void destruir_listas_planificacion(void);
-
+t_io_list *buscar_interfaz(int interfaz);
 // manejo de semaforos
 void inicializar_semaforos_planificacion(void);
 void destruir_semaforos_planificacion(void);
