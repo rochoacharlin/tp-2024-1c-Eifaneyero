@@ -22,6 +22,6 @@ void iniciar_conexion_memoria(void);
 
 // Envío contexto a CPU a partir de PCB y quedo a espera de OpCode
 // Luego recibo contexto actualizado y actualizo PCB del proceso
-t_contexto_ejecucion *gestionar_ejecucion_proceso(t_pcb *proceso_en_ejecucion);
+t_contexto *gestionar_ejecucion_proceso(t_pcb *proceso_en_ejecucion);
 
 #endif
