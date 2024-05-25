@@ -211,8 +211,22 @@ t_contexto *esperar_contexto(t_pcb *pcb)
 {
     // Probar si funciona o implementar de otra manera
     // recibir_contexto_y_actualizar(conexion_dispatch )
-    int algo = recibir_operacion(conexion_a_cpu_dispatch);
-    if (algo == IO_GENERIC_SLEPP) // pregunta si es interfaz
+    int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
+    t_list *lista_cyp = recibir_paquete(conexion_kernel_cpu_dispatch);
+
+    switch (motivo_desalojo)
+    {
+    case IO_GENERIC_SLEEP:
+    case io_in:
+    case io ...:
+        /* code */
+        break;
+
+    default:
+        break;
+    }
+    if (motivo_desalojo == IO_GENERIC_SLEPP)
+        ; // pregunta si es interfaz
     {
         char *interfaz_s = cambiar_interfaz(IO_GENERIC);
         int interfaz_e = IO_GENERIC;
@@ -236,7 +250,7 @@ void manejador_interfaz(void *arg)
 
     // pthreaad_mutex_lock(&semaforo_lista_io))
     // POR AHORA SOLO IMPLENTA PARA IO_GENERIC
-    t_io_list *io = buscar_interfaz(int interfaz_e);
+    t_io_list *io = buscar_interfaz(interfaz_e);
     if (io != NULL)
     {
 
@@ -318,65 +332,27 @@ t_paquete *crear_paquete_interrupcion(int PID)
 
 void *ejecutar_espera_interfaces(void)
 {
-
-    t_io_list interfaces[4];
-
+    interfaces = list_create();
     while (1)
     {
 
-        // conexion_de_interface= servidor(); servidor alterado - me devuelde el fd_cliente
-        int op;
-        op = recibir_operacion(conexion_de_interfaz);
-
-        switch (op)
-        {
-        case IO_GENERIC:
-            char *interfaz = "IO_GENERIC";
-            char *tipo = "SLEEP";
-            t_pcb *cola_pcb = NULL;
-
-            agregar_a_lista_global(IO_GENERIC, interfaz, tipo);
-
-            break;
-        case IO_STDIN:
-            char *interfaz = "IO_STDIN";
-            char *tipo = "READ";
-            t_pcb *cola_pcb = NULL;
-
-            agregar_a_lista_global(IO_STDIN, interfaz, tipo);
-
-        case IO_STDOUT:
-            char *interfaz = "IO_STDOUT";
-            char *tipo = "WRITE";
-            t_pcb *cola_pcb = NULL;
-
-            agregar_a_lista_global(IO_STDOUT, interfaz, tipo);
-
-        case IO_DIALFS:
-            char *interfaz = "IO_DIALFS";
-            // char *tipo = "TODO";
-            t_pcb *cola_pcb = NULL;
-
-            agregar_a_lista_global(IO_DIALFS, interfaz, tipo);
-
-        default:
-            break;
-        }
-    }
-
-    void crear_array_IO(void)
-    {
-        // TODO;
+        int fd_cliente = esperar_cliente(logger_propio, fd_servidor);
+        int op = recibir_operacion(fd_cliente);
+        char *nombre_interfaz, *tipo_interfaz;
+        // nombre_interfaz = recibir_mensaje(fd_cliente);
+        t_list *interfaz = recibir_paquete(fd_cliente);
+        agregar_a_lista_io_global((char *)list_get(interfaz, 0), (char *)list_get(interfaz, 1), fd_cliente)
     }
 }
 
-void agregar_a_lista_global(int interfaz, char *nombre, char *tipo)
+void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
 {
-
-    interfaces[interfaz].conexion = conexion_de_interfaz;
-    strcpy(interfaces[interfaz].nombre_interfaz, nombre);
-    strcpy(interfaces[interfaz].tipo, tipo);
-    interfaces[interfaz]->cola_pcb_bloqueados = NULL
+    t_io_list *interfaz = malloc(sizeof(t_io_list));
+    interfaz.fd_cliente = fd;
+    strcpy(interfaz.nombre_interfaz, nombre);
+    strcpy(interfaz.tipo, tipo);
+    interfaces->cola_pcb_bloqueados = list_create();
+    list_add(interfaces, (void *)interfaz);
 }
 
 void inicializar_interfaz(char *nombre, char *tipo)

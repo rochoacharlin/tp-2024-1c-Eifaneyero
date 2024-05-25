@@ -15,7 +15,7 @@
 extern int conexion_kernel_cpu_dispatch;  // socket
 extern int conexion_kernel_cpu_interrupt; // socket
 
-void servidor(void);
+int servidor(void);
 void conexion_dispatch_con_CPU(void);
 void conexion_interrupt_con_CPU(void);
 void iniciar_conexion_memoria(void);

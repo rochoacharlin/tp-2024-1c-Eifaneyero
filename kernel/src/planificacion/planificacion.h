@@ -24,10 +24,12 @@ extern pthread_mutex_t mutex_lista_READY;
 extern sem_t planificacion_liberada;
 extern sem_t hay_pcbs_READY;
 
+extern int conexion_kernel_cpu_dispatch;
+
 extern int *instancias_recursos;
 extern char *estadosProcesos[5];
-extern t_io_list interfaces[4];
-
+extern t_list *interfaces;
+extern int fd_servidor;
 typedef struct
 {
 
@@ -48,7 +50,9 @@ t_io_list *buscar_interfaz(int interfaz);
 // manejo de semaforos
 void inicializar_semaforos_planificacion(void);
 void destruir_semaforos_planificacion(void);
-
+// manejo de interfaces
+void *ejecutar_espera_interfaces(void);
+void agregar_a_lista_io_global(char *nombre, char *tipo, int fd);
 // corto plazo
 void planificar_a_corto_plazo_segun_algoritmo(void);
 void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
