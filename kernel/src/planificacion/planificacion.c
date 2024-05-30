@@ -205,7 +205,7 @@ t_contexto *ejecutar_segun_VRR(t_pcb *pcb)
 t_contexto *ejecutar_segun_RR(t_pcb *pcb)
 {
     // falta saber si se hara con un contexto
-    enviar_contexto_actualizado(pcb->contexto, conexion_kernel_cpu_dispatch);
+    enviar_contexto_a_cpu(pcb->contexto, conexion_kernel_cpu_dispatch);
     int quantum = obtener_quantum();
 
     pthread_create(&hilo_Q, NULL, ejecutar_quantum, (*void)&pcb);
