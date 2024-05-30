@@ -1,11 +1,10 @@
 #include "contexto_ejecucion.h"
 
-t_contexto *iniciar_contexto()
+t_contexto *iniciar_contexto(void)
 {
     t_contexto *contexto = malloc(sizeof(t_contexto));
     contexto->PID = 0;
     contexto->registros_cpu = dictionary_create();
-    contexto->rafaga_cpu_ejecutada = 0;
     return contexto;
 }
 
@@ -15,18 +14,7 @@ void destruir_contexto(t_contexto *contexto)
     free(contexto);
 }
 
-void enviar_contexto(int socket, t_contexto *contexto)
-{
-    t_paquete *paquete = crear_paquete(CONTEXTO_EJECUCION);
-
-    agregar_a_paquete(paquete, (void *)&contexto->PID, sizeof(contexto->PID));
-    agregar_registros_cpu_a_paquete(paquete, contexto->registros_cpu);
-    agregar_a_paquete(paquete, (void *)&contexto->rafaga_cpu_ejecutada, sizeof(contexto->rafaga_cpu_ejecutada));
-
-    enviar_paquete(paquete, socket);
-    eliminar_paquete(paquete);
-}
-
+// AX, EAX, BX, EBX, CX, ECX, DX, EDX, PC, SI, DI
 void agregar_registros_cpu_a_paquete(t_paquete *paquete, t_dictionary *registros_cpu)
 {
     char name[3] = "AX", long_name[4] = "EAX";
@@ -36,8 +24,8 @@ void agregar_registros_cpu_a_paquete(t_paquete *paquete, t_dictionary *registros
         char *registroAX = (char *)dictionary_get(registros_cpu, name);
         char *registroEAX = (char *)dictionary_get(registros_cpu, long_name);
 
-        agregar_a_paquete(paquete, (void *)registroAX, sizeof(uint8_t));   // "A/B/C/D X"
-        agregar_a_paquete(paquete, (void *)registroEAX, sizeof(uint32_t)); //  "E A/B/C/D X"
+        agregar_a_paquete(paquete, (void *)registroAX, sizeof(uint8_t));
+        agregar_a_paquete(paquete, (void *)registroEAX, sizeof(uint32_t));
 
         name[0]++;
         long_name[1]++;
@@ -52,10 +40,20 @@ void agregar_contexto_a_paquete(t_contexto *contexto, t_paquete *paquete)
 {
     agregar_a_paquete(paquete, (void *)&contexto->PID, sizeof(contexto->PID));
     agregar_registros_cpu_a_paquete(paquete, contexto->registros_cpu);
-    agregar_a_paquete(paquete, (void *)&contexto->rafaga_cpu_ejecutada, sizeof(contexto->rafaga_cpu_ejecutada));
 }
 
-// TODO: Probar
+void enviar_contexto(int socket, t_contexto *contexto)
+{
+    t_paquete *paquete = crear_paquete(CONTEXTO_EJECUCION);
+
+    agregar_a_paquete(paquete, (void *)&contexto->PID, sizeof(contexto->PID));
+    agregar_registros_cpu_a_paquete(paquete, contexto->registros_cpu);
+
+    enviar_paquete(paquete, socket);
+    eliminar_paquete(paquete);
+}
+
+// TODO: PROBAR!
 t_contexto *recibir_contexto(int socket) // SIN opCode
 {
     t_contexto *contexto = iniciar_contexto();
@@ -86,8 +84,6 @@ t_contexto *recibir_contexto(int socket) // SIN opCode
                    memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 10), 4));
     dictionary_put(contexto->registros_cpu, "DI",
                    memset(malloc(sizeof(uint32_t *)), *(uint32_t *)list_get(registros_contexto, 11), 4));
-    memcpy(&(contexto->rafaga_cpu_ejecutada),
-           (uint64_t *)list_get(registros_contexto, 12), sizeof(uint64_t));
 
     list_destroy_and_destroy_elements(registros_contexto, free);
 

@@ -15,7 +15,7 @@ typedef struct
 } t_contexto;
 
 // Se inicia contexto de ejecucion
-t_contexto *iniciar_contexto();
+t_contexto *iniciar_contexto(void);
 
 // Destruir contexto de ejecución
 void destruir_contexto(t_contexto *contexto);
