@@ -4,7 +4,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include "pcb.h"
-#include "recursos_e_interfaces.h"
+#include "manejo_interfaces.h"
+#include "manejo_recursos.h"
 #include <string.h>
 #include "../configuraciones.h"
 
@@ -46,6 +47,7 @@ void planificar_a_corto_plazo_segun_algoritmo(void);
 void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
 t_pcb *proximo_a_ejecutar_segun_FIFO(void);
 
+// relacionado con la CPU
 void *ejecutar_quantum(void *pcb);
 void enviar_interrupcion_FIN_Q(int PID, int fd);
 t_paquete *crear_paquete_interrupcion(int PID);
