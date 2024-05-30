@@ -32,18 +32,17 @@ t_contexto *esperar_contexto(t_pcb *pcb)
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
     t_list *lista_cyp = recibir_paquete(conexion_kernel_cpu_dispatch);
 
-    switch (motivo_desalojo)
+    /*switch (motivo_desalojo)
     {
     case IO_GENERIC_SLEEP:
     case io_in:
     case io ...:
-        /* code */
         break;
 
     default:
         break;
     }
-    if (motivo_desalojo == IO_GENERIC_SLEEP) // pregunta si es interfaz
+    if (motivo_desalojo == IO_GENERICA_SLEEP) // pregunta si es interfaz
     {
         char *interfaz_s = cambiar_interfaz(IO_GENERIC);
         int interfaz_e = IO_GENERIC;
@@ -58,7 +57,7 @@ t_contexto *esperar_contexto(t_pcb *pcb)
     else
     {
         // recibir_contexto_y_actualizar(conexion_dispatch)
-    }
+    }*/
 }
 
 void manejador_interfaz(void *arg)
@@ -67,11 +66,11 @@ void manejador_interfaz(void *arg)
 
     // pthreaad_mutex_lock(&semaforo_lista_io))
     // POR AHORA SOLO IMPLENTA PARA IO_GENERIC
-    t_io_list *io = buscar_interfaz(interfaz_e); // que es interfaz_e?
+    /*t_io_list *io = buscar_interfaz(interfaz_e); // que es interfaz_e?
     if (io != NULL)
     {
 
-        if (strcmp(io->tipo, interfaz_s)) // que es interfaz_e?
+        if (strcmp(io->tipo, interfaz_s)) // que es interfaz_s?
         {
 
             pthread_mutex_lock(&cola_pcb_bloqueados);
@@ -84,16 +83,17 @@ void manejador_interfaz(void *arg)
 
             sem_post(&semaforo_hay_procesos_en_generic);
         }
-    }
+    }*/
 }
 
 void *ejecutar_io_generica(void)
 {
     while (1)
     {
+        /*
         sem_wait(&semaforo_hay_procesos_en_generic);
         pthread_mutex_lock(&generic_cola_bloqueados);
-        /*
+
         proceso=obtener_proceso_de_cola()
         pthread_mutex_unlock(&generic_cola_bloqueados);
         armar_paquete_para_io();

@@ -81,7 +81,7 @@ void planificar_a_corto_plazo_segun_algoritmo(void)
 
     if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0)
     {
-        planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO);
+        planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO_o_RR);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
@@ -110,17 +110,22 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
-        t_contexto *contexto = procesar_pcb_segun_algoritmo(pcb_proximo, algoritmo);
-        // int rafaga_CPU = contexto_ejecucion->rafaga_CPU_ejecutada;
+        t_contexto *contexto = procesar_pcb_segun_algoritmo(pcb_proximo);
+        // int rafaga_CPU = contexto->rafaga_CPU_ejecutada;
         list_remove_element(pcbs_en_EXEC, pcb_proximo);
         list_add(pcbs_en_BLOCKED, pcb_proximo); // provisional
-        // retorno_contexto(pcb_proximo, contexto_ejecucion);
+        // retorno_contexto(pcb_proximo, contexto);
     }
 }
 
-t_pcb *proximo_a_ejecutar_segun_FIFO(void)
+t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void)
 {
     return desencolar_pcb(pcbs_en_READY);
+}
+
+t_pcb *proximo_a_ejecutar_segun_VRR(void)
+{
+    // TODO
 }
 
 void inicializar_listas_planificacion(void)
@@ -161,21 +166,22 @@ void destruir_semaforos_planificacion(void)
     sem_close(&sem_grado_multiprogramacion);
 }
 
-void proximo_a_ejecutar_segun_algoritmo(t_pcb *pcb)
+// REVISAR
+t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb)
 {
     char *algoritmo = obtener_algoritmo_planificacion();
 
-    if (strcmp(algoritmo, "FIFO") == 0 |)
+    if (strcmp(algoritmo, "FIFO") == 0)
     {
-        contexto = ejecutar_segun_FIFO(pcb); // de donde sale ese contexto??
+        return ejecutar_segun_FIFO(pcb);
     }
     else if (strcmp(algoritmo, "RR") == 0)
     {
-        contexto = ejecutar_segun_RR(pcb); // de donde sale ese contexto??
+        return ejecutar_segun_RR(pcb);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
-        // TODO
+        return ejecutar_segun_VRR(pcb);
     }
     else
     {
@@ -184,17 +190,22 @@ void proximo_a_ejecutar_segun_algoritmo(t_pcb *pcb)
     }
 }
 
-t_contexto *ejecutar_segun_FIFO()
+t_contexto *ejecutar_segun_FIFO(t_pcb *pcb)
 {
     // TODO
     // contexto = esperar_contexto()
+}
+
+t_contexto *ejecutar_segun_VRR(t_pcb *pcb)
+{
+    // TODO
 }
 
 // Implementacion a probar
 t_contexto *ejecutar_segun_RR(t_pcb *pcb)
 {
     // falta saber si se hara con un contexto
-    enviar_contexto_actualizado(pcb->contexto, conexion_kernel_cpu_dispatch;);
+    enviar_contexto_actualizado(pcb->contexto, conexion_kernel_cpu_dispatch);
     int quantum = obtener_quantum();
 
     pthread_create(&hilo_Q, NULL, ejecutar_quantum, (*void)&pcb);
@@ -210,7 +221,7 @@ void *ejecutar_quantum(void *pcb)
 {
     t_pcb *pcb_q = (t_pcb *)pcb;
 
-    usleep(pcb_q->quamtum);
+    usleep(pcb_q->quantum);
     enviar_interrupcion_FIN_Q(pcb->PID, conexion_kernel_cpu_interrupt);
     loggear_fin_de_quantum(pcb->PID);
 }
@@ -224,7 +235,6 @@ void enviar_interrupcion_FIN_Q(int PID, int fd)
 
 t_paquete *crear_paquete_interrupcion(int PID)
 {
-
     t_paquete *paquete = malloc(sizeof(t_paquete));
     paquete->codigo_operacion = INTERRUPCION;
     // en aqui queres que te mande planificacion ???

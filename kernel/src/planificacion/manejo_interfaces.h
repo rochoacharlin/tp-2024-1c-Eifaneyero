@@ -5,6 +5,7 @@
 #include <commons/string.h>
 #include <stdlib.h>
 #include "../configuraciones.h"
+#include <utils/comunicacion.h>
 #include <utils/contexto_ejecucion.h>
 #include "pcb.h"
 

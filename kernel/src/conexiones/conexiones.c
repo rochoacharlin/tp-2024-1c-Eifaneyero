@@ -36,10 +36,10 @@ void iniciar_conexion_memoria(void)
     int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
 }
 
-t_contexto *gestionar_ejecucion_proceso(t_pcb *proceso_en_ejecucion) // CPU ejecuta luego de enviar contexto actualizado
+t_contexto *gestionar_ejecucion_proceso(t_pcb *proceso_en_ejecucion, t_contexto *contexto_ejecucion) // CPU ejecuta luego de enviar contexto actualizado
 {
     if (contexto_ejecucion != NULL)
-        destruir_contexto();
+        destruir_contexto(contexto_ejecucion);
     iniciar_contexto();
     asignar_valores_pcb_a_contexto(proceso_en_ejecucion);
     enviar_contexto_actualizado(conexion_kernel_cpu_dispatch); // Envió para realizar ciclo de instrucción
