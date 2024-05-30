@@ -210,7 +210,7 @@ t_contexto *ejecutar_segun_RR(t_pcb *pcb)
 
     pthread_create(&hilo_Q, NULL, ejecutar_quantum, (*void)&pcb);
     pthread_detach(hilo_Q);
-    // t_contexto_ejecucion *contexto;
+    // t_contexto *contexto;
     // contexto = esperar_contexto(pcb);
     pthread_cancel(hilo_Q);
 
