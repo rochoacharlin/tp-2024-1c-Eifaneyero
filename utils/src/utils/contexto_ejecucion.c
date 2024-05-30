@@ -93,12 +93,3 @@ t_contexto *recibir_contexto(int socket) // SIN opCode
 
     return contexto;
 }
-
-t_contexto *asignar_valores_pcb_a_contexto(t_pcb *proceso)
-{
-    t_contexto *contexto = malloc(sizeof(t_contexto));
-    contexto->PID = proceso->PID;
-    dictionary_destroy_and_destroy_elements(contexto->registros_cpu, free);
-    contexto->registros_cpu = copiar_registros_cpu(proceso->registros_cpu);
-    return contexto;
-}
