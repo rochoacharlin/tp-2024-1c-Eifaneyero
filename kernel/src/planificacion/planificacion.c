@@ -85,8 +85,7 @@ void planificar_a_corto_plazo_segun_algoritmo(void)
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
-        // TODO: Solucion VRR
-        // se debe fija la lista_ready+
+        planificar_a_corto_plazo(proximo_a_ejecutar_segun_VRR);
     }
     else
     {
@@ -111,7 +110,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
         t_contexto *contexto = procesar_pcb_segun_algoritmo(pcb_proximo);
-        // retorno_contexto(pcb_proximo, contexto);
+        esperar_contexto(pcb_proximo);
     }
 }
 
@@ -163,7 +162,6 @@ void destruir_semaforos_planificacion(void)
     sem_close(&sem_grado_multiprogramacion);
 }
 
-// REVISAR
 t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb)
 {
     t_contexto *contexto = asignar_valores_pcb_a_contexto(pcb);
@@ -209,6 +207,7 @@ void enviar_interrupcion_FIN_Q(int PID, int fd_servidor_cpu)
 t_paquete *crear_paquete_interrupcion(int PID)
 {
     /* version anterior sin usar las funciones ya creadas
+
         t_paquete *paquete = malloc(sizeof(t_paquete));
         paquete->codigo_operacion = INTERRUPCION;
         // en aqui queres que te mande planificacion ???
