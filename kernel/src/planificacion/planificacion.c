@@ -2,6 +2,7 @@
 
 t_list *pcbs_en_EXIT;
 t_list *pcbs_en_READY;
+t_list *pcbs_en_aux_READY;
 t_list *pcbs_en_NEW;
 t_list *pcbs_en_memoria;
 t_list *pcbs_en_EXEC;
@@ -110,7 +111,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
         t_contexto *contexto = procesar_pcb_segun_algoritmo(pcb_proximo);
-        esperar_contexto(pcb_proximo);
+        esperar_contexto_y_actualizarlo(pcb_proximo);
     }
 }
 
@@ -121,13 +122,46 @@ t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void)
 
 t_pcb *proximo_a_ejecutar_segun_VRR(void)
 {
-    // TODO
+    t_pcb *pcb;
+    if (!list_is_empty(pcbs_en_aux_READY))
+    {
+        pcb = desencolar_pcb(pcbs_en_aux_READY);
+    }
+    else
+        pcb = desencolar_pcb(pcbs_en_READY);
+
+    return pcb;
+}
+
+// A LA ESPERA DE QUE ROCIO ME DIGA COMO OBTENER EL CONTEXTO QUE ELLA ME DEVUELVE
+t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb, t_contexto *contexto)
+{
+    /*int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
+    t_list *paquete_contexto = recibir_paquete(conexion_kernel_cpu_dispatch);
+
+    switch (motivo_desalojo)
+    {
+    case IO_GEN_SLEEP:
+    case EXIT:
+    case IO_FIN_QUANTUM:
+
+        break;
+
+    default:
+        log_error(log_propio, "Motivo de desalojo incorrecto.");
+        break;
+    }
+    */
 }
 
 void inicializar_listas_planificacion(void)
 {
     pcbs_en_NEW = list_create();
     pcbs_en_READY = list_create();
+
+    if (strcmp(algoritmo, "VRR") == 0)
+        pcbs_en_aux_READY = list_create();
+
     pcbs_en_memoria = list_create();
     pcbs_en_EXEC = list_create();
     pcbs_en_BLOCKED = list_create();
@@ -138,6 +172,10 @@ void destruir_listas_planificacion(void)
 {
     list_destroy_and_destroy_elements(pcbs_en_NEW, (void *)destruir_pcb);
     list_destroy_and_destroy_elements(pcbs_en_READY, (void *)destruir_pcb);
+
+    if (strcmp(algoritmo, "VRR") == 0)
+        list_destroy_and_destroy_elements(pcbs_en_aux_READY, (void *)destruir_pcb);
+
     list_destroy_and_destroy_elements(pcbs_en_memoria, (void *)destruir_pcb);
     list_destroy_and_destroy_elements(pcbs_en_EXEC, (void *)destruir_pcb);
     list_destroy_and_destroy_elements(pcbs_en_BLOCKED, (void *)destruir_pcb);
@@ -204,7 +242,7 @@ void enviar_interrupcion_FIN_Q(int PID, int fd_servidor_cpu)
     eliminar_paquete(paquete);
 }
 
-t_paquete *crear_paquete_interrupcion(int PID)
+t_paquete *crear_paquete_interrupcion(int PID) // considerar sacarlo y reubicarlo en otro lado
 {
     /* version anterior sin usar las funciones ya creadas
 

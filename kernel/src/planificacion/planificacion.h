@@ -49,6 +49,8 @@ void destruir_semaforos_planificacion(void);
 void planificar_a_corto_plazo_segun_algoritmo(void);
 void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
 t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
+t_pcb *proximo_a_ejecutar_segun_VRR(void);
+t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb, t_contexto *contexto);
 
 // relacionado con la CPU
 t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb);

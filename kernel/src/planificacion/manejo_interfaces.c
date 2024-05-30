@@ -24,42 +24,6 @@ void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
     list_add(interfaces, (void *)interfaz);
 }
 
-// podria ser un void
-t_contexto *esperar_contexto(t_pcb *pcb)
-{
-    // Probar si funciona o implementar de otra manera
-    // recibir_contexto_y_actualizar(conexion_dispatch )
-    int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
-    t_list *lista_cyp = recibir_paquete(conexion_kernel_cpu_dispatch);
-
-    /*switch (motivo_desalojo)
-    {
-    case IO_GENERIC_SLEEP:
-    case io_in:
-    case io ...:
-        break;
-
-    default:
-        break;
-    }
-    if (motivo_desalojo == IO_GENERICA_SLEEP) // pregunta si es interfaz
-    {
-        char *interfaz_s = cambiar_interfaz(IO_GENERIC);
-        int interfaz_e = IO_GENERIC;
-        t_list *lista = recibir_paquete(conexion_a_cpu_dispatch);
-        // pcb=actualizar_pcb(lista);
-        // remover_de_lista_en_ejecucion(pcb);
-        // parametros =obtener_parametros(lista);
-
-        // void*a_modificar=devolver_tipo_void*_que contiene al pcb, parametros y agregar que va a realizar
-        // pthread_create(&hilo_manejar_interfaz, NULL, manejadorr_interfaz,a_modificar);
-    }
-    else
-    {
-        // recibir_contexto_y_actualizar(conexion_dispatch)
-    }*/
-}
-
 void manejador_interfaz(void *arg)
 {
     // se hace el casteo de los parametros, pcb, y a_ejecutar
@@ -69,7 +33,6 @@ void manejador_interfaz(void *arg)
     /*t_io_list *io = buscar_interfaz(interfaz_e); // que es interfaz_e?
     if (io != NULL)
     {
-
         if (strcmp(io->tipo, interfaz_s)) // que es interfaz_s?
         {
 
