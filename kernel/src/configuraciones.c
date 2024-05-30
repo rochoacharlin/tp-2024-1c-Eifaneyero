@@ -1,7 +1,7 @@
 #include "configuraciones.h"
 
 char *estados[5] = {"NEW", "READY", "EXEC", "BLOCKED", "EXIT"};
-char *motivos[3] = {"SUCCES", "INVALID_RESOURCE", "INVALID_WRITE"};
+char *motivos[5] = {"SUCCESS", "INVALID_RESOURCE", "INVALID_INTERFACE", "OUT_OF_MEMORY", "INTERRUPTED_BY_USER"};
 
 void loggear_creacion_proceso(int pcbPID)
 {
