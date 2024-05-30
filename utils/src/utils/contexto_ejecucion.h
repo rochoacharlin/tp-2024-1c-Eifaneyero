@@ -12,7 +12,6 @@ typedef struct
 {
     uint32_t PID;
     t_dictionary *registros_cpu;
-    uint64_t rafaga_cpu_ejecutada;
 } t_contexto;
 
 // Se inicia contexto de ejecucion
@@ -24,11 +23,11 @@ void destruir_contexto(t_contexto *contexto);
 // Agregado de valores a paquete
 void agregar_registros_cpu_a_paquete(t_paquete *paquete, t_dictionary *registros_cpu);
 
-// Agrego PID, registros y rafagasDeCpu
+// Agrego PID, registros
 void agregar_contexto_a_paquete(t_contexto *contexto, t_paquete *paquete);
 
 // Serializa y envía contexto a través del socket.
-void enviar_contexto(int socket, t_contexto *contexto);
+void enviar_contexto_a_cpu(int socket, t_contexto *contexto);
 
 // ---------- FUNCIONES PARA RECIBO DE CONTEXTO ---------- //
 
