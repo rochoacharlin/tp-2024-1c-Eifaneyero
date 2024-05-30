@@ -17,6 +17,8 @@ sem_t planificacion_pausada;
 int32_t procesos_creados = 0;
 pthread_t hilo_Q;
 
+char *algoritmo = obtener_algoritmo_planificacion();
+
 void planificar_a_largo_plazo(void)
 {
     while (1)
@@ -77,8 +79,6 @@ void ingresar_pcb_a_NEW(t_pcb *pcb)
 
 void planificar_a_corto_plazo_segun_algoritmo(void)
 {
-    char *algoritmo = obtener_algoritmo_planificacion();
-
     if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0)
     {
         planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO_o_RR);
@@ -111,9 +111,6 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
         t_contexto *contexto = procesar_pcb_segun_algoritmo(pcb_proximo);
-        // int rafaga_CPU = contexto->rafaga_CPU_ejecutada;
-        list_remove_element(pcbs_en_EXEC, pcb_proximo);
-        list_add(pcbs_en_BLOCKED, pcb_proximo); // provisional
         // retorno_contexto(pcb_proximo, contexto);
     }
 }
@@ -169,7 +166,6 @@ void destruir_semaforos_planificacion(void)
 // REVISAR
 t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb)
 {
-    char *algoritmo = obtener_algoritmo_planificacion();
     t_contexto *contexto = asignar_valores_pcb_a_contexto(pcb);
 
     if (strcmp(algoritmo, "FIFO") == 0)
@@ -203,25 +199,29 @@ t_contexto *ejecutar_segun_RR_o_VRR(t_contexto *contexto)
     return contexto;
 }
 
-void enviar_interrupcion_FIN_Q(int PID, int fd)
+void enviar_interrupcion_FIN_Q(int PID, int fd_servidor_cpu)
 {
     t_paquete *paquete = crear_paquete_interrupcion(PID);
-    enviar_paquete(paquete, fd);
+    enviar_paquete(paquete, fd_servidor_cpu);
     eliminar_paquete(paquete);
 }
 
 t_paquete *crear_paquete_interrupcion(int PID)
 {
-    t_paquete *paquete = malloc(sizeof(t_paquete));
-    paquete->codigo_operacion = INTERRUPCION;
-    // en aqui queres que te mande planificacion ???
-    paquete->buffer = malloc(sizeof(t_buffer));
-    paquete->buffer->size = sizeof(int);
-    paquete->buffer->stream = malloc(buffer->size);
+    /* version anterior sin usar las funciones ya creadas
+        t_paquete *paquete = malloc(sizeof(t_paquete));
+        paquete->codigo_operacion = INTERRUPCION;
+        // en aqui queres que te mande planificacion ???
+        paquete->buffer = malloc(sizeof(t_buffer));
+        paquete->buffer->size = sizeof(int);
+        paquete->buffer->stream = malloc(buffer->size);
 
-    int offset = 0;
+        // estan seguros que este paquete esta bien creado?
+        memcpy(paquete->buffer->stream, &PID, sizeof(int));
+    */
 
-    memcpy(paquete->buffer->stream + offset, &(interrupcion->pid), sizeof(int));
+    t_paquete *paquete = crear_paquete(INTERRUPCION);
+    agregar_a_paquete(paquete, &PID, sizeof(int));
 
     return paquete;
 }
