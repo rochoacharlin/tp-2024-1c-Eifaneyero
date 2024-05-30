@@ -42,9 +42,9 @@ void agregar_PID_a_lista_PIDS(void *pcb);
 t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, uint32_t PID);
 
 // Actualizo PCB en base a contexto de ejecución global
-void actualizar_pcb(t_pcb *proceso);
+void actualizar_pcb(t_pcb *proceso, t_contexto *contexto);
 
 // Toma valores de un pcb y asigno a contexto de ejecucion para pasar a CPU
-void asignar_valores_pcb_a_contexto(t_pcb *proceso);
+t_contexto *asignar_valores_pcb_a_contexto(t_pcb *proceso);
 
 #endif
