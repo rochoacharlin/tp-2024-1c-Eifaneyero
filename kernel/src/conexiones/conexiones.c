@@ -1,8 +1,5 @@
 #include "conexiones.h"
 
-int conexion_kernel_cpu_dispatch;
-int conexion_kernel_cpu_interrupt;
-
 void servidor(void)
 {
     int server_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha());
@@ -14,18 +11,20 @@ void servidor(void)
     int handshake_respuesta = handshake_servidor(logger_propio, cliente_fd, handshake_esperado);
 }
 
-void conexion_interrupt_con_CPU(void)
+int conexion_interrupt_con_CPU(void)
 {
     conexion_kernel_cpu_interrupt = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_interrupt());
     int32_t handshake = 5;
     int handshake_respuesta = handshake_cliente(logger_propio, conexion_kernel_cpu_interrupt, handshake);
+    return conexion_kernel_cpu_dispatch;
 }
 
-void conexion_dispatch_con_CPU(void)
+int conexion_dispatch_con_CPU(void)
 {
     conexion_kernel_cpu_dispatch = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_dispatch());
     int32_t handshake = 5;
     int handshake_respuesta = handshake_cliente(logger_propio, conexion_kernel_cpu_dispatch, handshake);
+    return conexion_kernel_cpu_interrupt;
 }
 
 void iniciar_conexion_memoria(void)
@@ -36,7 +35,7 @@ void iniciar_conexion_memoria(void)
     int handshake_respuesta = handshake_cliente(logger_propio, conexion, handshake);
 }
 
-// FUERA DE USO
+/* FUERA DE USO
 t_contexto *gestionar_ejecucion_proceso(t_pcb *proceso_en_ejecucion, t_contexto *contexto_ejecucion) // CPU ejecuta luego de enviar contexto actualizado
 {
     if (contexto_ejecucion != NULL)
@@ -51,3 +50,4 @@ t_contexto *gestionar_ejecucion_proceso(t_pcb *proceso_en_ejecucion, t_contexto 
     actualizar_pcb(proceso_en_ejecucion);
     return contexto_ejecucion;
 }
+*/

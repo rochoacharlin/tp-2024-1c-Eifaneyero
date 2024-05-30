@@ -27,7 +27,7 @@ void agregar_registros_cpu_a_paquete(t_paquete *paquete, t_dictionary *registros
 void agregar_contexto_a_paquete(t_contexto *contexto, t_paquete *paquete);
 
 // Serializa y envía contexto a través del socket.
-void enviar_contexto_a_cpu(int socket, t_contexto *contexto);
+void enviar_contexto(int socket, t_contexto *contexto);
 
 // ---------- FUNCIONES PARA RECIBO DE CONTEXTO ---------- //
 

@@ -7,6 +7,8 @@
 t_log *logger_obligatorio;
 t_log *logger_propio;
 t_config *config;
+int conexion_kernel_cpu_dispatch;
+int conexion_kernel_cpu_interrupt;
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
 
@@ -19,8 +21,8 @@ int main(int argc, char *argv[])
     config = iniciar_config(logger_propio, "kernel.config");
 
     // servidor();
-    // conexion_dispatch_con_CPU();
-    // conexion_interrupt_con_CPU();
+    // conexion_kernel_cpu_dispatch = conexion_dispatch_con_CPU();
+    // conexion_kernel_cpu_interrupt = conexion_interrupt_con_CPU();
     // iniciar_conexion_memoria();
 
     inicializar_listas_planificacion();

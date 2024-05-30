@@ -170,18 +170,15 @@ void destruir_semaforos_planificacion(void)
 t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb)
 {
     char *algoritmo = obtener_algoritmo_planificacion();
+    t_contexto *contexto = asignar_valores_pcb_a_contexto(pcb);
 
     if (strcmp(algoritmo, "FIFO") == 0)
     {
-        return ejecutar_segun_FIFO(pcb);
+        return ejecutar_segun_FIFO(contexto);
     }
-    else if (strcmp(algoritmo, "RR") == 0)
+    else if (strcmp(algoritmo, "RR") == 0 || strcmp(algoritmo, "VRR") == 0)
     {
-        return ejecutar_segun_RR(pcb);
-    }
-    else if (strcmp(algoritmo, "VRR") == 0)
-    {
-        return ejecutar_segun_VRR(pcb);
+        return ejecutar_segun_RR_o_VRR(contexto);
     }
     else
     {
@@ -190,40 +187,20 @@ t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb)
     }
 }
 
-t_contexto *ejecutar_segun_FIFO(t_pcb *pcb)
+t_contexto *ejecutar_segun_FIFO(t_contexto *contexto)
 {
-    // TODO
-    // contexto = esperar_contexto()
+    enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
 }
 
-t_contexto *ejecutar_segun_VRR(t_pcb *pcb)
+t_contexto *ejecutar_segun_RR_o_VRR(t_contexto *contexto)
 {
-    // TODO
-}
+    enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
 
-// Implementacion a probar
-t_contexto *ejecutar_segun_RR(t_pcb *pcb)
-{
-    // falta saber si se hara con un contexto
-    enviar_contexto_a_cpu(pcb->contexto, conexion_kernel_cpu_dispatch);
-    int quantum = obtener_quantum();
-
-    pthread_create(&hilo_Q, NULL, ejecutar_quantum, (*void)&pcb);
-    pthread_detach(hilo_Q);
-    // t_contexto *contexto;
-    // contexto = esperar_contexto(pcb);
-    pthread_cancel(hilo_Q);
+    usleep(obtener_quantum());
+    enviar_interrupcion_FIN_Q(contexto->PID, conexion_kernel_cpu_interrupt);
+    loggear_fin_de_quantum(contexto->PID);
 
     return contexto;
-}
-
-void *ejecutar_quantum(void *pcb)
-{
-    t_pcb *pcb_q = (t_pcb *)pcb;
-
-    usleep(pcb_q->quantum);
-    enviar_interrupcion_FIN_Q(pcb->PID, conexion_kernel_cpu_interrupt);
-    loggear_fin_de_quantum(pcb->PID);
 }
 
 void enviar_interrupcion_FIN_Q(int PID, int fd)

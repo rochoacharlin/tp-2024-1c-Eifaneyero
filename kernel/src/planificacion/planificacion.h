@@ -19,6 +19,9 @@ extern t_list *pcbs_en_EXIT;
 extern sem_t sem_grado_multiprogramacion;
 extern int grado_multiprogramacion;
 
+extern int conexion_kernel_cpu_dispatch;
+extern int conexion_kernel_cpu_interrupt;
+
 extern sem_t hay_pcbs_NEW;
 extern pthread_mutex_t mutex_lista_NEW;
 extern pthread_mutex_t mutex_lista_READY;
@@ -46,11 +49,12 @@ void destruir_semaforos_planificacion(void);
 void planificar_a_corto_plazo_segun_algoritmo(void);
 void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
 t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
-t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb);
 
 // relacionado con la CPU
-void *ejecutar_quantum(void *pcb);
+t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb);
+t_contexto *ejecutar_segun_FIFO(t_contexto *contexto);
+t_contexto *ejecutar_segun_RR_o_VRR(t_contexto *contexto);
 void enviar_interrupcion_FIN_Q(int PID, int fd);
-t_paquete *crear_paquete_interrupcion(int PID);
+t_paquete *crear_paquete_interrupcion(int PID)
 
 #endif
