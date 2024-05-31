@@ -2,7 +2,7 @@
 
 t_instruccion_cadena *leer_instruccion(int desplazamiento)
 {
-    FILE *file = fopen("instrucciones_prueba.txt", "r");
+    FILE *file = fopen("src/lectura/instrucciones_prueba.txt", "r");
     if (file == NULL)
     {
         log_info(logger_propio, "Error al abrir el archivo de instrucciones");

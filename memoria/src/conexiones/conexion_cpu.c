@@ -41,7 +41,7 @@ void atender_cpu()
 
         list_destroy(valores_paquete);
 
-        usleep(obtener_configuracion(config, "RETARDO_RESPUESTA"));
+        usleep(obtener_configuracion("RETARDO_RESPUESTA"));
     }
 }
 
