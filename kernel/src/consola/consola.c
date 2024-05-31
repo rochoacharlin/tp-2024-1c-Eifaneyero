@@ -32,7 +32,29 @@ void consola_interactiva(void)
 
 void ejecutar_script(char *path)
 {
-    // TODO: Leer un archivo de comandos y correrlos.
+    FILE *archivo = fopen(path, "r");
+    if (archivo == NULL)
+    {
+        log_error(logger_propio, "Error al abrir el archivo.");
+        return;
+    }
+
+    char comando[256];
+
+    while (fgets(comando, sizeof(comando), archivo) != NULL)
+    {
+        // Eliminar el carácter de nueva línea si está presente
+        size_t longitud = strlen(comando);
+        if (longitud > 0 && comando[longitud - 1] == '\n')
+        {
+            comando[longitud - 1] = '\0';
+        }
+
+        // Ejecutar el comando
+        buscar_y_ejecutar_comando(comando);
+    }
+
+    fclose(archivo);
 }
 
 void iniciar_proceso(char *path)

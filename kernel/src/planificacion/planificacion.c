@@ -16,7 +16,6 @@ pthread_mutex_t mutex_lista_READY;
 sem_t planificacion_liberada;
 sem_t planificacion_pausada;
 int32_t procesos_creados = 0;
-pthread_t hilo_Q;
 
 char *algoritmo = obtener_algoritmo_planificacion();
 
@@ -124,9 +123,7 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
 {
     t_pcb *pcb;
     if (!list_is_empty(pcbs_en_aux_READY))
-    {
         pcb = desencolar_pcb(pcbs_en_aux_READY);
-    }
     else
         pcb = desencolar_pcb(pcbs_en_READY);
 
@@ -136,22 +133,23 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
 // A LA ESPERA DE QUE ROCIO ME DIGA COMO OBTENER EL CONTEXTO QUE ELLA ME DEVUELVE
 t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb, t_contexto *contexto)
 {
-    /*int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
-    t_list *paquete_contexto = recibir_paquete(conexion_kernel_cpu_dispatch);
+    int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
+    t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
+    t_contexto *contexto = list_get(paquete, 0);
+    actualizar_pcb(pcb, contexto);
 
     switch (motivo_desalojo)
     {
     case IO_GEN_SLEEP:
     case EXIT:
-    case IO_FIN_QUANTUM:
-
+    case FIN_QUANTUM:
+        // PARA QUE NECESITO LOS PARAMETROS??
         break;
 
     default:
-        log_error(log_propio, "Motivo de desalojo incorrecto.");
+        log_error(logger_propio, "Motivo de desalojo incorrecto.");
         break;
     }
-    */
 }
 
 void inicializar_listas_planificacion(void)
@@ -262,3 +260,10 @@ t_paquete *crear_paquete_interrupcion(int PID) // considerar sacarlo y reubicarl
 
     return paquete;
 }
+
+typedef enum
+{
+    IO_GEN_SLEEP,
+    EXIT,
+    FIN_QUANTUM
+} motivos_desalojo;
