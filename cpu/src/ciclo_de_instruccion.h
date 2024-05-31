@@ -9,8 +9,7 @@
 #include <commons/collections/list.h>
 #include <commons/string.h>
 #include <commons/log.h>
-#include "utils/contexto_ejecucion.h"
-#include "utils/estructuras_compartidas.h"
+#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "configuraciones.h"
 #include "conexiones/conexiones.h" //Para usar conexiones globales
 

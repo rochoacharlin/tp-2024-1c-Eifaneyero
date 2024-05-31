@@ -8,8 +8,7 @@
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
 #include "../configuraciones.h"
-#include "../../../utils/src/utils/estructuras_compartidas.h"
-#include "../../../utils/src/utils/contexto_ejecucion.h"
+#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 
 typedef enum estado
 {

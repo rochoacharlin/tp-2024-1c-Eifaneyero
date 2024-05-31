@@ -7,7 +7,7 @@
 #include <commons/string.h>
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
-#include "comunicacion/comunicacion.h"
+#include <utils/comunicacion/comunicacion.h>
 
 // REGISTROS DE CPU,  CPU-KERNEL
 t_dictionary *crear_registros_cpu();

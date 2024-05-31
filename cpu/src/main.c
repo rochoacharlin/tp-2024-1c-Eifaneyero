@@ -1,5 +1,5 @@
 #include "configuraciones.h"
-#include "../../utils/src/utils/estructuras_compartidas.h"
+#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "interface_cpu.h"
 #include "conexiones/conexiones.h"
 
