@@ -55,7 +55,7 @@ t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, uint32_t PID)
     return NULL;
 }
 
-void actualizar_pcb(t_pcb *proceso, t_contexto *contexto) // REVISAR !!!
+void actualizar_pcb(t_pcb *proceso, t_contexto *contexto)
 {
     dictionary_destroy_and_destroy_elements(proceso->registros_cpu, free);
     proceso->registros_cpu = copiar_registros_cpu(contexto->registros_cpu);

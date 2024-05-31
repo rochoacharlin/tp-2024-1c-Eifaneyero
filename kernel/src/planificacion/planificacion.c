@@ -142,7 +142,7 @@ t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = (t_contexto *)list_get(paquete, 0);
-    actualizar_pcb(pcb, contexto);
+    actualizar_pcb(pcb, contexto); // ACTUALIZAR EL ESTADO DEL PCB Y TENER EN CUENTA QUE NO LO SACA DE EXEC HASTA QUE TENGA OTRO PARA PASAR A EXEC.
 
     switch (motivo_desalojo)
     {

@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
 
     config = iniciar_config(logger_propio, "kernel.config");
 
+    // en el caso del servidor creo que tiene que ser un hilo y en el resto de poder reintentar automaticamente conectarse con los otros modulos
     // servidor_kernel_fd = servidor();
     // conexion_kernel_cpu_dispatch = conexion_dispatch_con_CPU();
     // conexion_kernel_cpu_interrupt = conexion_interrupt_con_CPU();
