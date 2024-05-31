@@ -9,11 +9,6 @@ pthread_mutex_t *mutex_interrupt;
 pthread_t th_dispatch;
 pthread_t th_interrupt;
 
-/*
-el Contexto de Ejecución debe ser devuelto a través de la conexión de dispatch,
-quedando la conexión de interrupt dedicada solamente a recibir mensajes de interrupción.
-*/
-
 void iniciar_servidor_dispatch(void)
 {
     int server_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha_dispatch());
@@ -73,7 +68,10 @@ void atender_interrupt()
     log_info(logger_propio, "CPU escuchando puerto interrupt");
     while (1)
     {
-        motivo_interrupcion = recibir_interrupcion(); // TODO: free(): Liberar motivo de instruccion luego de usar
-        hay_interrupcion = true;
+        while (!hay_interrupcion) // TODO F: Limito la llegada de interrupciones a una // Y con semáforos?
+        {
+            motivo_interrupcion = recibir_interrupcion(); // TODO F: free(): Liberar motivo de instruccion luego de usar. En kernel?
+            hay_interrupcion = true;
+        }
     }
 }
