@@ -68,7 +68,7 @@ typedef struct
     char *param5;
 } t_instruccion;
 
-// Version 2.0:
+// Version 2.0: Posiblemente quedaba mejor
 // typedef struct {
 //     t_id id;
 //     char* parametros[];
@@ -81,17 +81,25 @@ extern char *motivo_interrupcion;
 // -------------------- CICLO DE INSTRUCCION -------------------- //
 
 void ciclo_de_instruccion(t_contexto contexto);
-t_instruccion *fetch(t_contexto contexto);
+t_instruccion *fetch();
 void decode(t_instruccion *instruccion);
 void execute(t_instruccion *instruccion);
-void check_interrupt(t_contexto contexto);
+void check_interrupt(t_instruccion *instruccion);
 
 // -------------------- CICLO DE INSTRUCCION: Secundarias -------------------- //
 
 // ---------- FETCH ---------- //
 
+// Castear instruccion tipo string que llega de memoria.
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string);
+
+// Setear id en EXIT por default y parametros en NULL
 t_instruccion *inicializar_instruccion(t_instruccion *instruccion);
+
+// Liberar memoria dinámica (podría ser más bella si params[])
+void destruir_instruccion(t_instruccion *instruccion);
+
+// Castear instruccion_id tipo string a enum para switch en execute(). Ante instruccion desconocida devuelve EXIT.
 t_id string_id_to_enum_id(char *id_string);
 
 // ---------- OTRAS ---------- //
