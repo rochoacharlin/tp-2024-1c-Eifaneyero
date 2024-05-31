@@ -18,9 +18,10 @@ void consola_interactiva(void)
     while (1)
     {
         buscar_y_ejecutar_comando(token);
-
         free(leido);
-        sleep(1); // es una mala practica? se puede hacer en este caso?
+
+        // sem_wait(&termina_comando);
+        sleep(1);
         leido = readline("> ");
         token = strtok(leido, " ");
     }
@@ -64,7 +65,7 @@ void iniciar_proceso(char *path)
 void finalizar_proceso(char *PID)
 {
     // TODO: Liberar recursos, archivos y memoria
-    t_pcb *pcb = buscar_pcb_por_PID(pcbs_en_memoria, PID);
+    t_pcb *pcb = buscar_pcb_por_PID(pcbs_en_memoria, (uint32_t)atoi(PID));
     if (pcb == NULL)
         log_error(logger_propio, "No existe un PCB con ese PID.");
     else
@@ -72,6 +73,7 @@ void finalizar_proceso(char *PID)
         list_remove_element(pcbs_en_memoria, pcb);
         pcb->estado = EXIT;
         list_add(pcbs_en_EXIT, pcb);
+        sem_post(&sem_grado_multiprogramacion);
     }
 }
 
@@ -89,10 +91,21 @@ void iniciar_planificacion(void)
     sem_post(&planificacion_liberada);
 }
 
-void cambiar_grado_multiprogramacion(char *valor)
+void cambiar_grado_multiprogramacion(char *valor_deseado)
 {
-    // TODO: Cambiar el nivel de multiprogramacion
-    // Lo cambiamos directamente en el archivo de configuracion o en una variable del codigo?
+    int valor_resultante, valor_actual, valor_inicial;
+    valor_inicial = obtener_grado_multiprogramacion();
+    sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
+
+    valor_resultante = atoi(valor_deseado) - valor_inicial + valor_actual;
+    cambiar_valor_de_semaforo(&sem_grado_multiprogramacion, valor_resultante);
+    config_set_value(config, "GRADO_MULTIPROGRAMACION", valor_deseado);
+
+    sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
+    log_info(logger_propio, "Grado multiprogramacion actual: %d", valor_actual);
+
+    // En caso de que se tengan más procesos ejecutando que lo que permite el grado de
+    // multiprogramación, no se tomarán acciones sobre los mismos y se esperará su finalización normal.
 }
 
 void listar_procesos_por_cada_estado(void)
@@ -116,17 +129,46 @@ void listar_procesos_por_estado(char *estado, t_list *lista)
 
 void buscar_y_ejecutar_comando(char *token)
 {
-    int i;
-    for (i = 0; i < sizeof(comandos) / sizeof(t_comando); i++)
+    if (token != NULL)
     {
-        if (strcmp(token, comandos[i].nombre) == 0)
+        int i;
+        for (i = 0; i < sizeof(comandos) / sizeof(t_comando); i++)
         {
-            token = strtok(NULL, " ");
-            comandos[i].funcion_de_comando(token);
-            break;
+            if (strcmp(token, comandos[i].nombre) == 0)
+            {
+                token = strtok(NULL, " ");
+                comandos[i].funcion_de_comando(token);
+                break;
+            }
+        }
+
+        if (i == sizeof(comandos) / sizeof(t_comando))
+        {
+            log_error(logger_propio, "Comando invalido.");
         }
     }
+}
 
-    if (i == sizeof(comandos) / sizeof(t_comando))
-        log_error(logger_propio, "Comando invalido.");
+void cambiar_valor_de_semaforo(sem_t *sem, int valor_resultante)
+{
+    if (valor_resultante < 0)
+        log_error(logger_propio, "Grado de multiprogramacion no valido");
+    else
+    {
+        int valor_actual;
+        // Obtener el valor actual del semáforo
+        sem_getvalue(sem, &valor_actual);
+
+        // Realizar operaciones para ajustar el semáforo al valor deseado
+        while (valor_actual > valor_resultante)
+        {
+            sem_wait(sem); // Decrementar el semáforo
+            valor_actual--;
+        }
+        while (valor_actual < valor_resultante)
+        {
+            sem_post(sem); // Incrementar el semáforo
+            valor_actual++;
+        }
+    }
 }

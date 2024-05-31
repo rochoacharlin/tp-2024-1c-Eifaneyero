@@ -11,7 +11,7 @@ t_list *pcbs_en_READY;
 t_list *pcbs_en_aux_READY;
 t_list *pcbs_en_NEW;
 t_list *pcbs_en_memoria;
-t_list *pcbs_en_EXEC;
+t_list *pcbs_en_EXEC; // NO ES UNA LISTA, ES UNO SOLO CREO
 t_list *pcbs_en_BLOCKED;
 
 sem_t hay_pcbs_NEW;
@@ -21,15 +21,17 @@ pthread_mutex_t mutex_lista_NEW;
 pthread_mutex_t mutex_lista_READY;
 sem_t planificacion_liberada;
 sem_t planificacion_pausada;
+sem_t termina_comando;
+
 int32_t procesos_creados = 0;
 
 void planificar_a_largo_plazo(void)
 {
     while (1)
     {
+        sem_wait(&planificacion_liberada);
         sem_wait(&hay_pcbs_NEW);
         sem_wait(&sem_grado_multiprogramacion);
-        sem_wait(&planificacion_liberada);
 
         t_pcb *pcb = obtener_siguiente_pcb_READY();
 
@@ -64,7 +66,7 @@ void ingresar_pcb_a_READY(t_pcb *pcb)
     sem_post(&hay_pcbs_READY);
 
     // log minimo y obligatorio
-    lista_PIDS = string_new();
+    lista_PIDS = list_create();
     mostrar_PIDS(pcbs_en_READY);
     loggear_ingreso_a_READY(lista_PIDS);
     free(lista_PIDS);
@@ -106,17 +108,17 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
     while (1)
     {
         sem_wait(&hay_pcbs_READY);
-        t_pcb *pcb_proximo = proximo_a_ejecutar();
+        // t_pcb *pcb_proximo = proximo_a_ejecutar();
 
-        estado anterior = pcb_proximo->estado;
-        pcb_proximo->estado = EXEC;
-        list_add(pcbs_en_EXEC, pcb_proximo);
+        // estado anterior = pcb_proximo->estado;
+        // pcb_proximo->estado = EXEC;
+        // list_add(pcbs_en_EXEC, pcb_proximo);
 
         // log minimo y obligatorio
-        loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
+        // loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
-        procesar_pcb_segun_algoritmo(pcb_proximo);
-        esperar_contexto_y_actualizar_pcb(pcb_proximo);
+        // procesar_pcb_segun_algoritmo(pcb_proximo);
+        // esperar_contexto_y_actualizar_pcb(pcb_proximo);
     }
 }
 
@@ -156,6 +158,8 @@ t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         log_error(logger_propio, "Motivo de desalojo incorrecto.");
         break;
     }
+
+    return NULL; // creo que hay que retornar un pcb actualizado no un contexto
 }
 
 void inicializar_listas_planificacion(void)
@@ -194,6 +198,7 @@ void inicializar_semaforos_planificacion(void)
     sem_init(&hay_pcbs_READY, 0, 0);
     sem_init(&sem_grado_multiprogramacion, 0, obtener_grado_multiprogramacion());
     sem_init(&planificacion_liberada, 0, 1);
+    sem_init(&termina_comando, 0, 0);
 }
 void destruir_semaforos_planificacion(void)
 {

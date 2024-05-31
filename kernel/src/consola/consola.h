@@ -10,6 +10,8 @@
 
 extern sem_t planificacion_liberada;
 extern sem_t planificacion_pausada;
+extern sem_t sem_grado_multiprogramacion;
+extern sem_t termina_comando;
 
 typedef struct t_comando
 {
@@ -28,5 +30,6 @@ void listar_procesos_por_cada_estado(void);
 void listar_procesos_por_estado(char *estado, t_list *lista);
 
 void buscar_y_ejecutar_comando(char *token);
+void cambiar_valor_de_semaforo(sem_t *sem, int valor_resultante);
 
 #endif
