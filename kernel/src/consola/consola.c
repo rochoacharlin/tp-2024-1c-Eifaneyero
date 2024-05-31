@@ -40,16 +40,19 @@ void ejecutar_script(char *path)
         return;
     }
 
-    char comando[25];
+    char comando[256];
 
-    while (fgets(comando, sizeof(comando), archivo) != NULL)
+    while (!feof(archivo))
     {
+        fgets(comando, sizeof(comando), archivo);
+        char *token = strtok(comando, " ");
+
         // Eliminar el carácter de nueva línea si está presente
         size_t longitud = strlen(comando);
         if (longitud > 0 && comando[longitud - 1] == '\n')
             comando[longitud - 1] = '\0';
 
-        buscar_y_ejecutar_comando(comando);
+        buscar_y_ejecutar_comando(token);
     }
 
     fclose(archivo);
@@ -104,8 +107,8 @@ void cambiar_grado_multiprogramacion(char *valor_deseado)
     sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
     log_info(logger_propio, "Grado multiprogramacion actual: %d", valor_actual);
 
-    // En caso de que se tengan más procesos ejecutando que lo que permite el grado de
-    // multiprogramación, no se tomarán acciones sobre los mismos y se esperará su finalización normal.
+    // TODO: En caso de que se tengan más procesos ejecutando que lo que permite el grado de
+    //       multiprogramación, no se tomarán acciones sobre los mismos y se esperará su finalización normal.
 }
 
 void listar_procesos_por_cada_estado(void)
