@@ -6,7 +6,7 @@
 #include <string.h>
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
-#include "serializacion.h"
+#include "comunicacion/comunicacion.h"
 
 typedef struct
 {

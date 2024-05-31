@@ -5,8 +5,8 @@
 #include <commons/string.h>
 #include <stdlib.h>
 #include "../configuraciones.h"
-#include <utils/comunicacion.h>
-#include <utils/contexto_ejecucion.h>
+#include <utils/comunicacion/comunicacion.h>
+#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "pcb.h"
 
 extern int fd_servidor;

@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
-#include <utils/serializacion.h>
+#include <utils/comunicacion/comunicacion.h>
 #include <commons/string.h>
 #include "ciclo_de_instruccion.h"
 

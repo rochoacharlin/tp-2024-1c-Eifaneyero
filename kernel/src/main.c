@@ -1,7 +1,7 @@
 #include "configuraciones.h"
 #include "consola/consola.h"
 #include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
+#include <utils/comunicacion/comunicacion.h>
 #include "conexiones/conexiones.h"
 
 t_log *logger_obligatorio;

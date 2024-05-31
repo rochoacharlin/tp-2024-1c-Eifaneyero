@@ -6,8 +6,8 @@
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
-#include <utils/estructuras_compartidas.h>
+#include <utils/comunicacion/comunicacion.h>
+#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 
 extern t_log *logger_propio;
 extern int server_fd;

@@ -5,7 +5,7 @@
 #include <commons/string.h>
 #include <stdlib.h>
 #include "../configuraciones.h"
-#include <utils/contexto_ejecucion.h>
+#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "pcb.h"
 
 extern int *instancias_recursos;

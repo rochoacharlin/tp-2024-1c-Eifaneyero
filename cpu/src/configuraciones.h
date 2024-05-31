@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
+#include <utils/comunicacion/comunicacion.h>
 
 #define obtener_ip_memoria() config_get_string_value(config, "IP_MEMORIA")
 #define obtener_puerto_memoria() config_get_string_value(config, "PUERTO_MEMORIA")

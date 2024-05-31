@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <utils/funcionalidades_basicas.h>
-#include <utils/comunicacion.h>
+#include <utils/comunicacion/comunicacion.h>
 
 #define obtener_puerto_escucha() config_get_string_value(config, "PUERTO_ESCUCHA")
 #define obtener_tam_memoria() config_get_int_value(config, "TAM_MEMORIA")

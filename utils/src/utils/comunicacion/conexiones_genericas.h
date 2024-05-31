@@ -1,5 +1,5 @@
-#ifndef UTILS_COMUNICACION_H_
-#define UTILS_COMUNICACION_H_
+#ifndef UTILS_CONEXIONES_GENERICAS_H_
+#define UTILS_CONEXIONES_GENERICAS_H_
 
 #include <errno.h>
 #include <commons/config.h>

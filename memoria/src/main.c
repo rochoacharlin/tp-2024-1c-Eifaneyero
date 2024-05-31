@@ -1,7 +1,7 @@
 
 #include "configuraciones.h"
-#include <utils/serializacion.h>
-#include <utils/estructuras_compartidas.h>
+#include <utils/comunicacion/comunicacion.h>
+#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "conexiones/conexiones.h"
 #include "lectura/lectura.h"
 

@@ -1,4 +1,4 @@
-#include <utils/comunicacion.h>
+#include <utils/comunicacion/conexiones_genericas.h>
 
 int crear_conexion(t_log *logger, char *ip, char *puerto)
 {
