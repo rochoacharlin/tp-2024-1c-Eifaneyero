@@ -1,5 +1,11 @@
 #include "planificacion.h"
 
+typedef enum
+{
+    IO_GEN_SLEEP,
+    FIN_QUANTUM
+} motivos_desalojo;
+
 t_list *pcbs_en_EXIT;
 t_list *pcbs_en_READY;
 t_list *pcbs_en_aux_READY;
@@ -16,8 +22,6 @@ pthread_mutex_t mutex_lista_READY;
 sem_t planificacion_liberada;
 sem_t planificacion_pausada;
 int32_t procesos_creados = 0;
-
-char *algoritmo = obtener_algoritmo_planificacion();
 
 void planificar_a_largo_plazo(void)
 {
@@ -79,6 +83,8 @@ void ingresar_pcb_a_NEW(t_pcb *pcb)
 
 void planificar_a_corto_plazo_segun_algoritmo(void)
 {
+    char *algoritmo = obtener_algoritmo_planificacion();
+
     if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0)
     {
         planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO_o_RR);
@@ -109,8 +115,8 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
 
-        t_contexto *contexto = procesar_pcb_segun_algoritmo(pcb_proximo);
-        esperar_contexto_y_actualizarlo(pcb_proximo);
+        procesar_pcb_segun_algoritmo(pcb_proximo);
+        esperar_contexto_y_actualizar_pcb(pcb_proximo);
     }
 }
 
@@ -131,11 +137,11 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
 }
 
 // A LA ESPERA DE QUE ROCIO ME DIGA COMO OBTENER EL CONTEXTO QUE ELLA ME DEVUELVE
-t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb, t_contexto *contexto)
+t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
-    t_contexto *contexto = list_get(paquete, 0);
+    t_contexto *contexto = (t_contexto *)list_get(paquete, 0);
     actualizar_pcb(pcb, contexto);
 
     switch (motivo_desalojo)
@@ -157,7 +163,7 @@ void inicializar_listas_planificacion(void)
     pcbs_en_NEW = list_create();
     pcbs_en_READY = list_create();
 
-    if (strcmp(algoritmo, "VRR") == 0)
+    if (strcmp(obtener_algoritmo_planificacion(), "VRR") == 0)
         pcbs_en_aux_READY = list_create();
 
     pcbs_en_memoria = list_create();
@@ -171,7 +177,7 @@ void destruir_listas_planificacion(void)
     list_destroy_and_destroy_elements(pcbs_en_NEW, (void *)destruir_pcb);
     list_destroy_and_destroy_elements(pcbs_en_READY, (void *)destruir_pcb);
 
-    if (strcmp(algoritmo, "VRR") == 0)
+    if (strcmp(obtener_algoritmo_planificacion(), "VRR") == 0)
         list_destroy_and_destroy_elements(pcbs_en_aux_READY, (void *)destruir_pcb);
 
     list_destroy_and_destroy_elements(pcbs_en_memoria, (void *)destruir_pcb);
@@ -198,17 +204,18 @@ void destruir_semaforos_planificacion(void)
     sem_close(&sem_grado_multiprogramacion);
 }
 
-t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb)
+void procesar_pcb_segun_algoritmo(t_pcb *pcb)
 {
+    char *algoritmo = obtener_algoritmo_planificacion();
     t_contexto *contexto = asignar_valores_pcb_a_contexto(pcb);
 
     if (strcmp(algoritmo, "FIFO") == 0)
     {
-        return ejecutar_segun_FIFO(contexto);
+        ejecutar_segun_FIFO(contexto);
     }
     else if (strcmp(algoritmo, "RR") == 0 || strcmp(algoritmo, "VRR") == 0)
     {
-        return ejecutar_segun_RR_o_VRR(contexto);
+        ejecutar_segun_RR_o_VRR(contexto);
     }
     else
     {
@@ -217,20 +224,18 @@ t_contexto *procesar_pcb_segun_algoritmo(t_pcb *pcb)
     }
 }
 
-t_contexto *ejecutar_segun_FIFO(t_contexto *contexto)
+void ejecutar_segun_FIFO(t_contexto *contexto)
 {
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
 }
 
-t_contexto *ejecutar_segun_RR_o_VRR(t_contexto *contexto)
+void ejecutar_segun_RR_o_VRR(t_contexto *contexto)
 {
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
 
     usleep(obtener_quantum());
     enviar_interrupcion_FIN_Q(contexto->PID, conexion_kernel_cpu_interrupt);
     loggear_fin_de_quantum(contexto->PID);
-
-    return contexto;
 }
 
 void enviar_interrupcion_FIN_Q(int PID, int fd_servidor_cpu)
@@ -260,10 +265,3 @@ t_paquete *crear_paquete_interrupcion(int PID) // considerar sacarlo y reubicarl
 
     return paquete;
 }
-
-typedef enum
-{
-    IO_GEN_SLEEP,
-    EXIT,
-    FIN_QUANTUM
-} motivos_desalojo;

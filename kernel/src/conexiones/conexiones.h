@@ -13,11 +13,13 @@
 
 extern int conexion_kernel_cpu_dispatch;
 extern int conexion_kernel_cpu_interrupt;
+extern int conexion_kernel_memoria;
+extern int servidor_kernel_fd;
 
-void servidor(void);
+int servidor(void);
 int conexion_dispatch_con_CPU(void);
 int conexion_interrupt_con_CPU(void);
-void iniciar_conexion_memoria(void);
+int conexion_memoria(void);
 
 // Envío contexto a CPU a partir de PCB y quedo a espera de OpCode
 // Luego recibo contexto actualizado y actualizo PCB del proceso

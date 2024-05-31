@@ -12,6 +12,7 @@
 extern int fd_servidor;
 extern t_list *interfaces;
 extern int conexion_kernel_cpu_dispatch;
+extern int servidor_kernel_fd;
 
 typedef struct
 {

@@ -1,11 +1,13 @@
 #include "manejo_interfaces.h"
 
+t_list *interfaces; // falta inicializarlo en algun lado
+
 void *ejecutar_espera_interfaces(void)
 {
     interfaces = list_create();
     while (1)
     {
-        int fd_cliente = esperar_cliente(logger_propio, fd_servidor);
+        int fd_cliente = esperar_cliente(logger_propio, servidor_kernel_fd);
         int op = recibir_operacion(fd_cliente);
         char *nombre_interfaz, *tipo_interfaz;
         // nombre_interfaz = recibir_mensaje(fd_cliente);

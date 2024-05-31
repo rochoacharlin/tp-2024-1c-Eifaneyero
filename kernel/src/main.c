@@ -7,10 +7,14 @@
 t_log *logger_obligatorio;
 t_log *logger_propio;
 t_config *config;
-int conexion_kernel_cpu_dispatch;
-int conexion_kernel_cpu_interrupt;
+
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
+
+int conexion_kernel_cpu_dispatch;
+int conexion_kernel_cpu_interrupt;
+int conexion_kernel_memoria;
+int servidor_kernel_fd;
 
 int main(int argc, char *argv[])
 {
@@ -20,10 +24,10 @@ int main(int argc, char *argv[])
 
     config = iniciar_config(logger_propio, "kernel.config");
 
-    // servidor();
+    // servidor_kernel_fd = servidor();
     // conexion_kernel_cpu_dispatch = conexion_dispatch_con_CPU();
     // conexion_kernel_cpu_interrupt = conexion_interrupt_con_CPU();
-    // iniciar_conexion_memoria();
+    // conexion_kernel_memoria = conexion_memoria();
 
     inicializar_listas_planificacion();
     inicializar_semaforos_planificacion();
@@ -35,7 +39,10 @@ int main(int argc, char *argv[])
 
     consola_interactiva();
 
-    // creo que falta terminar las conexiones
+    close(conexion_kernel_cpu_dispatch);
+    close(conexion_kernel_cpu_interrupt);
+    close(conexion_kernel_memoria);
+    close(servidor_kernel_fd);
     log_destroy(logger_obligatorio);
     log_destroy(logger_propio);
     config_destroy(config);
