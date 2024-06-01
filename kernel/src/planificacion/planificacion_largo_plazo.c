@@ -1,4 +1,4 @@
-#include "planificacion_largo_plazo.h"
+#include "planificacion.h"
 
 t_list *pcbs_en_EXIT;
 t_list *pcbs_en_READY;

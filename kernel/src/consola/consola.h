@@ -5,8 +5,7 @@
 #include <readline/readline.h>
 #include <stdlib.h>
 #include "../planificacion/pcb.h"
-#include "../planificacion/planificacion_largo_plazo.h"
-#include "../planificacion/planificacion_corto_plazo.h"
+#include "../planificacion/planificacion.h"
 #include <unistd.h>
 
 extern sem_t planificacion_liberada;

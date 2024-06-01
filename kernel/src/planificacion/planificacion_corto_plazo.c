@@ -1,4 +1,4 @@
-#include "planificacion_corto_plazo.h"
+#include "planificacion.h"
 
 typedef enum
 {

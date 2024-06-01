@@ -51,4 +51,18 @@ void destruir_listas_planificacion(void);
 void inicializar_semaforos_planificacion(void);
 void destruir_semaforos_planificacion(void);
 
+// corto plazo
+void planificar_a_corto_plazo_segun_algoritmo(void);
+void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
+t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
+t_pcb *proximo_a_ejecutar_segun_VRR(void);
+t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb);
+
+// relacionado con la CPU
+void procesar_pcb_segun_algoritmo(t_pcb *pcb);
+void ejecutar_segun_FIFO(t_contexto *contexto);
+void ejecutar_segun_RR_o_VRR(t_contexto *contexto);
+void enviar_interrupcion_FIN_Q(int PID, int fd);
+t_paquete *crear_paquete_interrupcion(int PID);
+
 #endif
