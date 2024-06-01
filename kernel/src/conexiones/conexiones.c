@@ -15,6 +15,8 @@ void servidor(void)
     int32_t handshake_esperado = 4;
     if (handshake_servidor(logger_propio, cliente_fd, handshake_esperado) == 0)
         log_error(logger_propio, "No se pudo conectar correctamente con el cliente");
+
+    // COMPLETAR: esperar conexiones de la interfaz y crear un hilo por cada una
 }
 
 void conexion_interrupt_con_CPU(void)
@@ -22,7 +24,7 @@ void conexion_interrupt_con_CPU(void)
     conexion_kernel_cpu_interrupt = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_interrupt());
     int32_t handshake = 5;
     if (handshake_cliente(logger_propio, conexion_kernel_cpu_interrupt, handshake) == 0)
-        log_error(logger_propio, "No se pudo conectar correctamente con el servidor");
+        log_error(logger_propio, "No se pudo conectar correctamente con la CPU mediante interrupt");
 }
 
 void conexion_dispatch_con_CPU(void)
@@ -30,7 +32,7 @@ void conexion_dispatch_con_CPU(void)
     conexion_kernel_cpu_dispatch = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_dispatch());
     int32_t handshake = 5;
     if (handshake_cliente(logger_propio, conexion_kernel_cpu_interrupt, handshake) == 0)
-        log_error(logger_propio, "No se pudo conectar correctamente con el servidor");
+        log_error(logger_propio, "No se pudo conectar correctamente con la CPU mediante dispatch");
 }
 
 void conexion_memoria(void)
@@ -38,5 +40,5 @@ void conexion_memoria(void)
     conexion_kernel_memoria = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
     int32_t handshake = 1;
     if (handshake_cliente(logger_propio, conexion_kernel_cpu_interrupt, handshake) == 0)
-        log_error(logger_propio, "No se pudo conectar correctamente con el servidor");
+        log_error(logger_propio, "No se pudo conectar correctamente con la memoria");
 }
