@@ -12,7 +12,7 @@
 extern t_list *pcbs_en_NEW;
 extern t_list *pcbs_en_memoria;
 extern t_list *pcbs_en_READY;
-extern t_list *pcbs_en_EXEC;
+extern t_pcb *pcb_en_EXEC;
 extern t_list *pcbs_en_BLOCKED;
 extern t_list *pcbs_en_EXIT;
 

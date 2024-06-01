@@ -116,7 +116,7 @@ void listar_procesos_por_cada_estado(void)
 {
     listar_procesos_por_estado("NEW", pcbs_en_NEW);
     listar_procesos_por_estado("READY", pcbs_en_READY);
-    listar_procesos_por_estado("EXEC", pcbs_en_EXEC);
+    printf("EXEC: %s\n", pcb_en_EXEC != NULL ? string_itoa(pcb_en_EXEC->PID) : " ");
     listar_procesos_por_estado("BLOCKED", pcbs_en_BLOCKED);
     listar_procesos_por_estado("EXIT", pcbs_en_EXIT);
 }

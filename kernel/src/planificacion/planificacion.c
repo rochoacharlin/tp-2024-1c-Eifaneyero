@@ -11,7 +11,7 @@ t_list *pcbs_en_READY;
 t_list *pcbs_en_aux_READY;
 t_list *pcbs_en_NEW;
 t_list *pcbs_en_memoria;
-t_list *pcbs_en_EXEC; // NO ES UNA LISTA, ES UNO SOLO CREO
+t_pcb *pcb_en_EXEC;
 t_list *pcbs_en_BLOCKED;
 
 sem_t hay_pcbs_NEW;
@@ -66,7 +66,7 @@ void ingresar_pcb_a_READY(t_pcb *pcb)
     sem_post(&hay_pcbs_READY);
 
     // log minimo y obligatorio
-    lista_PIDS = list_create();
+    lista_PIDS = string_new();
     mostrar_PIDS(pcbs_en_READY);
     loggear_ingreso_a_READY(lista_PIDS);
     free(lista_PIDS);
@@ -108,17 +108,16 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
     while (1)
     {
         sem_wait(&hay_pcbs_READY);
-        // t_pcb *pcb_proximo = proximo_a_ejecutar();
+        pcb_en_EXEC = proximo_a_ejecutar();
 
-        // estado anterior = pcb_proximo->estado;
-        // pcb_proximo->estado = EXEC;
-        // list_add(pcbs_en_EXEC, pcb_proximo);
+        estado anterior = pcb_en_EXEC->estado;
+        pcb_en_EXEC->estado = EXEC;
 
         // log minimo y obligatorio
-        // loggear_cambio_de_estado(pcb_proximo->PID, anterior, pcb_proximo->estado);
+        loggear_cambio_de_estado(pcb_en_EXEC->PID, anterior, pcb_en_EXEC->estado);
 
-        // procesar_pcb_segun_algoritmo(pcb_proximo);
-        // esperar_contexto_y_actualizar_pcb(pcb_proximo);
+        // procesar_pcb_segun_algoritmo(pcb_en_EXEC);
+        // esperar_contexto_y_actualizar_pcb(pcb_en_EXEC);
     }
 }
 
@@ -171,7 +170,6 @@ void inicializar_listas_planificacion(void)
         pcbs_en_aux_READY = list_create();
 
     pcbs_en_memoria = list_create();
-    pcbs_en_EXEC = list_create();
     pcbs_en_BLOCKED = list_create();
     pcbs_en_EXIT = list_create();
 }
@@ -185,7 +183,7 @@ void destruir_listas_planificacion(void)
         list_destroy_and_destroy_elements(pcbs_en_aux_READY, (void *)destruir_pcb);
 
     list_destroy_and_destroy_elements(pcbs_en_memoria, (void *)destruir_pcb);
-    list_destroy_and_destroy_elements(pcbs_en_EXEC, (void *)destruir_pcb);
+    destruir_pcb(pcb_en_EXEC);
     list_destroy_and_destroy_elements(pcbs_en_BLOCKED, (void *)destruir_pcb);
     list_destroy_and_destroy_elements(pcbs_en_EXIT, (void *)destruir_pcb);
 }
