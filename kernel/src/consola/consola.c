@@ -33,7 +33,11 @@ void consola_interactiva(void)
 
 void ejecutar_script(char *path)
 {
-    FILE *archivo = fopen(path, "r");
+    FILE *archivo;
+
+    if (path == NULL)
+        archivo = fopen(path, "r");
+
     if (archivo == NULL)
     {
         log_error(logger_propio, "Error al abrir el archivo.");
@@ -68,15 +72,22 @@ void iniciar_proceso(char *path)
 void finalizar_proceso(char *PID)
 {
     // TODO: Liberar recursos, archivos y memoria
-    t_pcb *pcb = buscar_pcb_por_PID(pcbs_en_memoria, (uint32_t)atoi(PID));
+    t_pcb *pcb = NULL;
+
+    if (PID != NULL)
+        pcb = buscar_pcb_por_PID(pcbs_en_memoria, (uint32_t)atoi(PID));
+
     if (pcb == NULL)
         log_error(logger_propio, "No existe un PCB con ese PID.");
     else
     {
-        list_remove_element(pcbs_en_memoria, pcb);
+        remover_pcb_de_listas_globales(pcb);
         pcb->estado = EXIT;
-        // hay que sacarlo de las listas en donde se encuentra
+
+        pthread_mutex_lock(&mutex_lista_EXIT);
         list_add(pcbs_en_EXIT, pcb);
+        pthread_mutex_unlock(&mutex_lista_EXIT);
+
         sem_post(&sem_grado_multiprogramacion);
     }
 }
@@ -97,19 +108,24 @@ void iniciar_planificacion(void)
 
 void cambiar_grado_multiprogramacion(char *valor_deseado)
 {
-    int valor_resultante, valor_actual, valor_inicial;
-    valor_inicial = obtener_grado_multiprogramacion();
-    sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
+    if (valor_deseado == NULL)
+        log_error(logger_propio, "No se indico el numero de grado de multiprogramacion");
+    else
+    {
+        int valor_resultante, valor_actual, valor_inicial;
+        valor_inicial = obtener_grado_multiprogramacion();
+        sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
 
-    valor_resultante = atoi(valor_deseado) - valor_inicial + valor_actual;
-    cambiar_valor_de_semaforo(&sem_grado_multiprogramacion, valor_resultante);
-    config_set_value(config, "GRADO_MULTIPROGRAMACION", valor_deseado);
+        valor_resultante = atoi(valor_deseado) - valor_inicial + valor_actual;
+        cambiar_valor_de_semaforo(&sem_grado_multiprogramacion, valor_resultante);
+        config_set_value(config, "GRADO_MULTIPROGRAMACION", valor_deseado);
 
-    sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
-    log_info(logger_propio, "Grado multiprogramacion actual: %d", valor_actual);
+        sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
+        log_info(logger_propio, "Grado multiprogramacion actual: %d", valor_actual);
 
-    // TODO: En caso de que se tengan más procesos ejecutando que lo que permite el grado de
-    //       multiprogramación, no se tomarán acciones sobre los mismos y se esperará su finalización normal.
+        // TODO: En caso de que se tengan más procesos ejecutando que lo que permite el grado de
+        //       multiprogramación, no se tomarán acciones sobre los mismos y se esperará su finalización normal.
+    }
 }
 
 void listar_procesos_por_cada_estado(void)
@@ -167,13 +183,51 @@ void cambiar_valor_de_semaforo(sem_t *sem, int valor_resultante)
         // Realizar operaciones para ajustar el semáforo al valor deseado
         while (valor_actual > valor_resultante)
         {
-            sem_wait(sem); // Decrementar el semáforo
+            sem_wait(sem);
             valor_actual--;
         }
         while (valor_actual < valor_resultante)
         {
-            sem_post(sem); // Incrementar el semáforo
+            sem_post(sem);
             valor_actual++;
         }
+    }
+}
+
+void remover_pcb_de_listas_globales(t_pcb *pcb)
+{
+    pthread_mutex_lock(&mutex_lista_memoria);
+    list_remove_element(pcbs_en_memoria, pcb);
+    pthread_mutex_unlock(&mutex_lista_memoria);
+
+    switch (pcb->estado)
+    {
+    case NEW:
+        pthread_mutex_lock(&mutex_lista_NEW);
+        list_remove_element(pcbs_en_NEW, pcb);
+        pthread_mutex_unlock(&mutex_lista_NEW);
+        break;
+
+    case READY:
+        pthread_mutex_lock(&mutex_lista_READY);
+        list_remove_element(pcbs_en_READY, pcb);
+        pthread_mutex_unlock(&mutex_lista_READY);
+        break;
+
+    case EXEC:
+        pthread_mutex_lock(&mutex_pcb_EXEC);
+        pcb_en_EXEC = NULL;
+        pthread_mutex_unlock(&mutex_pcb_EXEC);
+        break;
+
+    case BLOCKED:
+        pthread_mutex_lock(&mutex_lista_BLOCKED);
+        list_remove_element(pcbs_en_BLOCKED, pcb);
+        pthread_mutex_unlock(&mutex_lista_BLOCKED);
+        break;
+
+    default:
+        log_error(logger_propio, "Error al remover un pcb de una lista global.");
+        break;
     }
 }
