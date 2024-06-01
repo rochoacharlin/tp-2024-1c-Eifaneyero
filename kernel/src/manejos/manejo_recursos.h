@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "../configuraciones.h"
 #include <utils/estructuras_compartidas/estructuras_compartidas.h>
-#include "pcb.h"
+#include "../planificacion/pcb.h"
 
 extern int *instancias_recursos;
 extern t_list *recursos;
