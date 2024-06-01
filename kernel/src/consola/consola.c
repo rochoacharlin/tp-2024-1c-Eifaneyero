@@ -75,6 +75,7 @@ void finalizar_proceso(char *PID)
     {
         list_remove_element(pcbs_en_memoria, pcb);
         pcb->estado = EXIT;
+        // hay que sacarlo de las listas en donde se encuentra
         list_add(pcbs_en_EXIT, pcb);
         sem_post(&sem_grado_multiprogramacion);
     }
@@ -122,12 +123,13 @@ void listar_procesos_por_cada_estado(void)
 
 void listar_procesos_por_estado(char *estado, t_list *lista)
 {
-    printf("%s: \n", estado);
+    printf("%s: ", estado);
     for (int i = 0; i < list_size(lista); i++)
     {
         t_pcb *pcb = (t_pcb *)list_get(lista, i);
-        printf("    PID: %d\n", pcb->PID);
+        printf(" %d ", pcb->PID);
     }
+    printf("\n");
 }
 
 void buscar_y_ejecutar_comando(char *token)

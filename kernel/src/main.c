@@ -10,11 +10,7 @@ t_config *config;
 
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
-
-int conexion_kernel_cpu_dispatch;
-int conexion_kernel_cpu_interrupt;
-int conexion_kernel_memoria;
-int servidor_kernel_fd;
+pthread_t hilo_servidor;
 
 int main(int argc, char *argv[])
 {
@@ -26,8 +22,10 @@ int main(int argc, char *argv[])
 
     // en el caso del servidor creo que tiene que ser un hilo y en el resto de poder reintentar automaticamente conectarse con los otros modulos
     // servidor_kernel_fd = servidor();
-    // conexion_kernel_cpu_dispatch = conexion_dispatch_con_CPU();
-    // conexion_kernel_cpu_interrupt = conexion_interrupt_con_CPU();
+    // if (pthread_create(&hilo_servidor, NULL, (void *)servidor, NULL))
+    //    log_error(logger_propio, "Error creando el hilo servidor");
+    // conexion_dispatch_con_CPU();
+    // conexion_interrupt_con_CPU();
     // conexion_kernel_memoria = conexion_memoria();
 
     inicializar_listas_planificacion();
