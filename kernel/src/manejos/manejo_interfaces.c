@@ -2,9 +2,10 @@
 
 t_list *interfaces; // falta inicializarlo en algun lado
 
-void *ejecutar_espera_interfaces(void)
+// NO OLVIDARSE DE LOGGEAR AL MOMENTO QUE UN PROCESO PASA DE EXEC A BLOCKED
+
+void *ejecutar_espera_interfaces(void) // ESTO SE RELACIONA CON LA FUNCION DE CONEXIONES "SERVIDOR()"
 {
-    interfaces = list_create();
     while (1)
     {
         int fd_cliente = esperar_cliente(logger_propio, servidor_kernel_fd);
