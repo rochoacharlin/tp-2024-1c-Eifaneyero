@@ -46,6 +46,8 @@ t_pcb *obtener_siguiente_pcb_READY(void);
 void ingresar_pcb_a_READY(t_pcb *pcb);
 void inicializar_listas_planificacion(void);
 void destruir_listas_planificacion(void);
+void enviar_pcb_a_EXIT(t_pcb *pcb);
+void remover_pcb_de_listas_globales(t_pcb *pcb);
 
 // manejo de semaforos
 void inicializar_semaforos_planificacion(void);

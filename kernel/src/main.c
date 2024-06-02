@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     //    log_error(logger_propio, "Error creando el hilo servidor");
     // conexion_dispatch_con_CPU();
     // conexion_interrupt_con_CPU();
-    // conexion_kernel_memoria = conexion_memoria();
+    // conexion_memoria();
 
     inicializar_listas_planificacion();
     inicializar_semaforos_planificacion();

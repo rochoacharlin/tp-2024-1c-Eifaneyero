@@ -7,6 +7,7 @@
 #include "../configuraciones.h"
 #include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "../planificacion/pcb.h"
+#include "../planificacion/planificacion.h"
 
 extern int *instancias_recursos;
 extern t_list *recursos;
@@ -14,5 +15,10 @@ extern char **nombres_recursos;
 
 void crear_colas_de_bloqueo(void);
 void destruir_lista_string(char **lista_string);
+void wait_recurso(char *recurso, t_pcb *pcb);
+void signal_recurso(char *recurso, t_pcb *pcb);
+bool existe_recurso(char *recurso);
+int posicion_recurso(char *recurso);
+int cantidad_recursos(void);
 
 #endif

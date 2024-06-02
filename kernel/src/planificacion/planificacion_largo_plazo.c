@@ -13,7 +13,6 @@ sem_t hay_pcbs_READY;
 sem_t sem_grado_multiprogramacion;
 sem_t planificacion_liberada;
 sem_t planificacion_pausada;
-sem_t termina_comando;
 
 pthread_mutex_t mutex_lista_NEW;
 pthread_mutex_t mutex_lista_READY;
@@ -121,8 +120,8 @@ void inicializar_semaforos_planificacion(void)
     sem_init(&hay_pcbs_READY, 0, 0);
     sem_init(&sem_grado_multiprogramacion, 0, obtener_grado_multiprogramacion());
     sem_init(&planificacion_liberada, 0, 1);
-    sem_init(&termina_comando, 0, 0);
 }
+
 void destruir_semaforos_planificacion(void)
 {
     pthread_mutex_destroy(&mutex_lista_NEW);
@@ -134,4 +133,52 @@ void destruir_semaforos_planificacion(void)
     sem_close(&hay_pcbs_NEW);
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
+}
+
+void enviar_pcb_a_EXIT(t_pcb *pcb)
+{
+    remover_pcb_de_listas_globales(pcb);
+    pcb->estado = EXIT;
+
+    pthread_mutex_lock(&mutex_lista_EXIT);
+    list_add(pcbs_en_EXIT, pcb);
+    pthread_mutex_unlock(&mutex_lista_EXIT);
+}
+
+void remover_pcb_de_listas_globales(t_pcb *pcb)
+{
+    pthread_mutex_lock(&mutex_lista_memoria);
+    list_remove_element(pcbs_en_memoria, pcb);
+    pthread_mutex_unlock(&mutex_lista_memoria);
+
+    switch (pcb->estado)
+    {
+    case NEW:
+        pthread_mutex_lock(&mutex_lista_NEW);
+        list_remove_element(pcbs_en_NEW, pcb);
+        pthread_mutex_unlock(&mutex_lista_NEW);
+        break;
+
+    case READY:
+        pthread_mutex_lock(&mutex_lista_READY);
+        list_remove_element(pcbs_en_READY, pcb);
+        pthread_mutex_unlock(&mutex_lista_READY);
+        break;
+
+    case EXEC:
+        pthread_mutex_lock(&mutex_pcb_EXEC);
+        pcb_en_EXEC = NULL;
+        pthread_mutex_unlock(&mutex_pcb_EXEC);
+        break;
+
+    case BLOCKED:
+        pthread_mutex_lock(&mutex_lista_BLOCKED);
+        list_remove_element(pcbs_en_BLOCKED, pcb);
+        pthread_mutex_unlock(&mutex_lista_BLOCKED);
+        break;
+
+    default:
+        log_error(logger_propio, "Error al remover un pcb de una lista global.");
+        break;
+    }
 }

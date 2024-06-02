@@ -50,13 +50,7 @@ void finalizar_proceso(char *PID)
         log_error(logger_propio, "No existe un PCB con ese PID.");
     else
     {
-        remover_pcb_de_listas_globales(pcb);
-        pcb->estado = EXIT;
-
-        pthread_mutex_lock(&mutex_lista_EXIT);
-        list_add(pcbs_en_EXIT, pcb);
-        pthread_mutex_unlock(&mutex_lista_EXIT);
-
+        enviar_pcb_a_EXIT(pcb);
         sem_post(&sem_grado_multiprogramacion);
     }
 }

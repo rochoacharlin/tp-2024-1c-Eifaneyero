@@ -3,7 +3,9 @@
 typedef enum
 {
     IO_GEN_SLEEP,
-    FIN_QUANTUM
+    FIN_QUANTUM,
+    WAIT,
+    SIGNAL
 } motivos_desalojo;
 
 void planificar_a_corto_plazo_segun_algoritmo(void)
@@ -74,6 +76,13 @@ t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
     case EXIT:
     case FIN_QUANTUM:
         // PARA QUE NECESITO LOS PARAMETROS??
+        break;
+
+    case WAIT:
+        wait_recurso(list_get(paquete, 1), pcb);
+        break;
+    case SIGNAL:
+        signal_recurso(list_get(paquete, 1), pcb);
         break;
 
     default:
