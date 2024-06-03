@@ -6,7 +6,7 @@
 #include <string.h>
 #include "../configuraciones.h"
 #include <utils/comunicacion/comunicacion.h>
-#include "ciclo_de_instruccion.h" //Compartir hay_interrupcion y motivo de instrucccion
+#include "../../cpu/src/ciclo_de_instruccion.h" //Compartir hay_interrupcion y motivo de instrucccion
 // #include <commons/collections/list.h>
 // #include <commons/collections/dictionary.h>
 
