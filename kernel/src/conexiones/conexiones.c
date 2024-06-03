@@ -22,17 +22,17 @@ void servidor(void)
 void conexion_interrupt_con_CPU(void)
 {
     conexion_kernel_cpu_interrupt = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_interrupt());
-    int32_t handshake = 5;
+    /* int32_t handshake = 5;
     if (handshake_cliente(logger_propio, conexion_kernel_cpu_interrupt, handshake) == 0)
-        log_error(logger_propio, "No se pudo conectar correctamente con la CPU mediante interrupt");
+        log_error(logger_propio, "No se pudo conectar correctamente con la CPU mediante interrupt"); */
 }
 
 void conexion_dispatch_con_CPU(void)
 {
     conexion_kernel_cpu_dispatch = crear_conexion(logger_propio, obtener_ip_cpu(), obtener_puerto_cpu_dispatch());
-    int32_t handshake = 5;
+    /* int32_t handshake = 5;
     if (handshake_cliente(logger_propio, conexion_kernel_cpu_interrupt, handshake) == 0)
-        log_error(logger_propio, "No se pudo conectar correctamente con la CPU mediante dispatch");
+        log_error(logger_propio, "No se pudo conectar correctamente con la CPU mediante dispatch"); */
 }
 
 void conexion_memoria(void)

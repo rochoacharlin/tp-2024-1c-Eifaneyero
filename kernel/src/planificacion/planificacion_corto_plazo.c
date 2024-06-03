@@ -71,7 +71,8 @@ t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         enviar_pcb_a_EXIT(pcb);
         break;
     case DESALOJO_FIN_QUANTUM:
-        //
+        list_add(pcbs_en_READY, pcb);
+
         break;
 
     case DESALOJO_WAIT:
@@ -123,30 +124,10 @@ void ejecutar_segun_RR_o_VRR(t_contexto *contexto)
     loggear_fin_de_quantum(contexto->PID);
 }
 
-void enviar_interrupcion_FIN_Q(int PID, int fd_servidor_cpu)
+void enviar_interrupcion(char *motivo)
 {
-    t_paquete *paquete = crear_paquete_interrupcion(PID);
-    enviar_paquete(paquete, fd_servidor_cpu);
-    eliminar_paquete(paquete);
-}
-
-t_paquete *crear_paquete_interrupcion(int PID) // considerar sacarlo y reubicarlo en otro lado
-{
-    /* version anterior sin usar las funciones ya creadas
-
-        t_paquete *paquete = malloc(sizeof(t_paquete));
-        paquete->codigo_operacion = INTERRUPCION;
-        // en aqui queres que te mande planificacion ???
-        paquete->buffer = malloc(sizeof(t_buffer));
-        paquete->buffer->size = sizeof(int);
-        paquete->buffer->stream = malloc(buffer->size);
-
-        // estan seguros que este paquete esta bien creado?
-        memcpy(paquete->buffer->stream, &PID, sizeof(int));
-    */
-
     t_paquete *paquete = crear_paquete(INTERRUPCION);
-    agregar_a_paquete(paquete, &PID, sizeof(int));
-
-    return paquete;
+    agregar_a_paquete_string(paquete, &motivo);
+    enviar_paquete(paquete, conexion_kernel_cpu_interrupt);
+    eliminar_paquete(paquete);
 }
