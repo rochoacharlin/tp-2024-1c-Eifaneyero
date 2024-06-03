@@ -39,6 +39,10 @@ void agregar_a_paquete_contexto(t_paquete *paquete, t_contexto *contexto);
 // Serializa y envía contexto a través del socket.
 void enviar_contexto(int socket, t_contexto *contexto);
 
+// ---------- FUNCIONES PARA MOTIVOS DE DESALOJO ---------- //
+
+motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion);
+
 // ---------- FUNCIONES PARA RECIBO DE CONTEXTO ---------- //
 
 t_contexto *recibir_contexto(int socket);

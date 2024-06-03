@@ -2,7 +2,7 @@
 
 int crear_conexion(t_log *logger, char *ip, char *puerto)
 {
-    addrinfo hints, *server_info;
+    struct addrinfo hints, *server_info;
     int s;
 
     memset(&hints, 0, sizeof(hints));
@@ -40,7 +40,7 @@ int crear_conexion(t_log *logger, char *ip, char *puerto)
 
 int iniciar_servidor(t_log *logger, char *puerto)
 {
-    addrinfo hints, *servinfo;
+    struct addrinfo hints, *servinfo;
     int s;
 
     memset(&hints, 0, sizeof(hints));
@@ -110,11 +110,10 @@ void terminar_programa(int conexion, t_log *logger, t_config *config)
 
 int handshake_cliente(t_log *logger, int conexion, int32_t handshake)
 {
-    size_t bytes;
     int32_t result;
 
-    bytes = send(conexion, &handshake, sizeof(int32_t), 0);
-    bytes = recv(conexion, &result, sizeof(int32_t), MSG_WAITALL);
+    send(conexion, &handshake, sizeof(int32_t), 0);
+    recv(conexion, &result, sizeof(int32_t), MSG_WAITALL);
 
     if (result == 0)
     {
@@ -188,5 +187,5 @@ void esperar_a(char *tipo, int *cliente, int server)
     *cliente = esperar_cliente(logger_propio, server);
 
     int32_t handshake_esperado = 1;
-    int handshake_respuesta = handshake_servidor(logger_propio, *cliente, handshake_esperado);
+    handshake_servidor(logger_propio, *cliente, handshake_esperado);
 }
