@@ -74,19 +74,25 @@ t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
     inicializar_instruccion(instruccion);
 
     char **instruccion_array = string_split(instruccion_string, " ");
+    char *instruccion_array_fixed[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
-    // Asignar el id y los parámetros si existen
-    instruccion->id = string_id_to_enum_id(instruccion_array[0]);
-    if (instruccion_array[1] != NULL)
-        instruccion->param1 = string_duplicate(instruccion_array[1]);
-    if (instruccion_array[2] != NULL)
-        instruccion->param2 = string_duplicate(instruccion_array[2]);
-    if (instruccion_array[3] != NULL)
-        instruccion->param3 = string_duplicate(instruccion_array[3]);
-    if (instruccion_array[4] != NULL)
-        instruccion->param4 = string_duplicate(instruccion_array[4]);
-    if (instruccion_array[5] != NULL)
-        instruccion->param5 = string_duplicate(instruccion_array[5]);
+    // Copiar los elementos del array original al nuevo array fijo
+    for (int i = 0; i < 6 && instruccion_array[i] != NULL; i++)
+    {
+        instruccion_array_fixed[i] = instruccion_array[i];
+    }
+
+    instruccion->id = string_id_to_enum_id(instruccion_array_fixed[0]);
+    if (instruccion_array_fixed[1] != NULL)
+        instruccion->param1 = string_duplicate(instruccion_array_fixed[1]);
+    if (instruccion_array_fixed[2] != NULL)
+        instruccion->param2 = string_duplicate(instruccion_array_fixed[2]);
+    if (instruccion_array_fixed[3] != NULL)
+        instruccion->param3 = string_duplicate(instruccion_array_fixed[3]);
+    if (instruccion_array_fixed[4] != NULL)
+        instruccion->param4 = string_duplicate(instruccion_array_fixed[4]);
+    if (instruccion_array_fixed[5] != NULL)
+        instruccion->param5 = string_duplicate(instruccion_array_fixed[5]);
 
     free(instruccion_array);
     return instruccion;
