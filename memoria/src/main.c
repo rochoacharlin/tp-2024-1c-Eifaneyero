@@ -1,7 +1,7 @@
 
 #include "configuraciones.h"
 #include <utils/comunicacion/comunicacion.h>
-#include <utils/estructuras_compartidas/estructuras_compartidas.h>
+#include <utils/estructuras_compartidas/contexto_ejecucion.h>
 #include "conexiones/conexiones.h"
 #include "lectura/lectura.h"
 
