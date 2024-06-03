@@ -51,10 +51,10 @@ t_dictionary *copiar_registros_cpu(t_dictionary *a_copiar)
 {
     t_dictionary *copia = dictionary_create();
 
-    const char *keys[] = {"PC", "AX", "BX", "CX", "DX", "EAX", "EBX", "ECX", "EDX", "SI", "DI"}; // Lista de claves y sus tamaños correspondientes
-    const size_t sizes[] = {sizeof(uint32_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint32_t),
-                            sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t)};
-    const size_t num_keys = sizeof(keys) / sizeof(keys[0]);
+    char *keys[] = {"PC", "AX", "BX", "CX", "DX", "EAX", "EBX", "ECX", "EDX", "SI", "DI"}; // Lista de claves y sus tamaños correspondientes
+    size_t sizes[] = {sizeof(uint32_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint32_t),
+                      sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t)};
+    size_t num_keys = sizeof(keys) / sizeof(keys[0]);
 
     for (size_t i = 0; i < num_keys; i++) // Itero sobre cada clave para copiar los valores
     {
