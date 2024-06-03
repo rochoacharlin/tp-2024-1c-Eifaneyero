@@ -279,7 +279,7 @@ motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion) // TODO F
 
     if (strcmp(interrupcion, "EXIT") == 0)
         motivo = DESALOJO_EXIT;
-    else if (strcmp(id_string, "FIN_QUANTUM") == 0)
+    else if (strcmp(interrupcion, "FIN_QUANTUM") == 0)
         motivo = DESALOJO_FIN_QUANTUM;
     else
         log_info(logger_propio, "Motivo de desalojo inexistente");
