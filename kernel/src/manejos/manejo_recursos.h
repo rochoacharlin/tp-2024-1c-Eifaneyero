@@ -5,7 +5,6 @@
 #include <commons/string.h>
 #include <stdlib.h>
 #include "../configuraciones.h"
-#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "../planificacion/pcb.h"
 #include "../planificacion/planificacion.h"
 

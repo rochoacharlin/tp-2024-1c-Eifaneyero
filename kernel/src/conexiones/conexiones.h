@@ -7,7 +7,6 @@
 #include "../configuraciones.h"
 #include "../planificacion/pcb.h"
 #include <utils/comunicacion/comunicacion.h>
-#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
 

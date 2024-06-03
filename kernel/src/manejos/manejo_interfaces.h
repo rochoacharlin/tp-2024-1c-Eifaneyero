@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include "../configuraciones.h"
 #include <utils/comunicacion/comunicacion.h>
-#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "../planificacion/pcb.h"
 
 extern int fd_servidor;
