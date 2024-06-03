@@ -94,7 +94,7 @@ t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 void procesar_pcb_segun_algoritmo(t_pcb *pcb)
 {
     char *algoritmo = obtener_algoritmo_planificacion();
-    t_contexto *contexto = asignar_valores_pcb_a_contexto(pcb);
+    t_contexto *contexto = crear_contexto(pcb);
 
     if (strcmp(algoritmo, "FIFO") == 0)
     {
