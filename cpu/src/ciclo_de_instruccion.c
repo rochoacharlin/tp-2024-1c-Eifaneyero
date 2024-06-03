@@ -1,11 +1,11 @@
 #include <ciclo_de_instruccion.h>
 
-pthread_mutex_t mutex_interrupt;
+// pthread_mutex_t mutex_interrupt;
 char *motivo_interrupcion;
 bool continua_ejecucion = true;
 bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
-t_contexto *contexto;
+t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto
 
 void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
 {
@@ -18,8 +18,7 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
         t_instruccion *instruccion = fetch();
         decode(instruccion); // No hace nada, por ahora
         execute(instruccion);
-        check_interrupt(instruccion); // TODO F: id = EXIT, no se chequean interrupciones. Si no me desago de la interrupción puede cortar al proceso que sigue?
-
+        check_interrupt(instruccion);
         destruir_instruccion(instruccion);
     }
 }
@@ -31,21 +30,37 @@ t_instruccion *fetch()
     t_instruccion *instruccion_recibida = malloc(sizeof(t_instruccion));
     uint32_t desplazamiento = obtener_valor_registro(contexto->registros_cpu, "PC"); // TODO: Desplazamiento real?
 
-    solicitar_lectura_de_instruccion(conexion_cpu_memoria, desplazamiento);
+    solicitar_lectura_de_instruccion(desplazamiento);
 
-    char *instruccion_string = recibir_instruccion_string_memoria(conexion_cpu_memoria); // TODO F: Adaptar a estructura que envia Nehuen.
+    char *instruccion_string = recibir_instruccion_string_memoria();
 
-    t_instruccion *instruccion_recibida = convertir_string_a_instruccion(instruccion_string);
+    instruccion_recibida = convertir_string_a_instruccion(instruccion_string);
 
     free(instruccion_string);
     loggear_fetch_instrucccion(contexto->PID, obtener_valor_registro(contexto->registros_cpu, "PC"));
     return instruccion_recibida;
 }
 
-char *recibir_instruccion_string_memoria(conexion_cpu_memoria) // TODO F
+// char *recibir_instruccion_string_memoria() // TODO F
+// {
+//     if (recibir_operacion(conexion_cpu_memoria) == INSTRUCCION)
+//     {
+//         t_list *paquete = recibir_paquete(conexion_cpu_memoria);
+//         t_instruccion_cadena *instruccion_string;
+//         generar_instruccion(instruccion_string, paquete);
+
+//         return instruccion_string->instruccion;
+//     }
+// }
+
+char *recibir_instruccion_string_memoria() // TODO F
 {
-    char *instruccion_string;
-    return instruccion_string;
+    char *unaInstruccion = string_new();
+    unaInstruccion = string_duplicate("SET AX 10");
+    // unaInstruccion = string_duplicate("SET PC 10");
+    // unaInstruccion = string_duplicate("IO_GEN_SLEEP Generica 10");
+    // unaInstruccion = string_duplicate("EXIT");
+    return unaInstruccion;
 }
 
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
@@ -188,7 +203,7 @@ void execute(t_instruccion *instruccion)
         break;
 
     case EXIT:
-        exit();
+        exit_inst();
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: EXIT", contexto->PID);
         break;
     default:
@@ -196,11 +211,12 @@ void execute(t_instruccion *instruccion)
     }
 
     // Incremento PC, al menos que ejecute SET PC XXX o JNZ 0 INSTRUCCION) - ¿o que la instruccion sea exit?
-    if ((!(instruccion->id == SET && instruccion->param1 == "PC") && !(instruccion->id == JNZ && instruccion->param1 != 0) && !(instruccion->id == EXIT)))
+    if ((!(instruccion->id == SET && !strcmp(instruccion->param1, "PC")) && !(instruccion->id == JNZ && instruccion->param1 != 0) /* && !(instruccion->id == EXIT) */))
     {
         uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
         valor++;
-        set("PC", &valor);
+        char *valor_string = string_itoa(valor);
+        set("PC", valor_string); // TODO F: Cuando se libera?
     }
 }
 
@@ -215,7 +231,7 @@ bool instruccion_bloqueante(t_id id_instruccion)
 
 void check_interrupt(t_instruccion *instruccion)
 {
-    if (!instruccion_bloqueante(instruccion))
+    if (!instruccion_bloqueante(instruccion->id))
     {
         continua_ejecucion = false;
         hay_interrupcion = false; // Desacarto interrupcion para que no afecte otro proceso. La maneja el kernel?
@@ -224,11 +240,10 @@ void check_interrupt(t_instruccion *instruccion)
     else if (hay_interrupcion)
     {
 
-        char *motivo = malloc(sizeof(char) * 14) //"matar_proceso\0" o "planificacion\0"
-            *motivo = *motivo_interrupcion;
+        motivo_desalojo motivo = string_interrupcion_to_enum_motivo(motivo_interrupcion);
         hay_interrupcion = false;
 
-        devolver_contexto(contexto, motivo, NULL);
+        devolver_contexto(motivo, NULL);
         continua_ejecucion = false;
 
         // TODO F: free(motivo); Cuando te libero? Responsabilidad del kernel
@@ -246,32 +261,47 @@ char *recibir_interrupcion() // TODO F: Chequear.
         int *size = malloc(sizeof(int));
         recv(conexion_cpu_kernel_interrupt, size, sizeof(int), MSG_WAITALL);
         void *buffer = malloc(*size);
-        recv(conexion_cpu_kernel_interrupt, buffer, *size, MSG_WAITALL); // matar_proceso\0 o planificacion\0 ?
+        recv(conexion_cpu_kernel_interrupt, buffer, *size, MSG_WAITALL);
         free(size);
+        log_info(logger_propio, "recibir_interrupcion(): motivo interrupcion: %s", (char *)buffer);
         return (char *)buffer;
     }
     else
     {
-        // No hay else
+        log_info(logger_propio, "Error: recibir_interrupcion(): Op Code != INTERRUPCION");
     }
+    return NULL; // TODO F ?
+}
+
+motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion) // TODO F
+{
+    motivo_desalojo motivo;
+
+    if (strcmp(interrupcion, "EXIT") == 0)
+        motivo = DESALOJO_EXIT;
+    else if (strcmp(id_string, "FIN_QUANTUM") == 0)
+        motivo = DESALOJO_FIN_QUANTUM;
+    else
+        log_info(logger_propio, "Motivo de desalojo inexistente");
+    return motivo;
 }
 
 // -------------------- INSTRUCCIONES -------------------- //
 
-void set(char *nombre_registro, void *valor)
+void set(char *nombre_registro, char *valor)
 {
     if (strlen(nombre_registro) == 3 || !strcmp(nombre_registro, "SI") || !strcmp(nombre_registro, "DI") || !strcmp(nombre_registro, "PC")) // caso registros de 4 bytes
     {
         uint32_t *registro = dictionary_get(contexto->registros_cpu, nombre_registro);
-        uint32_t *val = (uint32_t *)valor;
-        *registro = *val;
+        uint32_t val = (uint32_t)*valor;
+        *registro = val;
         free(val);
     }
     else if (strlen(nombre_registro) == 2) // caso registros de 1 bytes
     {
         uint8_t *registro = dictionary_get(contexto->registros_cpu, nombre_registro);
-        uint8_t *val = (uint8_t *)valor;
-        *registro = *val;
+        uint8_t val = (uint8_t)*valor;
+        *registro = val;
         free(val);
     }
 }
@@ -292,7 +322,7 @@ void sub(char *nombre_destino, char *nombre_origen)
     set(nombre_destino, &val_destino);
 }
 
-void jnz(char *nombre_registro, void *nro_instruccion)
+void jnz(char *nombre_registro, char *nro_instruccion)
 {
     uint32_t val = obtener_valor_registro(contexto->registros_cpu, nombre_registro);
     if (val != 0)
@@ -303,32 +333,27 @@ void jnz(char *nombre_registro, void *nro_instruccion)
 
 void io_gen_sleep(char *nombre, char *unidades)
 {
-    t_list *param = create_list();
+    t_list *param = list_create();
+    list_add(param, nombre);
     list_add(param, unidades);
-    // devolver_contexto(nombre, motivo, param); //TODO: Inconsistencia de parametros.
+    devolver_contexto(DESALOJO_IO_GEN_SLEEP, param);
 }
 
-void exit()
+void exit_inst()
 {
-    devolver_contexto(contexto, EXIT, NULL);
+    devolver_contexto(DESALOJO_EXIT, NULL);
 }
 
-void devolver_contexto(char *motivo_desalojo, t_list *param)
+void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param)
 {
-    t_id operacion = string_id_to_enum_id(motivo_desalojo);
-    t_paquete paquete = crear_paquete(operacion);
-    agregar_contexto_a_paquete(contexto, paquete);
-    // agregar_motivo_a_paquete()? op_code
+    t_paquete *paquete = crear_paquete(motivo_desalojo);
+    agregar_a_paquete_contexto(paquete, contexto);
+
     for (int i = 0; i < list_size(param); i++)
     {
-        agregar_string_a_paquete(paquete, list_get(param, i)); // TODO: agregar_string_a_paquete(t_paquete, char*)
+        agregar_a_paquete_string(paquete, (char *)list_get(param, i));
     }
 
     enviar_paquete(paquete, conexion_cpu_kernel_dispatch);
-    destruir_paquete(paquete);
-    destruir_contexto(contexto);
+    eliminar_paquete(paquete);
 }
-
-//
-// TODO: POSIBLE ERROR. Qué puede ser? Enviar contexto a kernel -> terminar proceeso
-//

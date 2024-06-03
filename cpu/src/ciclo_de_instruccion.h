@@ -12,6 +12,7 @@
 #include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "configuraciones.h"
 #include "conexiones/conexiones.h" //Para usar conexiones globales
+#include "interface_cpu.h"
 
 // ID instruccion
 typedef enum
@@ -37,26 +38,26 @@ typedef enum
     EXIT
 } t_id;
 
-char *comandos[] = {
-    [SET] = "SET",
-    [MOV_IN] = "MOV_IN",
-    [MOV_OUT] = "MOV_OUT",
-    [SUM] = "SUM",
-    [SUB] = "SUB",
-    [JNZ] = "JNZ",
-    [RESIZE] = "RESIZE",
-    [COPY_STRING] = "COPY_STRING",
-    [WAIT] = "WAIT",
-    [SIGNAL] = "SIGNAL",
-    [IO_GEN_SLEEP] = "IO_GEN_SLEEP",
-    [IO_STDIN_READ] = "IO_STDIN_READ",
-    [IO_STDOUT_WRITE] = "IO_STDOUT_WRITE",
-    [IO_FS_CREATE] = "IO_FS_CREATE",
-    [IO_FS_DELETE] = "IO_FS_DELETE",
-    [IO_FS_TRUNCATE] = "IO_FS_TRUNCATE",
-    [IO_FS_WRITE] = "IO_FS_WRITE",
-    [IO_FS_READ] = "IO_FS_READ",
-    [EXIT] = "EXIT"};
+// char *comandos[] = {
+//     [SET] = "SET",
+//     [MOV_IN] = "MOV_IN",
+//     [MOV_OUT] = "MOV_OUT",
+//     [SUM] = "SUM",
+//     [SUB] = "SUB",
+//     [JNZ] = "JNZ",
+//     [RESIZE] = "RESIZE",
+//     [COPY_STRING] = "COPY_STRING",
+//     [WAIT] = "WAIT",
+//     [SIGNAL] = "SIGNAL",
+//     [IO_GEN_SLEEP] = "IO_GEN_SLEEP",
+//     [IO_STDIN_READ] = "IO_STDIN_READ",
+//     [IO_STDOUT_WRITE] = "IO_STDOUT_WRITE",
+//     [IO_FS_CREATE] = "IO_FS_CREATE",
+//     [IO_FS_DELETE] = "IO_FS_DELETE",
+//     [IO_FS_TRUNCATE] = "IO_FS_TRUNCATE",
+//     [IO_FS_WRITE] = "IO_FS_WRITE",
+//     [IO_FS_READ] = "IO_FS_READ",
+//     [EXIT] = "EXIT"};
 
 typedef struct
 {
@@ -75,12 +76,12 @@ typedef struct
 // }t_instruccion;
 
 extern bool hay_interrupcion;
-extern pthread_mutex_t mutex_interrupt;
+// extern pthread_mutex_t mutex_interrupt;
 extern char *motivo_interrupcion;
 
 // -------------------- CICLO DE INSTRUCCION -------------------- //
 
-void ciclo_de_instruccion(t_contexto contexto);
+void ciclo_de_instruccion(t_contexto *contexto);
 t_instruccion *fetch();
 void decode(t_instruccion *instruccion);
 void execute(t_instruccion *instruccion);
@@ -89,6 +90,9 @@ void check_interrupt(t_instruccion *instruccion);
 // -------------------- CICLO DE INSTRUCCION: Secundarias -------------------- //
 
 // ---------- FETCH ---------- //
+
+// Recibir string de memoria con instrucccion (id + parametros)
+char *recibir_instruccion_string_memoria();
 
 // Castear instruccion tipo string que llega de memoria.
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string);
@@ -102,20 +106,29 @@ void destruir_instruccion(t_instruccion *instruccion);
 // Castear instruccion_id tipo string a enum para switch en execute(). Ante instruccion desconocida devuelve EXIT.
 t_id string_id_to_enum_id(char *id_string);
 
+// ---------- CHECK INTERRUPT ---------- //
+
+char *recibir_interrupcion();
+
+motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion);
+
 // ---------- OTRAS ---------- //
 
 bool instruccion_bloqueante(t_id id_instruccion);
 
 // -------------------- INSTRUCCIONES -------------------- //
 
-void set(char *nombre_registro, void *valor);
+void set(char *nombre_registro, char *valor);
 void sum(char *nombre_destino, char *nombre_origen);
 void sub(char *nombre_destino, char *nombre_origen);
-void jnz(char *nombre_registro, void *nro_instruccion);
+void jnz(char *nombre_registro, char *nro_instruccion);
 void io_gen_sleep(char *nombre, char *unidades);
+void exit_inst();
+
+void destruir_instruccion(t_instruccion *instruccion);
 
 // -------------------- MANEJO DE CONTEXTO -------------------- //
 
-void devolver_contexto(char *motivo_desalojo, t_list *param);
+void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param);
 
 #endif
