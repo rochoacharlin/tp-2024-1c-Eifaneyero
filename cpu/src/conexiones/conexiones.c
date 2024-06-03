@@ -86,3 +86,22 @@ void atender_interrupt()
         }
     }
 }
+
+char *recibir_interrupcion() // TODO F: Chequear.
+{
+    if (recibir_operacion(conexion_cpu_kernel_interrupt) == INTERRUPCION)
+    {
+        int *size = malloc(sizeof(int));
+        recv(conexion_cpu_kernel_interrupt, size, sizeof(int), MSG_WAITALL);
+        void *buffer = malloc(*size);
+        recv(conexion_cpu_kernel_interrupt, buffer, *size, MSG_WAITALL);
+        free(size);
+        log_info(logger_propio, "recibir_interrupcion(): motivo interrupcion: %s", (char *)buffer);
+        return (char *)buffer;
+    }
+    else
+    {
+        log_info(logger_propio, "Error: recibir_interrupcion(): Op Code != INTERRUPCION");
+    }
+    return NULL; // TODO F ?
+}

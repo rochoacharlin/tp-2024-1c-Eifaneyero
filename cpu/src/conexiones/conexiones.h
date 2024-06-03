@@ -8,13 +8,17 @@
 #include <sys/types.h>
 #include "../configuraciones.h"
 #include <utils/comunicacion/comunicacion.h>
+#include <utils/estructuras_compartidas/contexto_ejecucion.h>
+
 #include "../../cpu/src/ciclo_de_instruccion.h" //Compartir hay_interrupcion y motivo de instrucccion
-// #include <commons/collections/list.h>
-// #include <commons/collections/dictionary.h>
+//    #include <commons/collections/list.h>
+//    #include <commons/collections/dictionary.h>
 
 extern int conexion_cpu_memoria;
 extern int conexion_cpu_kernel_dispatch;
 extern int conexion_cpu_kernel_interrupt;
+extern char *motivo_interrupcion;
+extern bool hay_interrupcion;
 
 void iniciar_servidor_dispatch(void);
 void iniciar_servidor_interrupt(void);
@@ -25,5 +29,7 @@ void iniciar_conexiones();
 
 void atender_dispatch();
 void atender_interrupt();
+
+char *recibir_interrupcion();
 
 #endif

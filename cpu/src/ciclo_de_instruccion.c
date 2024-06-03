@@ -1,4 +1,4 @@
-#include <ciclo_de_instruccion.h>
+#include "ciclo_de_instruccion.h"
 
 // pthread_mutex_t mutex_interrupt;
 char *motivo_interrupcion;
@@ -6,6 +6,27 @@ bool continua_ejecucion = true;
 bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
 t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto
+
+char *nombres_de_instrucciones[] = {
+    [SET] = "SET",
+    [MOV_IN] = "MOV_IN",
+    [MOV_OUT] = "MOV_OUT",
+    [SUM] = "SUM",
+    [SUB] = "SUB",
+    [JNZ] = "JNZ",
+    [RESIZE] = "RESIZE",
+    [COPY_STRING] = "COPY_STRING",
+    [WAIT] = "WAIT",
+    [SIGNAL] = "SIGNAL",
+    [IO_GEN_SLEEP] = "IO_GEN_SLEEP",
+    [IO_STDIN_READ] = "IO_STDIN_READ",
+    [IO_STDOUT_WRITE] = "IO_STDOUT_WRITE",
+    [IO_FS_CREATE] = "IO_FS_CREATE",
+    [IO_FS_DELETE] = "IO_FS_DELETE",
+    [IO_FS_TRUNCATE] = "IO_FS_TRUNCATE",
+    [IO_FS_WRITE] = "IO_FS_WRITE",
+    [IO_FS_READ] = "IO_FS_READ",
+    [EXIT] = "EXIT"};
 
 void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
 {
@@ -20,7 +41,7 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
         execute(instruccion);
         check_interrupt(instruccion);
         //----- BORRAR ----//
-        devolver_contexto(DESALOJO_EXIT, NULL); //TODO F : Agrego para test
+        devolver_contexto(DESALOJO_EXIT, NULL); // TODO F : Agrego para test
         log_info(logger_propio, "Contexto devuelto al kernel");
         //----- BORRAR ----//
         destruir_instruccion(instruccion);
@@ -269,55 +290,20 @@ void check_interrupt(t_instruccion *instruccion)
     }
 }
 
-char *recibir_interrupcion() // TODO F: Chequear.
-{
-    if (recibir_operacion(conexion_cpu_kernel_interrupt) == INTERRUPCION)
-    {
-        int *size = malloc(sizeof(int));
-        recv(conexion_cpu_kernel_interrupt, size, sizeof(int), MSG_WAITALL);
-        void *buffer = malloc(*size);
-        recv(conexion_cpu_kernel_interrupt, buffer, *size, MSG_WAITALL);
-        free(size);
-        log_info(logger_propio, "recibir_interrupcion(): motivo interrupcion: %s", (char *)buffer);
-        return (char *)buffer;
-    }
-    else
-    {
-        log_info(logger_propio, "Error: recibir_interrupcion(): Op Code != INTERRUPCION");
-    }
-    return NULL; // TODO F ?
-}
-
-motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion) // TODO F
-{
-    motivo_desalojo motivo;
-
-    if (strcmp(interrupcion, "EXIT") == 0)
-        motivo = DESALOJO_EXIT;
-    else if (strcmp(interrupcion, "FIN_QUANTUM") == 0)
-        motivo = DESALOJO_FIN_QUANTUM;
-    else
-        log_info(logger_propio, "Motivo de desalojo inexistente");
-    return motivo;
-}
-
 // -------------------- INSTRUCCIONES -------------------- //
 
 void set(char *nombre_registro, char *valor)
 {
+    uint32_t valor_num = *valor;
     if (strlen(nombre_registro) == 3 || !strcmp(nombre_registro, "SI") || !strcmp(nombre_registro, "DI") || !strcmp(nombre_registro, "PC")) // caso registros de 4 bytes
     {
         uint32_t *registro = dictionary_get(contexto->registros_cpu, nombre_registro);
-        uint32_t val = (uint32_t)*valor;
-        *registro = val;
-        free(val);
+        *registro = valor_num;
     }
     else if (strlen(nombre_registro) == 2) // caso registros de 1 bytes
     {
         uint8_t *registro = dictionary_get(contexto->registros_cpu, nombre_registro);
-        uint8_t val = (uint8_t)*valor;
-        *registro = val;
-        free(val);
+        *registro = (uint8_t)valor_num;
     }
 }
 
@@ -326,7 +312,8 @@ void sum(char *nombre_destino, char *nombre_origen)
     uint32_t val_destino = obtener_valor_registro(contexto->registros_cpu, nombre_destino);
     uint32_t val_origen = obtener_valor_registro(contexto->registros_cpu, nombre_origen);
     val_destino += val_origen;
-    set(nombre_destino, &val_destino);
+    char val_asignar = (char)val_destino;
+    set(nombre_destino, &val_asignar);
 }
 
 void sub(char *nombre_destino, char *nombre_origen)
@@ -334,7 +321,8 @@ void sub(char *nombre_destino, char *nombre_origen)
     uint32_t val_destino = obtener_valor_registro(contexto->registros_cpu, nombre_destino);
     uint32_t val_origen = obtener_valor_registro(contexto->registros_cpu, nombre_origen);
     val_destino -= val_origen;
-    set(nombre_destino, &val_destino);
+    char val_asignar = (char)val_destino;
+    set(nombre_destino, &val_asignar);
 }
 
 void jnz(char *nombre_registro, char *nro_instruccion)

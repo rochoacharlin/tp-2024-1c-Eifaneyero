@@ -11,7 +11,7 @@
 #include <commons/log.h>
 #include <utils/estructuras_compartidas/estructuras_compartidas.h>
 #include "configuraciones.h"
-#include "conexiones/conexiones.h" //Para usar conexiones globales
+// #include "conexiones/conexiones.h" //Para usar conexiones globales
 #include "interface_cpu.h"
 
 // ID instruccion
@@ -38,26 +38,7 @@ typedef enum
     EXIT
 } t_id;
 
-char *comandos[] = {
-    [SET] = "SET",
-    [MOV_IN] = "MOV_IN",
-    [MOV_OUT] = "MOV_OUT",
-    [SUM] = "SUM",
-    [SUB] = "SUB",
-    [JNZ] = "JNZ",
-    [RESIZE] = "RESIZE",
-    [COPY_STRING] = "COPY_STRING",
-    [WAIT] = "WAIT",
-    [SIGNAL] = "SIGNAL",
-    [IO_GEN_SLEEP] = "IO_GEN_SLEEP",
-    [IO_STDIN_READ] = "IO_STDIN_READ",
-    [IO_STDOUT_WRITE] = "IO_STDOUT_WRITE",
-    [IO_FS_CREATE] = "IO_FS_CREATE",
-    [IO_FS_DELETE] = "IO_FS_DELETE",
-    [IO_FS_TRUNCATE] = "IO_FS_TRUNCATE",
-    [IO_FS_WRITE] = "IO_FS_WRITE",
-    [IO_FS_READ] = "IO_FS_READ",
-    [EXIT] = "EXIT"};
+extern char *instrucciones[];
 
 typedef struct
 {
@@ -75,9 +56,7 @@ typedef struct
 //     char* parametros[];
 // }t_instruccion;
 
-extern bool hay_interrupcion;
 // extern pthread_mutex_t mutex_interrupt;
-extern char *motivo_interrupcion;
 
 // -------------------- CICLO DE INSTRUCCION -------------------- //
 
@@ -105,12 +84,6 @@ void destruir_instruccion(t_instruccion *instruccion);
 
 // Castear instruccion_id tipo string a enum para switch en execute(). Ante instruccion desconocida devuelve EXIT.
 t_id string_id_to_enum_id(char *id_string);
-
-// ---------- CHECK INTERRUPT ---------- //
-
-char *recibir_interrupcion();
-
-motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion);
 
 // ---------- OTRAS ---------- //
 
