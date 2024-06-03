@@ -1,4 +1,4 @@
-#include "configuraciones.h"
+#include <configuraciones.h>
 
 void loggear_fetch_instrucccion(uint32_t PID, uint32_t PC)
 {
