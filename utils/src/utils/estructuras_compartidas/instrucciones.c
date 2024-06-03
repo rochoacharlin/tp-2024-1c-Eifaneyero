@@ -49,7 +49,7 @@ t_instruccion_cadena *crear_instruccion()
     return instruccion;
 }
 
-void destruir_instruccion(t_instruccion_cadena *instruccion)
+void destruir_instruccion_cadena(t_instruccion_cadena *instruccion)
 {
     if (instruccion->instruccion != NULL)
     {

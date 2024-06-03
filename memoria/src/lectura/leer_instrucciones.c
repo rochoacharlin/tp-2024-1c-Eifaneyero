@@ -35,7 +35,7 @@ t_instruccion_cadena *leer_instruccion(int desplazamiento)
 
     if (linea_actual != desplazamiento)
     {
-        destruir_instruccion(instruccion);
+        destruir_instruccion_cadena(instruccion);
         return NULL; // Desplazamiento fuera de los límites del archivo
     }
 
