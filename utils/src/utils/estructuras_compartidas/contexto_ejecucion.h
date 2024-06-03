@@ -13,7 +13,8 @@ typedef enum
     DESALOJO_IO_GEN_SLEEP,
     DESALOJO_WAIT,
     DESALOJO_SIGNAL,
-    DESALOJO_EXIT
+    DESALOJO_EXIT,
+    DESALOJO_FIN_QUANTUM
 } motivos_desalojo;
 
 typedef struct
