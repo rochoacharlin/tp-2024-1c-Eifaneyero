@@ -8,6 +8,14 @@
 #include <commons/collections/dictionary.h>
 #include <utils/comunicacion/comunicacion.h>
 
+typedef enum
+{
+    DESALOJO_IO_GEN_SLEEP,
+    DESALOJO_WAIT,
+    DESALOJO_SIGNAL,
+    DESALOJO_EXIT
+} motivos_desalojo;
+
 typedef struct
 {
     uint32_t PID;
