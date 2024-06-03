@@ -71,6 +71,7 @@ void serializar_instruccion(t_instruccion_cadena *instruccion, t_paquete *paquet
     agregar_a_paquete(paquete, instruccion->instruccion, longitud_instruccion);
 }
 
+// REVISAR!!
 void generar_instruccion(t_instruccion_cadena *instruccion, t_list *valores)
 {
     // Calcular el tamaño total necesario para la instrucción
