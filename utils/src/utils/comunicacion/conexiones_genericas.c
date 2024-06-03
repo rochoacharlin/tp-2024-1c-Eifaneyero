@@ -184,7 +184,7 @@ void esperar_a(char *tipo, int *cliente, int server)
     string_append(&aviso, tipo);
     string_append(&aviso, "...");
 
-    log_info(logger_propio, aviso);
+    log_info(logger_propio, "%s", aviso);
     *cliente = esperar_cliente(logger_propio, server);
 
     int32_t handshake_esperado = 1;
