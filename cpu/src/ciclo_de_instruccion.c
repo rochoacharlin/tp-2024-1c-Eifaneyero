@@ -226,7 +226,12 @@ void execute(t_instruccion *instruccion)
         uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
         valor++;
         char *valor_string = string_itoa(valor);
-        set("PC", valor_string); // TODO F: Cuando se libera?
+        // log_info(logger_propio, "Valor string: %s", valor_string);
+        dictionary_remove(contexto->registros_cpu, "PC");
+        dictionary_put(contexto->registros_cpu, "PC", valor_string);
+        // set("PC", valor_string);
+        log_info(logger_propio, "PC incrementado como tipo string: %s", (char *)dictionary_get(contexto->registros_cpu, "PC"));
+        // TODO F: Cómo hago para guardar y leer como uint_t????
     }
 }
 
