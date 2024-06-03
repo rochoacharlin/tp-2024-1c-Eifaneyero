@@ -41,7 +41,6 @@ void enviar_contexto(int socket, t_contexto *contexto);
 
 // ---------- FUNCIONES PARA RECIBO DE CONTEXTO ---------- //
 
-// TODO: PROBAR!
 t_contexto *recibir_contexto(int socket);
 
 #endif
