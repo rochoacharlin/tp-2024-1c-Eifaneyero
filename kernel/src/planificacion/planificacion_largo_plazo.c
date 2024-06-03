@@ -166,7 +166,9 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
         break;
 
     case EXEC:
-        // COMPLETAR: falta avisarle a la CPU que lo desaloje
+        // VERIFICAR: siempre es el caso en el cual debo mandar una interrupcion a CPU o hay otros casos?
+        enviar_interrupcion("EXIT");
+        // esperar a que me devuelvan el motivo de desalojo de EXIT y ver como sigo
         pthread_mutex_lock(&mutex_pcb_EXEC);
         pcb_en_EXEC = NULL;
         pthread_mutex_unlock(&mutex_pcb_EXEC);

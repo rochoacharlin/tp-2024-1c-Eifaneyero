@@ -52,15 +52,19 @@ void manejador_interfaz(void *arg)
     }*/
 }
 
+void enviar_gen_sleep(char *nombre, int cantidad)
+{
+    // TODO
+}
+
 void *ejecutar_io_generica(void)
 {
     while (1)
     {
         /*
         sem_wait(&semaforo_hay_procesos_en_generic);
-        pthread_mutex_lock(&generic_cola_bloqueados);
-
-        proceso=obtener_proceso_de_cola()
+        pthread_mut
+    return NULL; // creo que hay que retornar un pcb actualizado no un contextoener_proceso_de_cola()
         pthread_mutex_unlock(&generic_cola_bloqueados);
         armar_paquete_para_io();
         enviar_paquete();

@@ -35,6 +35,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
 
         procesar_pcb_segun_algoritmo(pcb_en_EXEC);
         esperar_contexto_y_actualizar_pcb(pcb_en_EXEC);
+        // que pasa con el pcb_en_EXEC ??? quien lo elimina? quien lo pasa a READY?
     }
 }
 
@@ -54,7 +55,6 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
     return pcb;
 }
 
-// A LA ESPERA DE QUE ROCIO ME DIGA COMO OBTENER EL CONTEXTO QUE ELLA ME DEVUELVE
 t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
@@ -65,14 +65,15 @@ t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
     switch (motivo_desalojo)
     {
     case DESALOJO_IO_GEN_SLEEP:
-        // Parametros: nombre la interfaz y cantidad de tiempo que se va sleep.
+        enviar_gen_sleep((char *)list_get(paquete, 1), (int)list_get(paquete, 2));
         break;
     case DESALOJO_EXIT:
         enviar_pcb_a_EXIT(pcb);
         break;
     case DESALOJO_FIN_QUANTUM:
-        list_add(pcbs_en_READY, pcb);
 
+        list_add(pcbs_en_READY, pcb);
+        // COMPLETAR: ver que onda como sigue
         break;
 
     case DESALOJO_WAIT:
@@ -120,14 +121,15 @@ void ejecutar_segun_RR_o_VRR(t_contexto *contexto)
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
 
     usleep(obtener_quantum());
-    enviar_interrupcion_FIN_Q(contexto->PID, conexion_kernel_cpu_interrupt);
+    enviar_interrupcion("FIN_QUANTUM");
     loggear_fin_de_quantum(contexto->PID);
 }
 
 void enviar_interrupcion(char *motivo)
 {
+    // ACLARACION: El motivo puede ser: "FIN_QUANTUM" o "EXIT"
     t_paquete *paquete = crear_paquete(INTERRUPCION);
-    agregar_a_paquete_string(paquete, &motivo);
+    agregar_a_paquete_string(paquete, motivo);
     enviar_paquete(paquete, conexion_kernel_cpu_interrupt);
     eliminar_paquete(paquete);
 }
