@@ -19,6 +19,10 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
         decode(instruccion); // No hace nada, por ahora
         execute(instruccion);
         check_interrupt(instruccion);
+        //----- BORRAR ----//
+        devolver_contexto(DESALOJO_EXIT, NULL); //TODO F : Agrego para test
+        log_info(logger_propio, "Contexto devuelto al kernel");
+        //----- BORRAR ----//
         destruir_instruccion(instruccion);
     }
 }
