@@ -46,7 +46,7 @@ void agregar_a_paquete_contexto(t_paquete *paquete, t_contexto *contexto)
 void enviar_contexto(int socket, t_contexto *contexto)
 {
     t_paquete *paquete = crear_paquete(CONTEXTO_EJECUCION);
-    agregar_a_paquete_contexto(contexto, paquete);
+    agregar_a_paquete_contexto(paquete, contexto);
     enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
 }
