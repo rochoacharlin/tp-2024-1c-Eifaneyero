@@ -349,11 +349,13 @@ void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param)
     t_paquete *paquete = crear_paquete(motivo_desalojo);
     agregar_a_paquete_contexto(paquete, contexto);
 
-    for (int i = 0; i < list_size(param); i++)
+    if (param != NULL)
     {
-        agregar_a_paquete_string(paquete, (char *)list_get(param, i));
+        for (int i = 0; i < list_size(param); i++)
+        {
+            agregar_a_paquete_string(paquete, (char *)list_get(param, i));
+        }
     }
-
     enviar_paquete(paquete, conexion_cpu_kernel_dispatch);
     eliminar_paquete(paquete);
 }
