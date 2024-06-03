@@ -7,6 +7,7 @@
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
 #include <utils/comunicacion/comunicacion.h>
+#include <utils/estructuras_compartidas/estructuras_compartidas.h>
 
 typedef enum
 {
@@ -15,7 +16,7 @@ typedef enum
     DESALOJO_SIGNAL,
     DESALOJO_EXIT,
     DESALOJO_FIN_QUANTUM
-} motivos_desalojo;
+} motivo_desalojo;
 
 typedef struct
 {
@@ -30,17 +31,17 @@ t_contexto *iniciar_contexto(void);
 void destruir_contexto(t_contexto *contexto);
 
 // Agregado de valores a paquete
-void agregar_registros_cpu_a_paquete(t_paquete *paquete, t_dictionary *registros_cpu);
+void agregar_a_paquete_registros_cpu(t_paquete *paquete, t_dictionary *registros_cpu);
 
 // Agrego PID, registros
-void agregar_contexto_a_paquete(t_contexto *contexto, t_paquete *paquete);
+void agregar_a_paquete_contexto(t_paquete *paquete, t_contexto *contexto);
 
 // Serializa y envía contexto a través del socket.
 void enviar_contexto(int socket, t_contexto *contexto);
 
 // ---------- FUNCIONES PARA RECIBO DE CONTEXTO ---------- //
 
-// Variante fea
+// TODO: PROBAR!
 t_contexto *recibir_contexto(int socket);
 
 #endif
