@@ -106,6 +106,21 @@ uint32_t calcular_tiempo_de_espera(int unidades_de_trabajo)
     return unidades_de_trabajo * obtener_tiempo_unidad_trabajo();
 }
 
+op_code atender_stdin(int cod_op, t_list *parametros)
+{
+    return 1; // TODO
+}
+
+op_code atender_stdout(int cod_op, t_list *parametros)
+{
+    return 1; // TODO
+}
+
+op_code atender_dialfs(int cod_op, t_list *parametros)
+{
+    return 1; // TODO
+}
+
 void setear_config(char *archivo_config_io)
 {
     char *config_ruta = string_new();
