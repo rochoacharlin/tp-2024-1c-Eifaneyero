@@ -166,6 +166,7 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
         break;
 
     case EXEC:
+        // COMPLETAR: falta avisarle a la CPU que lo desaloje
         pthread_mutex_lock(&mutex_pcb_EXEC);
         pcb_en_EXEC = NULL;
         pthread_mutex_unlock(&mutex_pcb_EXEC);

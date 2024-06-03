@@ -1,13 +1,5 @@
 #include "planificacion.h"
 
-typedef enum
-{
-    IO_GEN_SLEEP,
-    FIN_QUANTUM,
-    WAIT,
-    SIGNAL
-} motivos_desalojo;
-
 void planificar_a_corto_plazo_segun_algoritmo(void)
 {
     char *algoritmo = obtener_algoritmo_planificacion();
@@ -41,8 +33,8 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_en_EXEC->PID, anterior, pcb_en_EXEC->estado);
 
-        // procesar_pcb_segun_algoritmo(pcb_en_EXEC);
-        // esperar_contexto_y_actualizar_pcb(pcb_en_EXEC);
+        procesar_pcb_segun_algoritmo(pcb_en_EXEC);
+        esperar_contexto_y_actualizar_pcb(pcb_en_EXEC);
     }
 }
 
@@ -72,16 +64,20 @@ t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 
     switch (motivo_desalojo)
     {
-    case IO_GEN_SLEEP:
-    case EXIT:
-    case FIN_QUANTUM:
-        // PARA QUE NECESITO LOS PARAMETROS??
+    case DESALOJO_IO_GEN_SLEEP:
+        // Parametros: nombre la interfaz y cantidad de tiempo que se va sleep.
+        break;
+    case DESALOJO_EXIT:
+        enviar_pcb_a_EXIT(pcb);
+        break;
+    case DESALOJO_FIN_QUANTUM:
+        //
         break;
 
-    case WAIT:
+    case DESALOJO_WAIT:
         wait_recurso(list_get(paquete, 1), pcb);
         break;
-    case SIGNAL:
+    case DESALOJO_SIGNAL:
         signal_recurso(list_get(paquete, 1), pcb);
         break;
 

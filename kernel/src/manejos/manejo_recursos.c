@@ -51,6 +51,7 @@ void signal_recurso(char *recurso, t_pcb *pcb)
 {
     if (existe_recurso(recurso))
     {
+        // REVISAR: es correcta la condicion?
         if (++instancias_recursos[posicion_recurso(recurso)] == 0)
         {
             // desbloqueamos al primer proceso de la cola de bloqueados de ese recurso
