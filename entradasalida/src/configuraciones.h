@@ -7,7 +7,7 @@
 #include <utils/funcionalidades_basicas.h>
 #include <utils/comunicacion/comunicacion.h>
 #include <commons/string.h>
-#include "ciclo_de_instruccion.h"
+#include "../../cpu/src/ciclo_de_instruccion.h"
 
 #define obtener_tipo_interfaz() config_get_string_value(config, "TIPO_INTERFAZ")
 #define obtener_tiempo_unidad_trabajo() config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO")
