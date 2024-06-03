@@ -11,6 +11,7 @@ t_config *config;
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
 pthread_t hilo_servidor;
+void chicken_test();
 
 int main(int argc, char *argv[])
 {
@@ -28,15 +29,17 @@ int main(int argc, char *argv[])
     // conexion_interrupt_con_CPU();
     // conexion_memoria();
 
-    inicializar_listas_planificacion();
-    inicializar_semaforos_planificacion();
+    // inicializar_listas_planificacion();
+    // inicializar_semaforos_planificacion();
 
-    if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
-        log_error(logger_propio, "Error creando el hilo del planificador de largo plazo");
-    if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
-        log_error(logger_propio, "Error creando el hilo del planificador de corto plazo");
+    // if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
+    //     log_error(logger_propio, "Error creando el hilo del planificador de largo plazo");
+    // if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
+    //     log_error(logger_propio, "Error creando el hilo del planificador de corto plazo");
 
-    consola_interactiva();
+    // consola_interactiva();
+
+    chicken_test();
 
     close(conexion_kernel_cpu_dispatch);
     close(conexion_kernel_cpu_interrupt);
@@ -47,4 +50,28 @@ int main(int argc, char *argv[])
     config_destroy(config);
 
     return 0;
+}
+
+void chicken_test()
+{
+    conexion_dispatch_con_CPU();
+    t_contexto *myLittleContext = iniciar_contexto();
+    myLittleContext->PID = 2;
+
+    u_int32_t num = 2;
+    u_int32_t *p = &num;
+    dictionary_put(myLittleContext->registros_cpu, "PC", p);
+
+    enviar_contexto(conexion_kernel_cpu_dispatch, myLittleContext);
+
+    int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
+    if (motivo_desalojo == DESALOJO_EXIT)
+    {
+        t_contexto *myBigContext = recibir_contexto(conexion_kernel_cpu_dispatch);
+        log_info(logger_propio, "PID: %d", myBigContext->PID);
+        log_info(logger_propio, "PC: %d", obtener_valor_registro(myBigContext->registros_cpu, "PC"));
+        log_info(logger_propio, "EBX: %d", obtener_valor_registro(myBigContext->registros_cpu, "EBX"));
+        log_info(logger_propio, "AX: %d", obtener_valor_registro(myBigContext->registros_cpu, "AX"));
+        destruir_contexto(myBigContext);
+    }
 }
