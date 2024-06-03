@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include <commons/string.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <netdb.h>

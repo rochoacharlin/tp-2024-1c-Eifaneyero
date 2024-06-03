@@ -2,7 +2,7 @@
 
 int crear_conexion(t_log *logger, char *ip, char *puerto)
 {
-    struct addrinfo hints, *server_info;
+    addrinfo hints, *server_info;
     int s;
 
     memset(&hints, 0, sizeof(hints));
@@ -40,7 +40,7 @@ int crear_conexion(t_log *logger, char *ip, char *puerto)
 
 int iniciar_servidor(t_log *logger, char *puerto)
 {
-    struct addrinfo hints, *servinfo;
+    addrinfo hints, *servinfo;
     int s;
 
     memset(&hints, 0, sizeof(hints));
@@ -145,7 +145,7 @@ int handshake_servidor(t_log *logger, int conexion, int32_t handshake_esperado)
     else
     {
         bytes = send(conexion, &resultError, sizeof(int32_t), 0);
-        return 0;
+        return bytes;
     }
 }
 
@@ -177,7 +177,7 @@ int conectar_a(char *servidor, t_log *logger, int tiempo_de_reintento_seg)
     return conexion;
 }
 
-esperar_a(char *tipo, int *cliente, int server)
+void esperar_a(char *tipo, int *cliente, int server)
 {
     char *aviso = string_new();
     string_append(&aviso, "Esperando ");
