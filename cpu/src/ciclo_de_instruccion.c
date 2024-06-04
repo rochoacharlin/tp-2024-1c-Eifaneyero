@@ -81,8 +81,9 @@ t_instruccion *fetch()
 char *recibir_instruccion_string_memoria() // TODO F
 {
     char *unaInstruccion = string_new();
+    // unaInstruccion = string_duplicate("JNZ PC 7");
     unaInstruccion = string_duplicate("SET AX 10");
-    // unaInstruccion = string_duplicate("SET PC 10");
+    //  unaInstruccion = string_duplicate("SET PC 10");
     // unaInstruccion = string_duplicate("IO_GEN_SLEEP Generica 10");
     // unaInstruccion = string_duplicate("EXIT");
     return unaInstruccion;
@@ -242,18 +243,19 @@ void execute(t_instruccion *instruccion)
     }
 
     // Incremento PC, al menos que ejecute SET PC XXX o JNZ 0 INSTRUCCION) - ¿o que la instruccion sea exit?
-    if ((!(instruccion->id == SET && !strcmp(instruccion->param1, "PC")) && !(instruccion->id == JNZ && instruccion->param1 != 0) /* && !(instruccion->id == EXIT) */))
-    {
-        uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
-        valor++;
-        char *valor_string = string_itoa(valor);
-        // log_info(logger_propio, "Valor string: %s", valor_string);
-        dictionary_remove(contexto->registros_cpu, "PC");
-        dictionary_put(contexto->registros_cpu, "PC", valor_string);
-        // set("PC", valor_string);
-        log_info(logger_propio, "PC incrementado como tipo string: %s", (char *)dictionary_get(contexto->registros_cpu, "PC"));
-        // TODO F: Cómo hago para guardar y leer como uint_t????
-    }
+    // if ((!(instruccion->id == SET && !strcmp(instruccion->param1, "PC")) && !(instruccion->id == JNZ && instruccion->param1 != 0) /* && !(instruccion->id == EXIT) */))
+    // {
+    //     log_info(logger_propio, "PC incrementado por set: %d", obtener_valor_registro(contexto->registros_cpu, "PC"));
+    //     uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
+    //     valor++;
+    //     char *valor_string = string_itoa(valor);
+    //     // log_info(logger_propio, "Valor string: %s", valor_string);
+    //     dictionary_remove(contexto->registros_cpu, "PC");
+    //     dictionary_put(contexto->registros_cpu, "PC", valor_string);
+    //     // set("PC", valor_string);
+    //     log_info(logger_propio, "PC incrementado como tipo string: %s", (char *)dictionary_get(contexto->registros_cpu, "PC"));
+    //     // TODO F: Cómo hago para guardar y leer como uint_t????
+    // }
 }
 
 bool instruccion_bloqueante(t_id id_instruccion)
@@ -267,7 +269,7 @@ bool instruccion_bloqueante(t_id id_instruccion)
 
 void check_interrupt(t_instruccion *instruccion)
 {
-    if (!instruccion_bloqueante(instruccion->id))
+    if (instruccion_bloqueante(instruccion->id))
     {
         continua_ejecucion = false;
         hay_interrupcion = false; // Desacarto interrupcion para que no afecte otro proceso. La maneja el kernel?
@@ -286,6 +288,7 @@ void check_interrupt(t_instruccion *instruccion)
     }
     else
     {
+        continua_ejecucion = false; // solo para hacer un test
         return;
     }
 }
@@ -294,7 +297,7 @@ void check_interrupt(t_instruccion *instruccion)
 
 void set(char *nombre_registro, char *valor)
 {
-    uint32_t valor_num = *valor;
+    uint32_t valor_num = atoi(valor);
     if (strlen(nombre_registro) == 3 || !strcmp(nombre_registro, "SI") || !strcmp(nombre_registro, "DI") || !strcmp(nombre_registro, "PC")) // caso registros de 4 bytes
     {
         uint32_t *registro = dictionary_get(contexto->registros_cpu, nombre_registro);
@@ -312,8 +315,7 @@ void sum(char *nombre_destino, char *nombre_origen)
     uint32_t val_destino = obtener_valor_registro(contexto->registros_cpu, nombre_destino);
     uint32_t val_origen = obtener_valor_registro(contexto->registros_cpu, nombre_origen);
     val_destino += val_origen;
-    char val_asignar = (char)val_destino;
-    set(nombre_destino, &val_asignar);
+    set(nombre_destino, string_itoa(val_destino));
 }
 
 void sub(char *nombre_destino, char *nombre_origen)
@@ -321,8 +323,7 @@ void sub(char *nombre_destino, char *nombre_origen)
     uint32_t val_destino = obtener_valor_registro(contexto->registros_cpu, nombre_destino);
     uint32_t val_origen = obtener_valor_registro(contexto->registros_cpu, nombre_origen);
     val_destino -= val_origen;
-    char val_asignar = (char)val_destino;
-    set(nombre_destino, &val_asignar);
+    set(nombre_destino, string_itoa(val_destino));
 }
 
 void jnz(char *nombre_registro, char *nro_instruccion)
@@ -337,6 +338,7 @@ void jnz(char *nombre_registro, char *nro_instruccion)
 void io_gen_sleep(char *nombre, char *unidades)
 {
     t_list *param = list_create();
+    list_add(param, string_itoa(IO_GEN_SLEEP));
     list_add(param, nombre);
     list_add(param, unidades);
     devolver_contexto(DESALOJO_IO_GEN_SLEEP, param);
@@ -359,6 +361,7 @@ void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param)
             agregar_a_paquete_string(paquete, (char *)list_get(param, i));
         }
     }
+
     enviar_paquete(paquete, conexion_cpu_kernel_dispatch);
     eliminar_paquete(paquete);
 }
