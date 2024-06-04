@@ -74,4 +74,31 @@ void chicken_test()
         log_info(logger_propio, "AX: %d", obtener_valor_registro(myBigContext->registros_cpu, "AX"));
         destruir_contexto(myBigContext);
     }
+    else if (motivo_desalojo == DESALOJO_IO_GEN_SLEEP)
+    { // no hago el recibir contexto porque me deja los parámetros extra afuera... TODO lograr eso en una función o varias
+        t_contexto *contexto = iniciar_contexto();
+
+        // Orden en lista: AX, EAX, BX, EBX, CX, ECX, DX, EDX, PC, SI, DI
+        t_list *registros_contexto = recibir_paquete(conexion_kernel_cpu_dispatch);
+
+        memcpy(&(contexto->PID), (uint32_t *)list_get(registros_contexto, 0), sizeof(uint32_t));
+        dictionary_put(contexto->registros_cpu, "AX", (uint8_t *)list_get(registros_contexto, 1));
+        dictionary_put(contexto->registros_cpu, "EAX", (uint32_t *)list_get(registros_contexto, 2));
+        dictionary_put(contexto->registros_cpu, "BX", (uint8_t *)list_get(registros_contexto, 3));
+        dictionary_put(contexto->registros_cpu, "EBX", (uint32_t *)list_get(registros_contexto, 4));
+        dictionary_put(contexto->registros_cpu, "CX", (uint8_t *)list_get(registros_contexto, 5));
+        dictionary_put(contexto->registros_cpu, "ECX", (uint32_t *)list_get(registros_contexto, 6));
+        dictionary_put(contexto->registros_cpu, "DX", (uint8_t *)list_get(registros_contexto, 7));
+        dictionary_put(contexto->registros_cpu, "EDX", (uint32_t *)list_get(registros_contexto, 8));
+        dictionary_put(contexto->registros_cpu, "PC", (uint32_t *)list_get(registros_contexto, 9));
+        dictionary_put(contexto->registros_cpu, "SI", (uint32_t *)list_get(registros_contexto, 10));
+        dictionary_put(contexto->registros_cpu, "DI", (uint32_t *)list_get(registros_contexto, 11));
+
+        log_info(logger_propio, "PC: %d", contexto->PID);
+        log_info(logger_propio, "instruccion: %s", (char *)list_get(registros_contexto, 12)); // da 10 y está bien eso
+        log_info(logger_propio, "nombre: %s", (char *)list_get(registros_contexto, 13));
+        log_info(logger_propio, "tiempo: %s", (char *)list_get(registros_contexto, 14));
+
+        list_destroy_and_destroy_elements(registros_contexto, free);
+    }
 }
