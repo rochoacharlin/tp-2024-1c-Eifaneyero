@@ -4,7 +4,7 @@
 
 void *serializar_paquete(t_paquete *paquete, int bytes)
 {
-    void *magic = malloc(bytes);
+    void *magic = malloc_or_die(bytes, "Error al reservar memoria para serializar paquete");
     int desplazamiento = 0;
 
     memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(int));
@@ -19,7 +19,7 @@ void *serializar_paquete(t_paquete *paquete, int bytes)
 
 t_paquete *crear_paquete(int codigo_operacion)
 {
-    t_paquete *paquete = malloc(sizeof(t_paquete));
+    t_paquete *paquete = malloc_or_die(sizeof(t_paquete), "Error al reservar memoria para crear paquete");
     paquete->codigo_operacion = codigo_operacion;
     crear_buffer(paquete);
     return paquete;
@@ -27,7 +27,7 @@ t_paquete *crear_paquete(int codigo_operacion)
 
 void crear_buffer(t_paquete *paquete)
 {
-    paquete->buffer = malloc(sizeof(t_buffer));
+    paquete->buffer = malloc_or_die(sizeof(t_buffer), "Error al reservar memoria para crear buffer");
     paquete->buffer->size = 0;
     paquete->buffer->stream = NULL;
 }
@@ -54,29 +54,18 @@ void enviar_paquete(t_paquete *paquete, int socket)
 
 void enviar_cod_op(op_code codigo_de_operacion, int socket)
 {
-    void *buffer = malloc(sizeof(int));
+    void *buffer = malloc_or_die(sizeof(int), "Error al reservar memoria para crear buffer de op_code");
     memcpy(buffer, &(codigo_de_operacion), sizeof(int));
     send(socket, buffer, sizeof(int), 0);
     free(buffer);
 }
+
 // Crea buffer y crear paquete previo al envio
 void enviar_mensaje(char *mensaje, int socket) // ?
 {
-    t_paquete *paquete = malloc(sizeof(t_paquete));
-
-    paquete->codigo_operacion = MENSAJE;
-    paquete->buffer = malloc(sizeof(t_buffer));
-    paquete->buffer->size = strlen(mensaje) + 1;
-    paquete->buffer->stream = malloc(paquete->buffer->size);
-    memcpy(paquete->buffer->stream, mensaje, paquete->buffer->size);
-
-    int bytes = paquete->buffer->size + 2 * sizeof(int);
-
-    void *a_enviar = serializar_paquete(paquete, bytes);
-
-    send(socket, a_enviar, bytes, 0);
-
-    free(a_enviar);
+    t_paquete *paquete = crear_paquete(MENSAJE);
+    agregar_a_paquete_string(paquete, mensaje);
+    enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
 }
 

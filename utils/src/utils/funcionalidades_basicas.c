@@ -28,3 +28,14 @@ t_config *iniciar_config(t_log *logger, char *ruta_archivo)
     }
     return nuevo_config;
 }
+
+void *malloc_or_die(size_t tamanio, const char *mensaje)
+{
+    void *direccion_memoria = malloc(tamanio);
+    if (!direccion_memoria && tamanio)
+    {
+        fprintf(stderr, "%s\n", mensaje);
+        exit(EXIT_FAILURE);
+    }
+    return direccion_memoria;
+}
