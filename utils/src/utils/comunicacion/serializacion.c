@@ -17,7 +17,7 @@ void *serializar_paquete(t_paquete *paquete, int bytes)
     return magic; // paquete serializado: OpCode + tamaño + stream
 }
 
-t_paquete *crear_paquete(op_code codigo_operacion)
+t_paquete *crear_paquete(int codigo_operacion)
 {
     t_paquete *paquete = malloc(sizeof(t_paquete));
     paquete->codigo_operacion = codigo_operacion;
@@ -99,7 +99,7 @@ void agregar_a_paquete_uint8(t_paquete *paquete, uint8_t data)
 }
 void agregar_a_paquete_string(t_paquete *paquete, char *data)
 {
-    agregar_a_paquete(paquete, &data, strlen(data) + 1);
+    agregar_a_paquete(paquete, data, strlen(data) + 1);
 }
 
 // ------------------------ SERVIDOR ------------------------ //

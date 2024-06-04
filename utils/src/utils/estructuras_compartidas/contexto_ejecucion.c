@@ -79,7 +79,7 @@ t_contexto *recibir_contexto(int socket) // SIN opCode
     dictionary_put(contexto->registros_cpu, "BX",
                    memcpy(malloc(sizeof(uint8_t)), list_get(registros_contexto, 3), sizeof(uint8_t)));
     dictionary_put(contexto->registros_cpu, "EBX",
-                   memcpy(malloc(sizeof(uint8_t)), list_get(registros_contexto, 4), sizeof(uint32_t)));
+                   memcpy(malloc(sizeof(uint32_t)), list_get(registros_contexto, 4), sizeof(uint32_t)));
     dictionary_put(contexto->registros_cpu, "CX",
                    memcpy(malloc(sizeof(uint8_t)), list_get(registros_contexto, 5), sizeof(uint8_t)));
     dictionary_put(contexto->registros_cpu, "ECX",
