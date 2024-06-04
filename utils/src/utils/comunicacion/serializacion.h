@@ -11,6 +11,7 @@
 #include <commons/config.h>
 #include <string.h>
 #include <assert.h> // testing
+#include "../funcionalidades_basicas.h"
 
 // ------------------------ CLIENTE ------------------------ //
 
