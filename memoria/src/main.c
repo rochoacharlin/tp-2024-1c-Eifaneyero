@@ -10,7 +10,6 @@ t_log *logger_propio;
 t_config *config;
 
 int server_fd;
-int sockets[3];
 
 int main(int argc, char *argv[])
 {

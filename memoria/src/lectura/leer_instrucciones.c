@@ -1,6 +1,6 @@
 #include "lectura.h"
 
-t_instruccion_cadena *leer_instruccion(int desplazamiento)
+t_instruccion_cadena *leer_instruccion(int desplazamiento) // CORREGIR
 {
     FILE *file = fopen("src/lectura/instrucciones_prueba.txt", "r");
     if (file == NULL)
