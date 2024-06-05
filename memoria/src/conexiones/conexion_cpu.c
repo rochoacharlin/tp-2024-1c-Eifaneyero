@@ -17,7 +17,7 @@ void atender_cpu()
             t_solicitud_de_instruccion *solicitud = crear_solicitud_de_instruccion();
 
             valores_paquete = recibir_paquete(sockets[0]);
-            void generar_solicitud_de_instruccion(solicitud, valores_solicitud);
+            generar_solicitud_de_instruccion(solicitud, valores_solicitud);
 
             int pc = solicitud->desplazamiento;
             t_instruccion_cadena *instruccion = leer_instruccion(pc);

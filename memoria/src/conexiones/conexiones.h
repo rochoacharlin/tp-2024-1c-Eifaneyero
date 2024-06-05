@@ -11,7 +11,7 @@
 
 extern t_log *logger_propio;
 extern int server_fd;
-extern int *sockets[3];
+extern int sockets[3];
 
 void esperar_a(char *tipo, int *socket, int server);
 void iniciar_conexiones();
