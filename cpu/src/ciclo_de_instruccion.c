@@ -5,7 +5,7 @@ char *motivo_interrupcion;
 bool continua_ejecucion = true;
 bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
-t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto
+t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto?
 
 char *nombres_de_instrucciones[] = {
     [SET] = "SET",
@@ -53,7 +53,7 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
 t_instruccion *fetch()
 {
     t_instruccion *instruccion_recibida = malloc(sizeof(t_instruccion));
-    uint32_t desplazamiento = obtener_valor_registro(contexto->registros_cpu, "PC"); // TODO: Desplazamiento real?
+    uint32_t desplazamiento = obtener_valor_registro(contexto->registros_cpu, "PC"); // TODO:
 
     solicitar_lectura_de_instruccion(desplazamiento);
 
@@ -83,7 +83,7 @@ char *recibir_instruccion_string_memoria() // TODO F
     char *unaInstruccion = string_new();
     // unaInstruccion = string_duplicate("JNZ PC 7");
     unaInstruccion = string_duplicate("SET AX 10");
-    //  unaInstruccion = string_duplicate("SET PC 10");
+    // unaInstruccion = string_duplicate("SET PC 10");
     // unaInstruccion = string_duplicate("IO_GEN_SLEEP Generica 10");
     // unaInstruccion = string_duplicate("EXIT");
     return unaInstruccion;
@@ -91,12 +91,8 @@ char *recibir_instruccion_string_memoria() // TODO F
 
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
 {
-    t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-    if (instruccion == NULL)
-    {
-        printf("Error al asignar memoria para la instrucción");
-        return NULL; // o exit(1)
-    }
+    t_instruccion *instruccion = malloc_or_die(sizeof(t_instruccion), "Error al asignar memoria para la instrucción");
+
     inicializar_instruccion(instruccion);
 
     char **instruccion_array = string_split(instruccion_string, " ");
@@ -242,20 +238,14 @@ void execute(t_instruccion *instruccion)
         break;
     }
 
-    // Incremento PC, al menos que ejecute SET PC XXX o JNZ 0 INSTRUCCION) - ¿o que la instruccion sea exit?
-    // if ((!(instruccion->id == SET && !strcmp(instruccion->param1, "PC")) && !(instruccion->id == JNZ && instruccion->param1 != 0) /* && !(instruccion->id == EXIT) */))
-    // {
-    //     log_info(logger_propio, "PC incrementado por set: %d", obtener_valor_registro(contexto->registros_cpu, "PC"));
-    //     uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
-    //     valor++;
-    //     char *valor_string = string_itoa(valor);
-    //     // log_info(logger_propio, "Valor string: %s", valor_string);
-    //     dictionary_remove(contexto->registros_cpu, "PC");
-    //     dictionary_put(contexto->registros_cpu, "PC", valor_string);
-    //     // set("PC", valor_string);
-    //     log_info(logger_propio, "PC incrementado como tipo string: %s", (char *)dictionary_get(contexto->registros_cpu, "PC"));
-    //     // TODO F: Cómo hago para guardar y leer como uint_t????
-    // }
+    // Incremento PC, al menos que ejecute SET PC XXX o JNZ 0 INSTRUCCION)
+    if ((!(instruccion->id == SET && !strcmp(instruccion->param1, "PC")) && !(instruccion->id == JNZ && instruccion->param1 != 0)))
+    {
+        uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
+        valor++;
+        char *valor_string = string_itoa(valor);
+        set("PC", valor_string);
+    }
 }
 
 bool instruccion_bloqueante(t_id id_instruccion)
@@ -272,7 +262,7 @@ void check_interrupt(t_instruccion *instruccion)
     if (instruccion_bloqueante(instruccion->id))
     {
         continua_ejecucion = false;
-        hay_interrupcion = false; // Desacarto interrupcion para que no afecte otro proceso. La maneja el kernel?
+        hay_interrupcion = false;
         return;
     }
     else if (hay_interrupcion)
@@ -284,7 +274,7 @@ void check_interrupt(t_instruccion *instruccion)
         devolver_contexto(motivo, NULL);
         continua_ejecucion = false;
 
-        // TODO F: free(motivo); Cuando te libero? Responsabilidad del kernel
+        // TODO F: free(motivo); Cuando te libero? {Responsabilidad del kernel}
     }
     else
     {
@@ -361,7 +351,6 @@ void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param)
             agregar_a_paquete_string(paquete, (char *)list_get(param, i));
         }
     }
-
     enviar_paquete(paquete, conexion_cpu_kernel_dispatch);
     eliminar_paquete(paquete);
 }
