@@ -7,8 +7,6 @@
 #include <utils/funcionalidades_basicas.h>
 #include <commons/collections/list.h>
 
-#include "tablas.c"
-
 extern int tamanio_pagina;
 
 // INDICE DE TABLA DE PAGINAS
