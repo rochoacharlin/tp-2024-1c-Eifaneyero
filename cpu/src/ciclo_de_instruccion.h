@@ -79,9 +79,6 @@ t_instruccion *convertir_string_a_instruccion(char *instruccion_string);
 // Setear id en EXIT por default y parametros en NULL
 t_instruccion *inicializar_instruccion(t_instruccion *instruccion);
 
-// Liberar memoria dinámica (podría ser más bella si params[])
-void destruir_instruccion(t_instruccion *instruccion);
-
 // Castear instruccion_id tipo string a enum para switch en execute(). Ante instruccion desconocida devuelve EXIT.
 t_id string_id_to_enum_id(char *id_string);
 
