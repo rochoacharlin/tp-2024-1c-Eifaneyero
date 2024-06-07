@@ -7,6 +7,7 @@
 #include "../manejos/manejo_interfaces.h"
 #include "../manejos/manejo_recursos.h"
 #include <string.h>
+#include <commons/collections/dictionary.h>
 #include "../configuraciones.h"
 
 extern t_list *pcbs_en_NEW;
@@ -58,7 +59,7 @@ void planificar_a_corto_plazo_segun_algoritmo(void);
 void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
 t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
 t_pcb *proximo_a_ejecutar_segun_VRR(void);
-t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb);
+void esperar_contexto_y_actualizar_pcb(t_pcb *pcb);
 
 // relacionado con la CPU
 void procesar_pcb_segun_algoritmo(t_pcb *pcb);

@@ -58,7 +58,6 @@ t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, uint32_t PID)
 void actualizar_pcb(t_pcb *pcb, t_contexto *contexto)
 {
     destruir_registros_cpu(pcb->registros_cpu);
-    contexto->registros_cpu = crear_registros_cpu();
     pcb->registros_cpu = copiar_registros_cpu(contexto->registros_cpu);
 }
 

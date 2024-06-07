@@ -133,6 +133,7 @@ void destruir_semaforos_planificacion(void)
     sem_close(&hay_pcbs_NEW);
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
+    sem_close(&planificacion_liberada);
 }
 
 void enviar_pcb_a_EXIT(t_pcb *pcb)

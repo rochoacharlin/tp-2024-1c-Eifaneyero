@@ -55,40 +55,40 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
     return pcb;
 }
 
-t_contexto *esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
+void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
-    t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
-    t_contexto *contexto = (t_contexto *)list_get(paquete, 0);
-    actualizar_pcb(pcb, contexto); // ACTUALIZAR EL ESTADO DEL PCB Y TENER EN CUENTA QUE NO LO SACA DE EXEC HASTA QUE TENGA OTRO PARA PASAR A EXEC.
+    t_contexto *contexto = recibir_contexto(conexion_kernel_cpu_dispatch);
+    actualizar_pcb(pcb, contexto);
+    // printf("%d, %d\n", motivo_desalojo, obtener_valor_registro(pcb->registros_cpu, "AX"));
+    // pcb_en_EXEC = NULL;
 
-    switch (motivo_desalojo)
+    switch (motivo_desalojo) // ACTUALIZAR EL ESTADO DEL PCB Y TENER EN CUENTA QUE NO LO SACA DE EXEC HASTA QUE TENGA OTRO PARA PASAR A EXEC.
     {
     case DESALOJO_IO_GEN_SLEEP:
-        enviar_gen_sleep((char *)list_get(paquete, 1), (int)list_get(paquete, 2));
+        // enviar_gen_sleep((char *)list_get(paquete, 2), (int)list_get(paquete, 3));
+        //  si sale bien y no hay errores debe cambiar el estado del proceso a BLOCKED
         break;
     case DESALOJO_EXIT:
         enviar_pcb_a_EXIT(pcb);
         break;
     case DESALOJO_FIN_QUANTUM:
-
-        list_add(pcbs_en_READY, pcb);
-        // COMPLETAR: ver que onda como sigue
+        ingresar_pcb_a_READY(pcb);
         break;
 
     case DESALOJO_WAIT:
-        wait_recurso(list_get(paquete, 1), pcb);
+        // COMPLETAR: Todavia no esa hecha la funcion en la CPU y por lo tanto no se como me mandan los datos
+        wait_recurso("", pcb);
         break;
     case DESALOJO_SIGNAL:
-        signal_recurso(list_get(paquete, 1), pcb);
+        // COMPLETAR: Todavia no esa hecha la funcion en la CPU y por lo tanto no se como me mandan los datos
+        signal_recurso("", pcb);
         break;
 
     default:
         log_error(logger_propio, "Motivo de desalojo incorrecto.");
         break;
     }
-
-    return NULL; // creo que hay que retornar un pcb actualizado no un contexto
 }
 
 void procesar_pcb_segun_algoritmo(t_pcb *pcb)
@@ -125,7 +125,7 @@ void ejecutar_segun_RR_o_VRR(t_contexto *contexto)
     loggear_fin_de_quantum(contexto->PID);
 }
 
-void enviar_interrupcion(char *motivo)
+void enviar_interrupcion(char *motivo) // considerar meterlo en otro archivo si hay mas funciones sobre las interrupciones
 {
     // ACLARACION: El motivo puede ser: "FIN_QUANTUM" o "EXIT"
     t_paquete *paquete = crear_paquete(INTERRUPCION);

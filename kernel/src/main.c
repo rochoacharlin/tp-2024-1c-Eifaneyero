@@ -25,21 +25,21 @@ int main(int argc, char *argv[])
     // servidor_kernel_fd = servidor();
     // if (pthread_create(&hilo_servidor, NULL, (void *)servidor, NULL))
     //    log_error(logger_propio, "Error creando el hilo servidor");
-    // conexion_dispatch_con_CPU();
+    conexion_dispatch_con_CPU();
     // conexion_interrupt_con_CPU();
     // conexion_memoria();
 
-    // inicializar_listas_planificacion();
-    // inicializar_semaforos_planificacion();
+    inicializar_listas_planificacion();
+    inicializar_semaforos_planificacion();
 
-    // if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
-    //     log_error(logger_propio, "Error creando el hilo del planificador de largo plazo");
-    // if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
-    //     log_error(logger_propio, "Error creando el hilo del planificador de corto plazo");
+    if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
+        log_error(logger_propio, "Error creando el hilo del planificador de largo plazo");
+    if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
+        log_error(logger_propio, "Error creando el hilo del planificador de corto plazo");
 
-    // consola_interactiva();
+    consola_interactiva();
 
-    chicken_test();
+    // chicken_test();
 
     close(conexion_kernel_cpu_dispatch);
     close(conexion_kernel_cpu_interrupt);
