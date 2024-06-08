@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utils/funcionalidades_basicas.h>
-#include <commons/collections/list.h>
+#include <utils/comunicacion/comunicacion.h>
 #include "configuraciones.h"
+#include "interface_cpu.h"
 
 extern int tamanio_pagina;
 

@@ -1,11 +1,26 @@
 #include "mmu.h"
 
-int calcular_direccion_fisica(uint32_t PID, int pagina, int desplazamiento)
+int calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, int pagina, int desplazamiento)
 {
-    // Asumimos que hay una función llamada buscar_marco que busca el marco en la TLB o memoria
-    // int marco = buscar_marco(PID, pagina); // Esta función debe ser implementada
-    // return (tamanio_pagina * marco) + desplazamiento;
-    return 0;
+    int marco = buscar_marco(PID, pagina);
+    return (tamanio_pagina * marco) + desplazamiento;
+}
+
+int buscar_marco(t_TLB *tlb, uint32_t PID, int pagina)
+{
+    int marco = buscar_en_TLB(tlb, PID, pagina);
+
+    if (marco == -1)
+    {
+        solicitar_marco_memoria(PID, pagina);
+        marco = recibir_marco_memoria();
+        if (marco == -1)
+        { // manejar error
+        }
+        agregar_pagina_TLB(tlb, PID, pagina, marco);
+    }
+
+    return marco;
 }
 
 // TLB
@@ -28,6 +43,7 @@ void destruir_TLB(t_TLB *tlb)
     free(tlb);
 }
 
+// retorna marco correspondiente
 int buscar_en_TLB(t_TLB *tlb, uint32_t PID, int pagina)
 {
     for (int i = 0; i < tlb->entradas_utilizadas; i++)
