@@ -10,35 +10,13 @@
 #include <commons/string.h>
 #include <commons/log.h>
 #include <utils/estructuras_compartidas/contexto_ejecucion.h>
+#include <utils/estructuras_compartidas/instrucciones_cpu.h>
+#include <utils/estructuras_compartidas/instrucciones.h>
 #include "configuraciones.h"
 // #include "conexiones/conexiones.h" //Para usar conexiones globales
 #include "interface_cpu.h"
 
 // ID instruccion
-typedef enum
-{
-    SET,
-    MOV_IN,
-    MOV_OUT,
-    SUM,
-    SUB,
-    JNZ,
-    RESIZE,
-    COPY_STRING,
-    WAIT,
-    SIGNAL,
-    IO_GEN_SLEEP,
-    IO_STDIN_READ,
-    IO_STDOUT_WRITE,
-    IO_FS_CREATE,
-    IO_FS_DELETE,
-    IO_FS_TRUNCATE,
-    IO_FS_WRITE,
-    IO_FS_READ,
-    EXIT
-} t_id;
-
-extern char *instrucciones[];
 
 typedef struct
 {
@@ -94,8 +72,6 @@ void sub(char *nombre_destino, char *nombre_origen);
 void jnz(char *nombre_registro, char *nro_instruccion);
 void io_gen_sleep(char *nombre, char *unidades);
 void exit_inst();
-
-void destruir_instruccion(t_instruccion *instruccion);
 
 // -------------------- MANEJO DE CONTEXTO -------------------- //
 
