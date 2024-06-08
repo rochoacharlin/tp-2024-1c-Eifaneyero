@@ -140,24 +140,19 @@ void destruir_semaforos_planificacion(void)
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 {
-    if (motivo == INTERRUPTED_BY_USER)
-    {
-        enviar_interrupcion("EXIT");
-    }
-    else
-    {
-        remover_pcb_de_listas_globales(pcb);
-        pcb->estado = EXIT;
+    remover_pcb_de_listas_globales(pcb);
+    pcb->estado = EXIT;
 
-        pthread_mutex_lock(&mutex_lista_EXIT);
-        list_add(pcbs_en_EXIT, pcb);
-        pthread_mutex_unlock(&mutex_lista_EXIT);
+    sem_post(&sem_grado_multiprogramacion);
 
-        // log minimo y obligatorio
-        loggear_fin_de_proceso(pcb->PID, motivo);
+    pthread_mutex_lock(&mutex_lista_EXIT);
+    list_add(pcbs_en_EXIT, pcb);
+    pthread_mutex_unlock(&mutex_lista_EXIT);
 
-        // COMPLETAR: Liberar recursos, memoria y archivos
-    }
+    // log minimo y obligatorio
+    loggear_fin_de_proceso(pcb->PID, motivo);
+
+    // COMPLETAR: Liberar recursos, memoria y archivos
 }
 
 void remover_pcb_de_listas_globales(t_pcb *pcb)

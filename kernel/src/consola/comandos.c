@@ -50,8 +50,7 @@ void finalizar_proceso(char *PID)
         log_error(logger_propio, "No existe un PCB con ese PID.");
     else
     {
-        enviar_pcb_a_EXIT(pcb, INTERRUPTED_BY_USER);
-        sem_post(&sem_grado_multiprogramacion);
+        enviar_interrupcion("EXIT");
     }
 }
 
