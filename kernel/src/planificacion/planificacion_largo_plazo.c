@@ -140,17 +140,24 @@ void destruir_semaforos_planificacion(void)
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 {
-    remover_pcb_de_listas_globales(pcb);
-    pcb->estado = EXIT;
+    if (motivo == INTERRUPTED_BY_USER)
+    {
+        enviar_interrupcion("EXIT");
+    }
+    else
+    {
+        remover_pcb_de_listas_globales(pcb, motivo);
+        pcb->estado = EXIT;
 
-    pthread_mutex_lock(&mutex_lista_EXIT);
-    list_add(pcbs_en_EXIT, pcb);
-    pthread_mutex_unlock(&mutex_lista_EXIT);
+        pthread_mutex_lock(&mutex_lista_EXIT);
+        list_add(pcbs_en_EXIT, pcb);
+        pthread_mutex_unlock(&mutex_lista_EXIT);
 
-    // log minimo y obligatorio
-    loggear_fin_de_proceso(pcb->PID, motivo);
+        // log minimo y obligatorio
+        loggear_fin_de_proceso(pcb->PID, motivo);
 
-    // COMPLETAR: Liberar recursos, memoria y archivos
+        // COMPLETAR: Liberar recursos, memoria y archivos
+    }
 }
 
 void remover_pcb_de_listas_globales(t_pcb *pcb)
@@ -174,9 +181,6 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
         break;
 
     case EXEC:
-        // VERIFICAR: siempre es el caso en el cual debo mandar una interrupcion a CPU o hay otros casos?
-        enviar_interrupcion("EXIT");
-        // esperar a que me devuelvan el motivo de desalojo de EXIT y ver como sigo
         pthread_mutex_lock(&mutex_pcb_EXEC);
         pcb_en_EXEC = NULL;
         pthread_mutex_unlock(&mutex_pcb_EXEC);

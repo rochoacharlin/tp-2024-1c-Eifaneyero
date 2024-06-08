@@ -101,6 +101,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         break;
 
     case DESALOJO_EXIT:
+        // COMPLETAR: Diferenciar entre SUCCESS e INTERRUPTED_BY_USER
         enviar_pcb_a_EXIT(pcb, SUCCESS);
         break;
 
