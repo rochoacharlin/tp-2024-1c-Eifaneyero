@@ -9,6 +9,7 @@ t_pcb *crear_pcb()
     pcb->quantum = obtener_quantum();
     pcb->registros_cpu = crear_registros_cpu();
     pcb->estado = NEW;
+    pcb->recursos_asignados = list_create();
 
     return pcb;
 }

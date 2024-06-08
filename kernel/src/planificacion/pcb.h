@@ -26,6 +26,7 @@ typedef struct
     int quantum;
     t_dictionary *registros_cpu;
     estado estado;
+    t_list *recursos_asignados;
 } t_pcb;
 
 extern int32_t procesos_creados;
