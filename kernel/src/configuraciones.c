@@ -30,5 +30,5 @@ void loggear_fin_de_quantum(int PID)
 
 void loggear_ingreso_a_READY(char *lista_PIDS)
 {
-    log_info(logger_obligatorio, "Cola Ready <%s>: [%s]", obtener_algoritmo_planificacion(), lista_PIDS);
+    log_info(logger_obligatorio, "Cola Ready / Ready Prioridad: [%s]", lista_PIDS);
 }

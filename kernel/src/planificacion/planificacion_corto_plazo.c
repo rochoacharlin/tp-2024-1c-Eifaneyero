@@ -1,9 +1,9 @@
 #include "planificacion.h"
 
+int rafaga_cpu_ejecutada;
+
 void planificar_a_corto_plazo_segun_algoritmo(void)
 {
-    char *algoritmo = obtener_algoritmo_planificacion();
-
     if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0)
     {
         planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO_o_RR);
@@ -35,7 +35,6 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
 
         procesar_pcb_segun_algoritmo(pcb_en_EXEC);
         esperar_contexto_y_actualizar_pcb(pcb_en_EXEC);
-        // que pasa con el pcb_en_EXEC ??? quien lo elimina? quien lo pasa a READY?
     }
 }
 
@@ -55,31 +54,65 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
     return pcb;
 }
 
+void encolar_pcb_segun_algoritmo(t_pcb *pcb, int rafaga_cpu)
+{
+    int rafaga_restante = pcb->quantum - rafaga_cpu;
+    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "FIFO") == 0 || (strcmp(algoritmo, "VRR") == 0 && rafaga_restante == 0))
+    {
+        ingresar_pcb_a_READY(pcb);
+    }
+    else if (strcmp(algoritmo, "VRR") == 0 && rafaga_restante > 0)
+    {
+        encolar_pcb(pcbs_en_aux_READY, pcb);
+
+        sem_post(&hay_pcbs_READY);
+
+        // log minimo y obligatorio
+        lista_PIDS = string_new();
+        mostrar_PIDS(pcbs_en_READY);
+        mostrar_PIDS(pcbs_en_aux_READY);
+        loggear_ingreso_a_READY(lista_PIDS);
+        free(lista_PIDS);
+
+        // COMPLETAR: Garantizar que cuando este proceso vaya a EXEC ejecute solo la rafaga restante
+    }
+    else
+    {
+        log_error(logger_propio, "Algoritmo invalido. Debe ingresar FIFO, RR o VRR");
+        abort();
+    }
+}
+
 void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = recibir_contexto(conexion_kernel_cpu_dispatch);
+    rafaga_cpu_ejecutada = contexto->rafaga_cpu_ejecutada;
     actualizar_pcb(pcb, contexto);
     // printf("%d, %d\n", motivo_desalojo, obtener_valor_registro(pcb->registros_cpu, "AX"));
     // pcb_en_EXEC = NULL;
+    // que pasa con el pcb_en_EXEC ??? quien lo elimina? quien lo pasa a READY? Supongo que es aca
 
     switch (motivo_desalojo) // ACTUALIZAR EL ESTADO DEL PCB Y TENER EN CUENTA QUE NO LO SACA DE EXEC HASTA QUE TENGA OTRO PARA PASAR A EXEC.
     {
     case DESALOJO_IO_GEN_SLEEP:
         // enviar_gen_sleep((char *)list_get(paquete, 2), (int)list_get(paquete, 3));
-        //  si sale bien y no hay errores debe cambiar el estado del proceso a BLOCKED
+        // si sale bien y no hay errores debe cambiar el estado del proceso a BLOCKED
         break;
+
     case DESALOJO_EXIT:
-        enviar_pcb_a_EXIT(pcb);
+        enviar_pcb_a_EXIT(pcb, SUCCESS);
         break;
+
     case DESALOJO_FIN_QUANTUM:
-        ingresar_pcb_a_READY(pcb);
+        encolar_pcb_segun_algoritmo(pcb, rafaga_cpu_ejecutada);
         break;
 
     case DESALOJO_WAIT:
         // COMPLETAR: Todavia no esa hecha la funcion en la CPU y por lo tanto no se como me mandan los datos
         wait_recurso("", pcb);
         break;
+
     case DESALOJO_SIGNAL:
         // COMPLETAR: Todavia no esa hecha la funcion en la CPU y por lo tanto no se como me mandan los datos
         signal_recurso("", pcb);
@@ -93,7 +126,6 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 
 void procesar_pcb_segun_algoritmo(t_pcb *pcb)
 {
-    char *algoritmo = obtener_algoritmo_planificacion();
     t_contexto *contexto = crear_contexto(pcb);
 
     if (strcmp(algoritmo, "FIFO") == 0)

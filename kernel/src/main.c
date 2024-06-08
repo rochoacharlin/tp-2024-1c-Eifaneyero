@@ -21,10 +21,8 @@ int main(int argc, char *argv[])
 
     config = iniciar_config(logger_propio, "kernel.config");
 
-    // en el caso del servidor creo que tiene que ser un hilo y en el resto de poder reintentar automaticamente conectarse con los otros modulos
-    // servidor_kernel_fd = servidor();
     // if (pthread_create(&hilo_servidor, NULL, (void *)servidor, NULL))
-    //    log_error(logger_propio, "Error creando el hilo servidor");
+    // log_error(logger_propio, "Error creando el hilo servidor");
     conexion_dispatch_con_CPU();
     // conexion_interrupt_con_CPU();
     // conexion_memoria();
@@ -44,7 +42,6 @@ int main(int argc, char *argv[])
     close(conexion_kernel_cpu_dispatch);
     close(conexion_kernel_cpu_interrupt);
     close(conexion_kernel_memoria);
-    close(servidor_kernel_fd);
     log_destroy(logger_obligatorio);
     log_destroy(logger_propio);
     config_destroy(config);

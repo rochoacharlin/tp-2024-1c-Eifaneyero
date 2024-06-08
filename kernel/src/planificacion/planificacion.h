@@ -39,6 +39,16 @@ extern int *instancias_recursos;
 extern char *estadosProcesos[5];
 extern int conexion_kernel_cpu_dispatch;
 extern int conexion_kernel_cpu_interrupt;
+extern char *algoritmo;
+
+typedef enum
+{
+    SUCCESS,
+    INVALID_RESOURCE,
+    INVALID_INTERFACE,
+    OUT_OF_MEMORY,
+    INTERRUPTED_BY_USER
+} motivo_finalizacion;
 
 // largo plazo
 void planificar_a_largo_plazo(void);
@@ -47,7 +57,7 @@ t_pcb *obtener_siguiente_pcb_READY(void);
 void ingresar_pcb_a_READY(t_pcb *pcb);
 void inicializar_listas_planificacion(void);
 void destruir_listas_planificacion(void);
-void enviar_pcb_a_EXIT(t_pcb *pcb);
+void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo);
 void remover_pcb_de_listas_globales(t_pcb *pcb);
 
 // manejo de semaforos

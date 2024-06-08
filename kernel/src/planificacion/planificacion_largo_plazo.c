@@ -22,9 +22,11 @@ pthread_mutex_t mutex_lista_memoria;
 pthread_mutex_t mutex_lista_EXIT;
 
 int32_t procesos_creados = 0;
+char *algoritmo;
 
 void planificar_a_largo_plazo(void)
 {
+    algoritmo = obtener_algoritmo_planificacion();
     while (1)
     {
         sem_wait(&planificacion_liberada);
@@ -136,7 +138,7 @@ void destruir_semaforos_planificacion(void)
     sem_close(&planificacion_liberada);
 }
 
-void enviar_pcb_a_EXIT(t_pcb *pcb)
+void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 {
     remover_pcb_de_listas_globales(pcb);
     pcb->estado = EXIT;
@@ -144,6 +146,11 @@ void enviar_pcb_a_EXIT(t_pcb *pcb)
     pthread_mutex_lock(&mutex_lista_EXIT);
     list_add(pcbs_en_EXIT, pcb);
     pthread_mutex_unlock(&mutex_lista_EXIT);
+
+    // log minimo y obligatorio
+    loggear_fin_de_proceso(pcb->PID, motivo);
+
+    // COMPLETAR: Liberar recursos, memoria y archivos
 }
 
 void remover_pcb_de_listas_globales(t_pcb *pcb)

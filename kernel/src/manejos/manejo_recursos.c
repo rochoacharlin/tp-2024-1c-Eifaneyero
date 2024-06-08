@@ -43,7 +43,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
     }
     else
     {
-        enviar_pcb_a_EXIT(pcb);
+        enviar_pcb_a_EXIT(pcb, INVALID_RESOURCE);
     }
 }
 
@@ -68,7 +68,7 @@ void signal_recurso(char *recurso, t_pcb *pcb)
     }
     else
     {
-        enviar_pcb_a_EXIT(pcb);
+        enviar_pcb_a_EXIT(pcb, INVALID_RESOURCE);
     }
 }
 
