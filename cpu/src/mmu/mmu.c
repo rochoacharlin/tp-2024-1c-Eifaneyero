@@ -14,9 +14,6 @@ int buscar_marco(t_TLB *tlb, uint32_t PID, int pagina)
     {
         solicitar_marco_memoria(PID, pagina);
         marco = recibir_marco_memoria();
-        if (marco == -1)
-        { // manejar error
-        }
         agregar_pagina_TLB(tlb, PID, pagina, marco);
     }
 

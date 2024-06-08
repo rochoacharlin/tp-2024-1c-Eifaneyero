@@ -24,7 +24,7 @@ typedef struct
 
 typedef struct
 {
-    t_registro_TLB *TLB;
+    t_registro_TLB *entradas;
     int entradas_utilizadas;
     int max_entradas;
     int tiempo_actual;
@@ -32,6 +32,7 @@ typedef struct
 
 t_TLB crear_TLB();
 void destruir_TLB(t_TLB *tlb);
+// Devuelve el marco de la página de un proceso o -1 si no la encuentra
 int buscar_en_TLB(t_TLB *tlb, uint32_t PID, int pagina);
 void agregar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco);
 void reemplazar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco);
