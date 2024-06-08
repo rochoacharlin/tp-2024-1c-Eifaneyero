@@ -13,13 +13,13 @@ void setear_config(char *archivo_config_io);
 
 int main(int argc, char *argv[])
 {
-
-    // if (argc < 3)
-    // {
     logger_propio = crear_logger("entradasalida_propio");
-    //     log_info(logger_propio, "Uso: %s [nombre de interfaz] [ruta de archivo de configuracion]\n", argv[0]);
-    //     return EXIT_FAILURE;
-    // }
+
+    if (argc < 3)
+    {
+        log_info(logger_propio, "Uso: %s [nombre de interfaz] [ruta de archivo de configuracion]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
 
     char *nombre = malloc(strlen(argv[1]) + 1);
     strcpy(nombre, argv[1]);
@@ -87,11 +87,17 @@ op_code atender_gen(int cod_op, t_list *parametros)
 
     if (cod_op == IO_GEN_SLEEP)
     {
-        loggear_operacion(*(int *)list_get(parametros, 0), comandos[cod_op]);
+        loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
 
         int unidades_de_trabajo = atoi((char *)list_get(parametros, 1));
         uint32_t tiempo_de_espera_ms = calcular_tiempo_de_espera(unidades_de_trabajo) * 1000;
+        // TODO borrar
+        log_info(logger_propio, "Voy a dormir por %d unidades", unidades_de_trabajo);
+
         usleep((__useconds_t)tiempo_de_espera_ms);
+
+        // TODO borrar
+        log_info(logger_propio, "Ya desperté");
     }
     else
     {

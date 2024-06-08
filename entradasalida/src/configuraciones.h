@@ -7,7 +7,7 @@
 #include <utils/funcionalidades_basicas.h>
 #include <utils/comunicacion/comunicacion.h>
 #include <commons/string.h>
-#include "../../cpu/src/ciclo_de_instruccion.h"
+#include <utils/estructuras_compartidas/instrucciones_cpu.h>
 
 #define obtener_tipo_interfaz() config_get_string_value(config, "TIPO_INTERFAZ")
 #define obtener_tiempo_unidad_trabajo() config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO")
@@ -23,6 +23,7 @@
 extern t_config *config;
 extern t_log *logger_propio;
 extern t_log *logger_obligatorio;
+extern char *nombres_de_instrucciones[];
 
 // Logs minimos y obligatorios
 void loggear_operacion(int PID, char *operacion);
