@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "configuraciones.h"
-#include <utils/estructuras_compartidas/contexto_ejecucion.h>
+#include <utils/estructuras_compartidas/instrucciones.h>
 
 extern t_log *logger_obligatorio;
 extern t_log *logger_propio;
