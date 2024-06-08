@@ -5,16 +5,19 @@ int conexion_kernel_cpu_interrupt;
 int conexion_kernel_memoria;
 int servidor_kernel_fd;
 
-void servidor(void)
+int servidor(void)
 {
     servidor_kernel_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha());
     log_info(logger_propio, "Kernel listo para recibir clientes");
     int cliente_fd = esperar_cliente(logger_propio, servidor_kernel_fd);
     log_info(logger_propio, "Se conectó un cliente!");
 
-    int32_t handshake_esperado = 4;
-    if (handshake_servidor(logger_propio, cliente_fd, handshake_esperado) == 0)
-        log_error(logger_propio, "No se pudo conectar correctamente con el cliente");
+    // provisional para test:
+    return cliente_fd;
+
+    // int32_t handshake_esperado = 4;
+    // if (handshake_servidor(logger_propio, cliente_fd, handshake_esperado) == 0)
+    //     log_error(logger_propio, "No se pudo conectar correctamente con el cliente");
 
     // COMPLETAR: esperar conexiones de la interfaz y crear un hilo por cada una
 }

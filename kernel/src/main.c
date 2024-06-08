@@ -2,6 +2,7 @@
 #include "consola/consola.h"
 #include <utils/funcionalidades_basicas.h>
 #include <utils/comunicacion/comunicacion.h>
+#include <utils/estructuras_compartidas/registros_cpu.h>
 #include "conexiones/conexiones.h"
 
 t_log *logger_obligatorio;
@@ -12,6 +13,7 @@ pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
 pthread_t hilo_servidor;
 void chicken_test();
+void io_test();
 
 int main(int argc, char *argv[])
 {
@@ -38,6 +40,7 @@ int main(int argc, char *argv[])
     consola_interactiva();
 
     // chicken_test();
+    // io_test();
 
     close(conexion_kernel_cpu_dispatch);
     close(conexion_kernel_cpu_interrupt);
@@ -91,11 +94,33 @@ void chicken_test()
         dictionary_put(contexto->registros_cpu, "SI", (uint32_t *)list_get(registros_contexto, 10));
         dictionary_put(contexto->registros_cpu, "DI", (uint32_t *)list_get(registros_contexto, 11));
 
-        log_info(logger_propio, "PC: %d", contexto->PID);
+        log_info(logger_propio, "PID: %d", contexto->PID);
         log_info(logger_propio, "instruccion: %s", (char *)list_get(registros_contexto, 12)); // da 10 y está bien eso
         log_info(logger_propio, "nombre: %s", (char *)list_get(registros_contexto, 13));
         log_info(logger_propio, "tiempo: %s", (char *)list_get(registros_contexto, 14));
 
         list_destroy_and_destroy_elements(registros_contexto, free);
     }
+}
+
+void io_test()
+{
+    int io_fd = servidor();
+    recibir_operacion(io_fd);
+    t_list *datos_io = recibir_paquete(io_fd);
+    log_info(logger_propio, "Nombre de IO: %s", (char *)list_get(datos_io, 0));
+    log_info(logger_propio, "Tipo de IO: %s", (char *)list_get(datos_io, 1));
+
+    // t_paquete *paquete = crear_paquete(10); // caso feliz
+    t_paquete *paquete = crear_paquete(11); // caso no feliz
+    agregar_a_paquete_string(paquete, string_itoa(12));
+    agregar_a_paquete_string(paquete, string_itoa(3));
+    enviar_paquete(paquete, io_fd);
+    eliminar_paquete(paquete);
+    log_info(logger_propio, "IO, descansa por 3 unidades");
+
+    int resultado_io = recibir_operacion(io_fd);
+    log_info(logger_propio, "Resultado de IO: %d", resultado_io);
+
+    close(io_fd);
 }

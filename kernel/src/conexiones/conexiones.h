@@ -15,7 +15,7 @@ extern int conexion_kernel_cpu_interrupt;
 extern int conexion_kernel_memoria;
 extern int servidor_kernel_fd;
 
-void servidor(void);
+int servidor(void);
 void conexion_dispatch_con_CPU(void);
 void conexion_interrupt_con_CPU(void);
 void conexion_memoria(void);

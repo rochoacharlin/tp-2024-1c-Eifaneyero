@@ -17,7 +17,7 @@ typedef enum estado
     READY,
     EXEC,
     BLOCKED,
-    EXIT,
+    EXIT
 } estado;
 
 typedef struct
