@@ -146,7 +146,7 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
     }
     else
     {
-        remover_pcb_de_listas_globales(pcb, motivo);
+        remover_pcb_de_listas_globales(pcb);
         pcb->estado = EXIT;
 
         pthread_mutex_lock(&mutex_lista_EXIT);

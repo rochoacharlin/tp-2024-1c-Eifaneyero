@@ -32,6 +32,5 @@ void listar_procesos_por_cada_estado(void);
 void listar_procesos_por_estado(char *estado, t_list *lista);
 void buscar_y_ejecutar_comando(char *token);
 void cambiar_valor_de_semaforo(sem_t *sem, int valor_resultante);
-void remover_pcb_de_listas_globales(t_pcb *pcb);
 
 #endif
