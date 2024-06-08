@@ -7,7 +7,6 @@
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
 #include <utils/comunicacion/comunicacion.h>
-#include <utils/estructuras_compartidas/instrucciones.h>
 
 typedef enum
 {
