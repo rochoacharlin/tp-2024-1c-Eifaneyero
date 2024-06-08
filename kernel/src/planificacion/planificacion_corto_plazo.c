@@ -100,9 +100,12 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         // si sale bien y no hay errores debe cambiar el estado del proceso a BLOCKED
         break;
 
-    case DESALOJO_EXIT:
-        // COMPLETAR: Diferenciar entre SUCCESS e INTERRUPTED_BY_USER
+    case DESALOJO_EXIT_SUCCESS:
         enviar_pcb_a_EXIT(pcb, SUCCESS);
+        break;
+
+    case DESALOJO_EXIT_INTERRUPTED:
+        enviar_pcb_a_EXIT(pcb, INTERRUPTED_BY_USER);
         break;
 
     case DESALOJO_FIN_QUANTUM:
