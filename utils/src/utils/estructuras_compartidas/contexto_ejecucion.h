@@ -22,6 +22,7 @@ typedef struct
 {
     uint32_t PID;
     t_dictionary *registros_cpu;
+    int rafaga_cpu_ejecutada;
 } t_contexto;
 
 // Se inicia contexto de ejecucion
