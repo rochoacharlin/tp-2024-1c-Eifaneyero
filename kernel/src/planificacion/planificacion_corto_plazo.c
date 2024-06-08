@@ -116,7 +116,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 
     case DESALOJO_SIGNAL:
         // COMPLETAR: Todavia no esa hecha la funcion en la CPU y por lo tanto no se como me mandan los datos
-        signal_recurso("", pcb);
+        signal_recurso("", pcb, rafaga_cpu_ejecutada);
         break;
 
     default:

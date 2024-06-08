@@ -33,8 +33,13 @@ void wait_recurso(char *recurso, t_pcb *pcb)
         if (--instancias_recursos[posicion_recurso(recurso)] < 0)
         {
             pcb->estado = BLOCKED;
-            // COMPLETAR: lo tengo que sacar de EXEC tambien supongo o quizas lo haga a mas alto nivel
+            pcb_en_EXEC = NULL;
+            // VERIFICAR: Hace falta un mutex para blocked?
             list_add(pcbs_en_BLOCKED, pcb);
+
+            // logs minimos y obligatorios
+            loggear_cambio_de_estado(pcb->PID, EXEC, BLOCKED);
+            loggear_motivo_de_bloqueo(pcb->PID, recurso);
 
             // se queda bloqueado en la lista correspondiente al recurso
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
@@ -47,7 +52,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
     }
 }
 
-void signal_recurso(char *recurso, t_pcb *pcb)
+void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
 {
     if (existe_recurso(recurso))
     {
@@ -58,12 +63,15 @@ void signal_recurso(char *recurso, t_pcb *pcb)
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
             t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
             pcb_a_desbloquear->estado = READY;
-            list_add(pcbs_en_READY, pcb_a_desbloquear);
+
+            // log minimo y obligatorio
+            loggear_cambio_de_estado(pcb_a_desbloquear->PID, BLOCKED, READY);
+
+            encolar_pcb_segun_algoritmo(pcb_a_desbloquear, rafaga_cpu_ejecutada);
 
             // devolvemos la ejecucion al pcb
-            // pcb y pcb_en_EXEC debe ser el mismo, verificar eso
-            // procesar_pcb_segun_algoritmo(pcb);
-            // esperar_contexto_y_actualizar_pcb(pcb);
+            procesar_pcb_segun_algoritmo(pcb);
+            esperar_contexto_y_actualizar_pcb(pcb);
         }
     }
     else
