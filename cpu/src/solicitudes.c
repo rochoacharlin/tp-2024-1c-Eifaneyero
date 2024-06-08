@@ -16,3 +16,32 @@ void solicitar_lectura_de_instruccion(uint32_t desplazamiento) // TODO: faltan i
     destruir_solicitud_de_instruccion(solicitud);
     eliminar_paquete(paquete);
 }
+
+void solicitar_marco_memoria(uint32_t PID, int pagina)
+{
+    t_paquete *paquete = crear_paquete(SOLICITUD_MARCO);
+
+    agregar_a_paquete(PID);
+    agregar_a_paquete(pagina);
+
+    enviar_paquete(paquete, conexion_cpu_memoria);
+    eliminar_paquete(paquete);
+}
+
+void recibir_marco_memoria()
+{
+    int codigo_operacion = recibir_operacion(conexion_cpu_memoria);
+    t_list *valores = recibir_paquete(conexion_cpu_memoria);
+
+    if (codigo_operacion == SOLICITUD_MARCO)
+    {
+        int marco = valores->head->data;
+        list_destroy(valores);
+        return marco;
+    }
+    else
+    {
+        list_destroy(valores);
+        return -1;
+    }
+}

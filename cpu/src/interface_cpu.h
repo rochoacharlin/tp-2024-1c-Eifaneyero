@@ -9,5 +9,8 @@
 #include "conexiones/conexiones.h"
 
 void solicitar_lectura_de_instruccion(uint32_t desplazamiento);
+void solicitar_marco_memoria(uint32_t PID, int pagina);
+
+void recibir_marco_memoria();
 
 #endif
