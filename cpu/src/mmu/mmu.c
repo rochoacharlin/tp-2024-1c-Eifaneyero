@@ -1,7 +1,9 @@
 #include "mmu.h"
 
-int calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, int pagina, int desplazamiento)
+int calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, uint32_t direccion_logica)
 {
+    int pagina = floor(direccion_logica / tamanio_pagina);
+    int desplazamiento = direccion_logica - pagina * tamanio_pagina;
     int marco = buscar_marco(PID, pagina);
     return (tamanio_pagina * marco) + desplazamiento;
 }
