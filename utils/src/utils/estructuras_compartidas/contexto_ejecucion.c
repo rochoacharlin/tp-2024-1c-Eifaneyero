@@ -56,7 +56,7 @@ motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion) // TODO F
     motivo_desalojo motivo;
 
     if (strcmp(interrupcion, "EXIT") == 0)
-        motivo = DESALOJO_EXIT;
+        motivo = DESALOJO_EXIT_INTERRUPTED;
     else if (strcmp(interrupcion, "FIN_QUANTUM") == 0)
         motivo = DESALOJO_FIN_QUANTUM;
     else
