@@ -36,7 +36,7 @@ int buscar_en_TLB(t_TLB *tlb, uint32_t PID, int pagina)
         {
             if (obtener_algoritmo_tlb() == "LRU") // LRU
             {
-                tlb->entradas[i].tiempo = tlb->tiempo_actual++;
+                tlb->entradas[i].tiempo_utilizo = tlb->tiempo_actual++;
             }
             return tlb->entradas[i].marco;
         }
@@ -48,7 +48,8 @@ void agregar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco)
 {
     if (tlb->entradas_utilizadas < tlb->max_entradas)
     {
-        t_registro_TLB nueva_entrada = {PID, pagina, marco, tlb->tiempo_actual++};
+        int tiempo_actual = tlb->tiempo_actual++;
+        t_registro_TLB nueva_entrada = {PID, pagina, marco, tiempo_actual, tiempo_actual};
         tlb->entradas[tlb->entradas_utilizadas++] = nueva_entrada;
     }
     else
@@ -60,7 +61,8 @@ void agregar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco)
 void reemplazar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco)
 {
     int indice = obtener_indice_para_reemplazo(tlb);
-    t_registro_TLB nueva_entrada = {PID, pagina, marco, tlb->tiempo_actual++};
+    int tiempo_actual = tlb->tiempo_actual++;
+    t_registro_TLB nueva_entrada = {PID, pagina, marco, tiempo_actual, tiempo_actual};
     tlb->entradas[indice] = nueva_entrada;
 }
 
@@ -68,8 +70,15 @@ int obtener_indice_para_reemplazo(t_TLB *tlb)
 {
     if (obtener_algoritmo_tlb() == "FIFO") // FIFO
     {
-        // Reemplazo la entrada más antigua
-        return 0;
+        int indice_fifo = 0;
+        for (int i = 1; i < tlb->entradas_utilizadas; i++)
+        {
+            if (tlb->entradas[i].tiempo_nacimiento < tlb->entradas[indice_fifo].tiempo_nacimiento)
+            {
+                indice_fifo = i;
+            }
+        }
+        return indice_fifo;
     }
     else if (obtener_algoritmo_tlb() == "LRU") // LRU
     {
@@ -77,7 +86,7 @@ int obtener_indice_para_reemplazo(t_TLB *tlb)
         int indice_lru = 0;
         for (int i = 1; i < tlb->entradas_utilizadas; i++)
         {
-            if (tlb->entradas[i].tiempo < tlb->entradas[indice_lru].tiempo)
+            if (tlb->entradas[i].tiempo_utilizo < tlb->entradas[indice_lru].tiempo_utilizo)
             {
                 indice_lru = i;
             }

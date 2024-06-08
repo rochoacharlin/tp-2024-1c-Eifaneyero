@@ -17,13 +17,15 @@ typedef struct
     unint32_t PID;
     int pagina;
     int marco;
-    int tiempo; // LRU
+    int tiempo_nacimiento; // FIFO
+    int tiempo_utilizo;    // LRU
 } t_registro_TLB;
 
 typedef struct
 {
     t_registro_TLB *TLB;
     int entradas_utilizadas;
+    int max_entradas;
     int tiempo_actual;
 } t_TLB;
 
