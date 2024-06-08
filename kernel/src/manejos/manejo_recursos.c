@@ -24,13 +24,12 @@ void crear_colas_de_bloqueo(void)
     destruir_lista_string(instancias_aux);
 }
 
-// CONSIDERAR METER EN EL PCB LOS RECURSOS ASIGNADOS
-
 void wait_recurso(char *recurso, t_pcb *pcb)
 {
     if (existe_recurso(recurso))
     {
-        if (--instancias_recursos[posicion_recurso(recurso)] < 0)
+        int cantidad_instancias_recurso = --instancias_recursos[posicion_recurso(recurso)];
+        if (cantidad_instancias_recurso < 0)
         {
             pcb->estado = BLOCKED;
             pcb_en_EXEC = NULL;
@@ -45,6 +44,10 @@ void wait_recurso(char *recurso, t_pcb *pcb)
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
             list_add(cola_bloqueo_recurso, pcb);
         }
+        else
+        {
+            list_add(pcb->recursos_asignados, recurso);
+        }
     }
     else
     {
@@ -56,8 +59,8 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
 {
     if (existe_recurso(recurso))
     {
-        // REVISAR: es correcta la condicion?
-        if (++instancias_recursos[posicion_recurso(recurso)] == 0)
+        int cantidad_instancias_recurso = ++instancias_recursos[posicion_recurso(recurso)];
+        if (cantidad_instancias_recurso == 0) // REVISAR: es correcta la condicion?
         {
             // desbloqueamos al primer proceso de la cola de bloqueados de ese recurso
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
@@ -72,6 +75,10 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
             // devolvemos la ejecucion al pcb
             procesar_pcb_segun_algoritmo(pcb);
             esperar_contexto_y_actualizar_pcb(pcb);
+        }
+        else
+        {
+            // TODO: Eliminar una de las apariciones o la aparicion del recurso en la lista de recursos asignados del PCB
         }
     }
     else
