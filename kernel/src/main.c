@@ -65,7 +65,7 @@ void chicken_test()
     enviar_contexto(conexion_kernel_cpu_dispatch, myLittleContext);
 
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
-    if (motivo_desalojo == DESALOJO_EXIT)
+    if (motivo_desalojo == DESALOJO_EXIT_SUCCESS)
     {
         t_contexto *myBigContext = recibir_contexto(conexion_kernel_cpu_dispatch);
         log_info(logger_propio, "PID: %d", myBigContext->PID);
