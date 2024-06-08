@@ -35,7 +35,7 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
         execute(instruccion);
         check_interrupt(instruccion);
         //----- BORRAR ----//
-        devolver_contexto(DESALOJO_EXIT, NULL); // TODO F : Agrego para test
+        devolver_contexto(DESALOJO_EXIT_SUCCESS, NULL); // TODO F : Agrego para test
         log_info(logger_propio, "Contexto devuelto al kernel");
         //----- BORRAR ----//
         destruir_instruccion(instruccion);
@@ -315,7 +315,7 @@ void io_gen_sleep(char *nombre, char *unidades)
 
 void exit_inst()
 {
-    devolver_contexto(DESALOJO_EXIT, NULL);
+    devolver_contexto(DESALOJO_EXIT_SUCCESS, NULL);
 }
 
 void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param)
