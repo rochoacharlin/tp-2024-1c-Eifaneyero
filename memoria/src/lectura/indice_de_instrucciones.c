@@ -2,7 +2,8 @@
 
 t_dictionary *crear_indice_de_instrucciones()
 {
-    return dictionary_create();
+    t_dictionary *diccionario = dictionary_create();
+    return diccionario;
 }
 
 void destruir_indice_de_instrucciones(t_dictionary *indice_de_instrucciones)
