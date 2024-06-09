@@ -4,6 +4,7 @@
 #include <commons/collections/dictionary.h>
 #include <commons/bitarray.h>
 #include <configuraciones.h>
+#include "lectura/lectura.h"
 
 extern void *espacio_usuario;
 extern t_dictionary *indice_tablas;

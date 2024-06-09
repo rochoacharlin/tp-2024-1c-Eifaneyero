@@ -21,6 +21,6 @@ void quitar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint3
     t_list *instrucciones_de_proceso = dictionary_remove(indice_de_instrucciones, string_itoa(PID));
     if (instrucciones_de_proceso != NULL)
     {
-        list_destroy(instrucciones_de_proceso);
+        list_destroy_and_destroy_elements(instrucciones_de_proceso, free);
     }
 }
