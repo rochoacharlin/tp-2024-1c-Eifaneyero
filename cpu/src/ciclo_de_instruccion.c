@@ -126,6 +126,7 @@ t_instruccion *inicializar_instruccion(t_instruccion *instruccion)
     instruccion->param3 = NULL;
     instruccion->param4 = NULL;
     instruccion->param5 = NULL;
+    instruccion->direcciones_fisicas = list_create();
     return instruccion;
 }
 
@@ -180,7 +181,6 @@ t_id string_id_to_enum_id(char *id_string)
 t_instruccion *decode(char *instruccion_leida)
 {
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-    instruccion->direcciones_fisicas = list_create();
     instruccion = convertir_string_a_instruccion(instruccion_leida);
 
     // traducir direcciones lógicas si corresponde
@@ -209,7 +209,7 @@ t_instruccion *decode(char *instruccion_leida)
         break;
     }
 
-    if (tamanio_a_operar < 0)
+    if (tamanio_a_operar > 0)
     {
         int pagina, desplazamiento, direccion_fisica = 0;
         pagina = floor(direccion_logica / tamanio_pagina);
