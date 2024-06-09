@@ -228,6 +228,6 @@ void atender_solicitud_marco()
     uint32_t PID;
     int pagina;
     recibir_solicitud_marco(&PID, &pagina);
-    int marco = *(int *)list_get(dictionary_get(indice_tablas, string_itoa(PID)), pagina);
+    int marco = buscar_marco(PID, pagina);
     enviar_marco(marco);
 }
