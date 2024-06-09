@@ -1,43 +1,11 @@
 #include "lectura.h"
 
-t_instruccion_cadena *leer_instruccion(int desplazamiento) // CORREGIR
+t_list *subir_instrucciones()
 {
-    FILE *file = fopen("src/lectura/instrucciones_prueba.txt", "r");
-    if (file == NULL)
-    {
-        log_info(logger_propio, "Error al abrir el archivo de instrucciones");
-        return NULL;
-    }
+    return NULL; // TODO: sube las instrucciones a una estructura de memoria y retorna la misma
+}
 
-    t_instruccion_cadena *instruccion = crear_instruccion();
-    char *linea = NULL;
-    size_t tamanio = 0;
-    ssize_t valor_leido;
-
-    int linea_actual = 0;
-    while ((valor_leido = getline(&linea, &tamanio, file)) != -1)
-    {
-        if (linea_actual == desplazamiento)
-        {
-            // Eliminar el salto de línea al final de la línea si existe
-            if (linea[valor_leido - 1] == '\n')
-            {
-                linea[valor_leido - 1] = '\0';
-            }
-            instruccion->instruccion = strdup(linea);
-            break;
-        }
-        linea_actual++;
-    }
-
-    free(linea);
-    fclose(file);
-
-    if (linea_actual != desplazamiento)
-    {
-        destruir_instruccion_cadena(instruccion);
-        return NULL; // Desplazamiento fuera de los límites del archivo
-    }
-
-    return instruccion;
+t_instruccion_cadena *leer_instruccion(int desplazamiento)
+{
+    return NULL; // TODO: desde la estructura de instrucciones extrae la instruccion y la retorna
 }
