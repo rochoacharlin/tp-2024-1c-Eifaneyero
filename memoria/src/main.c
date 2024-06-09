@@ -4,6 +4,7 @@
 #include <utils/estructuras_compartidas/contexto_ejecucion.h>
 #include "conexiones/conexiones.h"
 #include "lectura/lectura.h"
+#include "gestion_memoria.h"
 
 t_log *logger_obligatorio;
 t_log *logger_propio;
@@ -17,19 +18,12 @@ int main(int argc, char *argv[])
 
     config = iniciar_config(logger_propio, "memoria.config");
 
-    // inicio servidor y conexiones
+    inicializar_memoria();
+    iniciar_conexiones();
 
-    iniciar_servidor_memoria();
-
-    // iniciar_conexiones();
-
-    // hilos a futuro
-
-    // atender_cpu();
-
-    terminar_programa(server_fd, logger_propio, config);
-    // free(sockets);
-    log_destroy(logger_obligatorio);
+    // terminar_programa(server_fd, logger_propio, config);
+    //  free(sockets);
+    // log_destroy(logger_obligatorio);
 
     return 0;
 }
