@@ -1,13 +1,5 @@
 #include "mmu.h"
 
-int calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, uint32_t direccion_logica)
-{
-    int pagina = floor(direccion_logica / tamanio_pagina);
-    int desplazamiento = direccion_logica - pagina * tamanio_pagina;
-    int marco = buscar_marco(PID, pagina);
-    return (tamanio_pagina * marco) + desplazamiento;
-}
-
 int buscar_marco(t_TLB *tlb, uint32_t PID, int pagina)
 {
     int marco = buscar_en_TLB(tlb, PID, pagina);
@@ -49,7 +41,7 @@ int buscar_en_TLB(t_TLB *tlb, uint32_t PID, int pagina)
     {
         if (tlb->entradas[i].PID == PID && tlb->entradas[i].pagina == pagina)
         {
-            if (obtener_algoritmo_tlb() == "LRU") // LRU
+            if (!strcmp(obtener_algoritmo_tlb(), "LRU")) // LRU
             {
                 tlb->entradas[i].tiempo_utilizo = tlb->tiempo_actual++;
             }
@@ -83,7 +75,7 @@ void reemplazar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco)
 
 int obtener_indice_para_reemplazo(t_TLB *tlb)
 {
-    if (obtener_algoritmo_tlb() == "FIFO") // FIFO
+    if (!strcmp(obtener_algoritmo_tlb(), "FIFO")) // FIFO
     {
         int indice_fifo = 0;
         for (int i = 1; i < tlb->entradas_utilizadas; i++)
@@ -95,7 +87,7 @@ int obtener_indice_para_reemplazo(t_TLB *tlb)
         }
         return indice_fifo;
     }
-    else if (obtener_algoritmo_tlb() == "LRU") // LRU
+    else if (!strcmp(obtener_algoritmo_tlb(), "LRU")) // LRU
     {
         // Encuentra la entrada con el menor valor de tiempo
         int indice_lru = 0;
@@ -109,4 +101,42 @@ int obtener_indice_para_reemplazo(t_TLB *tlb)
         return indice_lru;
     }
     return 0;
+}
+
+int calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, uint32_t direccion_logica)
+{
+    tamanio_pagina = 0;
+    int pagina = floor(direccion_logica / tamanio_pagina);
+    int desplazamiento = direccion_logica - pagina * tamanio_pagina;
+    int marco = buscar_marco(tlb, PID, pagina);
+    return (tamanio_pagina * marco) + desplazamiento;
+}
+
+void solicitar_marco_memoria(uint32_t PID, int pagina)
+{
+    t_paquete *paquete = crear_paquete(SOLICITUD_MARCO);
+
+    agregar_a_paquete_uint32(paquete, PID);
+    agregar_a_paquete(paquete, &pagina, sizeof(int));
+
+    enviar_paquete(paquete, conexion_cpu_memoria);
+    eliminar_paquete(paquete);
+}
+
+void recibir_marco_memoria()
+{
+    int codigo_operacion = recibir_operacion(conexion_cpu_memoria);
+    t_list *valores = recibir_paquete(conexion_cpu_memoria);
+
+    if (codigo_operacion == SOLICITUD_MARCO)
+    {
+        int marco = valores->head->data;
+        list_destroy(valores);
+        return marco;
+    }
+    else
+    {
+        list_destroy(valores);
+        return -1;
+    }
 }
