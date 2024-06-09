@@ -41,6 +41,7 @@ void enviar_instruccion_a_cpu(int socket, char *instruccion)
     t_paquete *paquete_instruccion = crear_paquete(INSTRUCCION);
     agregar_a_paquete_string(paquete_instruccion, instruccion);
     enviar_paquete(paquete_instruccion, socket);
+    eliminar_paquete(paquete_instruccion);
 }
 
 // void iniciar_conexiones() // esperar Conexiones
