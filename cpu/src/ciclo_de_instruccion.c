@@ -7,21 +7,6 @@ bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
 t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto?
 
-void destruir_instruccion(t_instruccion *instruccion)
-{
-    if (instruccion->param1 != NULL)
-        free(instruccion->param1);
-    if (instruccion->param2 != NULL)
-        free(instruccion->param2);
-    if (instruccion->param3 != NULL)
-        free(instruccion->param3);
-    if (instruccion->param4 != NULL)
-        free(instruccion->param4);
-    if (instruccion->param5 != NULL)
-        free(instruccion->param5);
-    free(instruccion);
-}
-
 void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
 {
     contexto = contexto_a_ejecutar;
@@ -123,6 +108,21 @@ t_instruccion *inicializar_instruccion(t_instruccion *instruccion)
     instruccion->param4 = NULL;
     instruccion->param5 = NULL;
     return instruccion;
+}
+
+void destruir_instruccion(t_instruccion *instruccion)
+{
+    if (instruccion->param1 != NULL)
+        free(instruccion->param1);
+    if (instruccion->param2 != NULL)
+        free(instruccion->param2);
+    if (instruccion->param3 != NULL)
+        free(instruccion->param3);
+    if (instruccion->param4 != NULL)
+        free(instruccion->param4);
+    if (instruccion->param5 != NULL)
+        free(instruccion->param5);
+    free(instruccion);
 }
 
 t_id string_id_to_enum_id(char *id_string)
