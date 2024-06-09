@@ -11,7 +11,7 @@ void *ejecutar_espera_interfaces(void) // ESTO SE RELACIONA CON LA FUNCION DE CO
         int fd_cliente = esperar_cliente(logger_propio, servidor_kernel_fd);
         int op = recibir_operacion(fd_cliente);
         char *nombre_interfaz, *tipo_interfaz;
-        // nombre_interfaz = recibir_mensaje(fd_cliente);
+        // nombre_interfaz = recibir_string(fd_cliente);
         t_list *interfaz = recibir_paquete(fd_cliente);
         agregar_a_lista_io_global((char *)list_get(interfaz, 0), (char *)list_get(interfaz, 1), fd_cliente);
     }
