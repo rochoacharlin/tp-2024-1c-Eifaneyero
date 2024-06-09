@@ -60,6 +60,9 @@ t_instruccion *inicializar_instruccion(t_instruccion *instruccion);
 // Castear instruccion_id tipo string a enum para switch en execute(). Ante instruccion desconocida devuelve EXIT.
 t_id string_id_to_enum_id(char *id_string);
 
+// Liberar memoria dinámica (podría ser más bella si params[])
+void destruir_instruccion(t_instruccion *instruccion);
+
 // ---------- OTRAS ---------- //
 
 bool instruccion_bloqueante(t_id id_instruccion);
