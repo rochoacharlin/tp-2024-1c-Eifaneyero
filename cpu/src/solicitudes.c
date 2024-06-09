@@ -29,7 +29,7 @@ int recibir_marco_memoria()
     if (codigo_operacion == SOLICITUD_MARCO)
     {
         int marco = *(int *)list_get(valores, 0);
-        list_destroy(valores);
+        list_destroy_and_destroy_elements(valores, free);
         return marco;
     }
     else
