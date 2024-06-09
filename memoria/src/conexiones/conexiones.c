@@ -179,6 +179,10 @@ void atender_cpu(int socket_cliente)
             atender_solicitud_marco();
             break;
 
+        case RESIZE_PROCESO:
+            atender_resize();
+            break;
+
         default:
 
             log_info(logger_propio, "Codigo de operacion incorrecto");
@@ -208,10 +212,20 @@ void recibir_solicitud_marco(uint32_t *PID, int *pagina)
     list_destroy_and_destroy_elements(valores_paquete, free);
 }
 
+t_list *obtener_tp_de_proceso(uint32_t PID)
+{
+    return (t_list *)dictionary_get(indice_tablas, string_itoa(PID));
+}
+
+int obtener_marco(t_list *tp, int pagina)
+{
+    return *(int *)list_get(tp, pagina);
+}
+
 int buscar_marco(uint32_t PID, int pagina)
 {
-    t_list *tp_de_proceso = dictionary_get(indice_tablas, string_itoa(PID));
-    int marco = *(int *)list_get(tp_de_proceso, pagina);
+    t_list *tp_de_proceso = obtener_tp_de_proceso(PID);
+    int marco = obtener_marco(tp_de_proceso, pagina);
     return marco;
 }
 
@@ -222,4 +236,76 @@ void atender_solicitud_marco()
     recibir_solicitud_marco(&PID, &pagina);
     int marco = buscar_marco(PID, pagina);
     enviar_marco(marco);
+}
+
+void recibir_solicitud_resize(uint32_t *PID, uint32_t *tamanio_proceso)
+{
+    t_list *valores_paquete = recibir_paquete(sockets[0]);
+    *PID = *(uint32_t *)list_get(valores_paquete, 0);
+    *tamanio_proceso = *(uint32_t *)list_get(valores_paquete, 1);
+    list_destroy_and_destroy_elements(valores_paquete, free);
+}
+
+void atender_resize()
+{
+    uint32_t PID, tamanio_proceso;
+    recibir_solicitud_resize(&PID, &tamanio_proceso);
+    op_code respuesta = resize(PID, tamanio_proceso);
+    enviar_cod_op(respuesta, sockets[0]);
+}
+
+void marcar_como_libre(int marco) {} // TODO
+
+int cantidad_marcos_libres() { return 0; } // TODO
+
+int obtener_marco_libre() { return 0; } // TODO
+
+// Crea una nueva página y le asigna un marco libre
+void agregar_pagina(t_list *tp)
+{
+    int nuevo_marco = obtener_marco_libre();
+    // marcar_como_ocupado(nuevo_marco);
+    list_add(tp, &nuevo_marco);
+}
+
+// Elimina la última página y libera su marco
+void quitar_ultima_pagina(t_list *tp)
+{
+    int indice = list_size(tp) - 1;
+    marcar_como_libre(obtener_marco(tp, indice));
+    list_remove(tp, indice);
+}
+
+op_code resize(uint32_t PID, uint32_t tamanio_proceso)
+{
+    t_list *tp_de_proceso = obtener_tp_de_proceso(PID);
+    int cantidad_pags = list_size(tp_de_proceso);
+    int pags_solicitadas = (tamanio_proceso + tamanio_pagina - 1) / tamanio_pagina;
+    op_code resultado = OK;
+
+    if (pags_solicitadas < cantidad_pags)
+    {
+        for (int i = cantidad_pags - 1; i >= pags_solicitadas; i--)
+        {
+            quitar_ultima_pagina(tp_de_proceso);
+        }
+    }
+
+    if (pags_solicitadas > cantidad_pags)
+    {
+        int pags_adicionales = pags_solicitadas - cantidad_pags;
+        if (cantidad_marcos_libres() >= pags_adicionales)
+        {
+            for (int i = 0; i < pags_adicionales; i++)
+            {
+                agregar_pagina(tp_de_proceso);
+            }
+        }
+        else
+        {
+            resultado = OUT_OF_MEMORY;
+        }
+    }
+
+    return resultado;
 }
