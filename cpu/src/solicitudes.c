@@ -1,20 +1,12 @@
 #include "interface_cpu.h"
 #include <utils/estructuras_compartidas/instrucciones.h>
 
-void solicitar_lectura_de_instruccion(uint32_t desplazamiento) // TODO: faltan implementar bien las fuciones
+void solicitar_lectura_de_instruccion(uint32_t PID, uint32_t PC)
 {
-    t_solicitud_de_instruccion *solicitud = crear_solicitud_de_instruccion();
     t_paquete *paquete = crear_paquete(SOLICITUD_INSTRUCCION);
-    // TODO: falta hacer tamanio_solicitud_de_instruccion, procesar_solicitud_instruccion
-    // paquete->buffer = serializar_estructura(solicitud, tamanio_solicitud_instruccion, serealizar_solicitud_instruccion)
-
-    // enviar_cod_op(SOLICITUD_INSTRUCCION, conexion_cpu_memoria);
-
-    serializar_solicitud_de_instruccion(solicitud, paquete);
-
+    agregar_a_paquete_uint32(paquete, PID);
+    agregar_a_paquete_uint32(paquete, PC);
     enviar_paquete(paquete, conexion_cpu_memoria);
-
-    destruir_solicitud_de_instruccion(solicitud);
     eliminar_paquete(paquete);
 }
 
