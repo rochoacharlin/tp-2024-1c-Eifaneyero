@@ -117,7 +117,7 @@ void *recibir_buffer(int socket, int *size) //
     return buffer;
 }
 
-char *recibir_mensaje(int socket) // ?
+char *recibir_string(int socket) // ?
 {
     int size;
     char *buffer = recibir_buffer(socket, &size);
