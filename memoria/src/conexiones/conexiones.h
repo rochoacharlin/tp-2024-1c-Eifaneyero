@@ -35,17 +35,15 @@ void atender_io(int socket_cliente);
 
 void enviar_marco(int marco);
 void recibir_solicitud_marco(uint32_t *PID, int *pagina);
-t_list *obtener_tp_de_proceso(uint32_t PID);
-int obtener_marco(t_list *tp, int pagina);
-int buscar_marco(uint32_t PID, int pagina);
 void atender_solicitud_marco();
 
 void recibir_solicitud_resize(uint32_t *PID, uint32_t *tamanio_proceso);
 void atender_resize();
+// TODO pendiente pasar estas funciones a algún otro archivo que se encargue de manejar el bitmap de marcos libres
 void marcar_como_libre(int marco);
 int obtener_marco_libre();
 int cantidad_marcos_libres();
-void agregar_marco(t_list *tp, int marco);
+//------------------
 op_code resize(uint32_t PID, uint32_t tamanio_proceso);
 
 #endif

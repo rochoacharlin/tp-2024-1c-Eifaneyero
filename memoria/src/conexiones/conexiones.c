@@ -103,10 +103,10 @@ void atender_kernel(int socket_cliente)
             log_info(logger_propio, "Llegó orden para crear un proceso");
             t_list *paquete = recibir_paquete(sockets[1]);
             uint32_t PID = *(uint32_t *)list_get(paquete, 0);
-            char* PATH = (char *)list_get(paquete, 1);
-            agregar_instrucciones_al_indice(indice_de_instrucciones, PID, path); 
+            char *PATH = (char *)list_get(paquete, 1);
+            agregar_instrucciones_al_indice(indice_de_instrucciones, PID, PATH);
             sem_post(&semaforos[PID]); // Libero semáforo para que cpu pueda leer instruccion
-            break;
+            break;
 
         case FINALIZAR_PROCESO_KERNEL:
 
@@ -212,23 +212,6 @@ void recibir_solicitud_marco(uint32_t *PID, int *pagina)
     list_destroy_and_destroy_elements(valores_paquete, free);
 }
 
-t_list *obtener_tp_de_proceso(uint32_t PID)
-{
-    return (t_list *)dictionary_get(indice_tablas, string_itoa(PID));
-}
-
-int obtener_marco(t_list *tp, int pagina)
-{
-    return *(int *)list_get(tp, pagina);
-}
-
-int buscar_marco(uint32_t PID, int pagina)
-{
-    t_list *tp_de_proceso = obtener_tp_de_proceso(PID);
-    int marco = obtener_marco(tp_de_proceso, pagina);
-    return marco;
-}
-
 void atender_solicitud_marco()
 {
     uint32_t PID;
@@ -259,22 +242,6 @@ void marcar_como_libre(int marco) {} // TODO
 int cantidad_marcos_libres() { return 0; } // TODO
 
 int obtener_marco_libre() { return 0; } // TODO
-
-// Crea una nueva página y le asigna un marco libre
-void agregar_pagina(t_list *tp)
-{
-    int nuevo_marco = obtener_marco_libre();
-    // marcar_como_ocupado(nuevo_marco);
-    list_add(tp, &nuevo_marco);
-}
-
-// Elimina la última página y libera su marco
-void quitar_ultima_pagina(t_list *tp)
-{
-    int indice = list_size(tp) - 1;
-    marcar_como_libre(obtener_marco(tp, indice));
-    list_remove(tp, indice);
-}
 
 op_code resize(uint32_t PID, uint32_t tamanio_proceso)
 {

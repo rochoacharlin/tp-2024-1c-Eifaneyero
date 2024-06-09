@@ -9,12 +9,21 @@
 #include <configuraciones.h>
 
 extern int tamanio_pagina;
+extern t_dictionary *indice_tablas;
 
-// INDICE DE TABLA DE PAGINAS
+// INDICE DE TABLA DE PAGINAS ---------------------
 t_dictionary *crear_indice_de_tablas();
-void agregar_proceso_al_indice(t_dictionary *indice_de_tablas, uint32_t PID, int *tabla_de_paginas);
-void quitar_proceso_del_indice(t_dictionary *indice_de_tablas, uint32_t PID);
-int *obtener_tabla_paginas(t_dictionary *indice_de_tablas, uint32_t PID);
-void destruir_indice_de_tablas(t_dictionary *indice_de_tablas);
+void agregar_proceso_al_indice(uint32_t PID, t_list *tabla_de_paginas);
+void quitar_proceso_del_indice(uint32_t PID);
+t_list *obtener_tp_de_proceso(uint32_t PID); // TODO: facu fijate si te gusta el nombre ahora
+void destruir_indice_de_tablas();
+
+// TABLA DE PÁGINAS -------------------------------
+// Crea una nueva página y le asigna un marco libre
+void agregar_pagina(t_list *tp);
+// Elimina la última página y libera su marco
+void quitar_ultima_pagina(t_list *tp);
+int obtener_marco(t_list *tp, int pagina);
+int buscar_marco(uint32_t PID, int pagina);
 
 #endif
