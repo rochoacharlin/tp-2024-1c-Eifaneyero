@@ -310,7 +310,7 @@ void io_gen_sleep(char *nombre, char *unidades)
     list_add(param, string_itoa(IO_GEN_SLEEP));
     list_add(param, nombre);
     list_add(param, unidades);
-    devolver_contexto(DESALOJO_IO_GEN_SLEEP, param);
+    devolver_contexto(DESALOJO_IO, param);
 }
 
 void exit_inst()
