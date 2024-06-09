@@ -1,19 +1,11 @@
 #include <conexiones/conexiones.h>
 
-#define TOPE_DE_IDS 10 // Elegì numero aleatorio, debería ser el grado de multiprogramacion?
+#define TOPE_DE_IDS 10 // Elegí numero aleatorio.
 
 int server_fd;
 int sockets[3];
-uint32_t PID = 0;
 sem_t semaforos[TOPE_DE_IDS];
-t_dictionary *script_segun_PID;
-
-// Diccionario que relaciona PIDs con scripts de instrucciones. Reubicar.
-t_dictionary *crear_diccionario_script_segun_PID(void)
-{
-    t_dictionary *diccionario = dictionary_create();
-    return diccionario;
-}
+t_dictionary *indice_de_instrucciones;
 
 // Para semaforear que se hayan cargado scripts de los procesos, antes de poder solicitar lectura de instrucciones.
 void iniciar_semaforo_para_peticiones(void)
@@ -98,7 +90,7 @@ void iniciar_conexiones()
 
 void atender_kernel(int socket_cliente)
 {
-    t_dictionary *script_segun_PID = crear_diccionario_script_segun_PID();
+    t_dictionary *indice_de_instrucciones = crear_indice_de_instrucciones();
     while (1)
     {
         op_code codigo = recibir_operacion(sockets[1]);
@@ -106,15 +98,15 @@ void atender_kernel(int socket_cliente)
 
         switch (codigo)
         {
-        case CREAR_PROCESO_KERNEL: // Recibo path y preparo estructuras administrativas necesarias (?)
+        case CREAR_PROCESO_KERNEL: // Recibo path y preparo estructuras administrativas necesarias
 
-            log_info(logger_propio, "Orden para crear un proceso");
-            char *path = recibir_string(sockets[1]);
-            t_list *instrucciones_por_script = subir_instrucciones(path);
-            dictionary_put(script_segun_PID, string_itoa(PID), (void *)instrucciones_por_script); // Agrego PID y script a diccionario.
-            sem_post(&semaforos[PID]);                                                            // Libero semáforo para que cpu pueda leer instruccion
-            PID++;                                                                                // Incremento para que cuando se cree otro proceso coincida PID de Kernel
-            break;
+            log_info(logger_propio, "Llegó orden para crear un proceso");
+            t_list *paquete = recibir_paquete(sockets[1]);
+            uint32_t PID = *(uint32_t *)list_get(paquete, 0);
+            char* PATH = (char *)list_get(paquete, 1);
+            agregar_instrucciones_al_indice(indice_de_instrucciones, PID, path); 
+            sem_post(&semaforos[PID]); // Libero semáforo para que cpu pueda leer instruccion
+            break;
 
         case FINALIZAR_PROCESO_KERNEL:
 
@@ -149,16 +141,16 @@ void atender_cpu(int socket_cliente)
             // 1º El kernel manda el archivo a abrir
 
             t_list *pid_y_pc = recibir_paquete(sockets[0]);
-            uint32_t pid_recibido = *(uint32_t *)list_get(pid_y_pc, 0);
-            uint32_t pc_recibido = *(uint32_t *)list_get(pid_y_pc, 1);
+            uint32_t PID = *(uint32_t *)list_get(pid_y_pc, 0);
+            uint32_t PC = *(uint32_t *)list_get(pid_y_pc, 1);
 
             // TODO: Liberar pid y pc
 
-            sem_wait(&semaforos[pid_recibido]); // Blocked hasta que las instrucciones del proceso se hayan cargado.
+            sem_wait(&semaforos[PID]); // Blocked hasta que las instrucciones del proceso se hayan cargado.
 
             log_info(logger_propio, "Semáforo cruzado en verde tras solicitud de instrucción");
 
-            char *instruccion = obtener_instruccion_de_script(pid_recibido, pc_recibido); // TODO: Obtengo instr cargada en t_dictionary *script_segun_PID
+            char *instruccion = obtener_instruccion_de_script(PID, PC); // TODO: Obtengo instr cargada en t_dictionary *script_segun_PID
 
             enviar_instruccion_a_cpu(sockets[0], instruccion);
 
@@ -166,7 +158,7 @@ void atender_cpu(int socket_cliente)
             usleep(obtener_retardo_respuesta() * 500); // TODO: *1000 o *500?
             log_info(logger_propio, "Se termino la siesta");
 
-            sem_post(&semaforos[pid_recibido]); // Libero semáforo. Pues ya fueron cargadas las intrucciones.
+            sem_post(&semaforos[PID]); // Libero semáforo. Pues ya fueron cargadas las intrucciones.
 
             break;
 
