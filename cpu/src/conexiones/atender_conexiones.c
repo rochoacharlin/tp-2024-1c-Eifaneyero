@@ -1,4 +1,4 @@
-#include "conexiones.h"
+#include "atender_conexiones.h"
 
 int conexion_cpu_memoria;
 int conexion_cpu_kernel_dispatch;
@@ -38,17 +38,23 @@ void iniciar_conexion_memoria(void)
     // int handshake_respuesta = handshake_cliente(logger_propio, conexion_cpu_memoria, handshake);
 }
 
-void iniciar_conexiones()
+char *recibir_interrupcion() // TODO F: Chequear.
 {
-    iniciar_servidor_dispatch();
-    iniciar_servidor_interrupt();
-    iniciar_conexion_memoria();
-
-    pthread_create(&th_dispatch, NULL, (void *)atender_dispatch, NULL);
-    pthread_create(&th_interrupt, NULL, (void *)atender_interrupt, NULL);
-
-    pthread_join(th_dispatch, NULL);
-    pthread_join(th_interrupt, NULL);
+    if (recibir_operacion(conexion_cpu_kernel_interrupt) == INTERRUPCION)
+    {
+        int *size = malloc(sizeof(int));
+        recv(conexion_cpu_kernel_interrupt, size, sizeof(int), MSG_WAITALL);
+        void *buffer = malloc(*size);
+        recv(conexion_cpu_kernel_interrupt, buffer, *size, MSG_WAITALL);
+        free(size);
+        log_info(logger_propio, "recibir_interrupcion(): motivo interrupcion: %s", (char *)buffer);
+        return (char *)buffer;
+    }
+    else
+    {
+        log_info(logger_propio, "Error: recibir_interrupcion(): Op Code != INTERRUPCION");
+    }
+    return NULL; // TODO F ?
 }
 
 void atender_dispatch()
@@ -87,21 +93,15 @@ void atender_interrupt()
     }
 }
 
-char *recibir_interrupcion() // TODO F: Chequear.
+void iniciar_conexiones()
 {
-    if (recibir_operacion(conexion_cpu_kernel_interrupt) == INTERRUPCION)
-    {
-        int *size = malloc(sizeof(int));
-        recv(conexion_cpu_kernel_interrupt, size, sizeof(int), MSG_WAITALL);
-        void *buffer = malloc(*size);
-        recv(conexion_cpu_kernel_interrupt, buffer, *size, MSG_WAITALL);
-        free(size);
-        log_info(logger_propio, "recibir_interrupcion(): motivo interrupcion: %s", (char *)buffer);
-        return (char *)buffer;
-    }
-    else
-    {
-        log_info(logger_propio, "Error: recibir_interrupcion(): Op Code != INTERRUPCION");
-    }
-    return NULL; // TODO F ?
+    iniciar_servidor_dispatch();
+    iniciar_servidor_interrupt();
+    iniciar_conexion_memoria();
+
+    pthread_create(&th_dispatch, NULL, (void *)atender_dispatch, NULL);
+    pthread_create(&th_interrupt, NULL, (void *)atender_interrupt, NULL);
+
+    pthread_join(th_dispatch, NULL);
+    pthread_join(th_interrupt, NULL);
 }

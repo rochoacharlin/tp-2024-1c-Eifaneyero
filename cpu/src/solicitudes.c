@@ -1,4 +1,5 @@
 #include "interface_cpu.h"
+#include <utils/estructuras_compartidas/instrucciones.h>
 
 void solicitar_lectura_de_instruccion(uint32_t desplazamiento) // TODO: faltan implementar bien las fuciones
 {
@@ -28,14 +29,14 @@ void solicitar_marco_memoria(uint32_t PID, int pagina)
     eliminar_paquete(paquete);
 }
 
-void recibir_marco_memoria()
+int recibir_marco_memoria()
 {
     int codigo_operacion = recibir_operacion(conexion_cpu_memoria);
     t_list *valores = recibir_paquete(conexion_cpu_memoria);
 
     if (codigo_operacion == SOLICITUD_MARCO)
     {
-        int marco = valores->head->data;
+        int marco = *(int *)list_get(valores, 0);
         list_destroy(valores);
         return marco;
     }

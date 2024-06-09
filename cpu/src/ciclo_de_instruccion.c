@@ -7,6 +7,8 @@ bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
 t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto?
 
+t_TLB *tlb; // TODO esta tlb se debe crear en otro lado (a pesar de que se usará en este archivo)
+
 void destruir_instruccion(t_instruccion *instruccion)
 {
     if (instruccion->param1 != NULL)
@@ -125,21 +127,6 @@ t_instruccion *inicializar_instruccion(t_instruccion *instruccion)
     instruccion->param4 = NULL;
     instruccion->param5 = NULL;
     return instruccion;
-}
-
-void destruir_instruccion(t_instruccion *instruccion)
-{
-    if (instruccion->param1 != NULL)
-        free(instruccion->param1);
-    if (instruccion->param2 != NULL)
-        free(instruccion->param2);
-    if (instruccion->param3 != NULL)
-        free(instruccion->param3);
-    if (instruccion->param4 != NULL)
-        free(instruccion->param4);
-    if (instruccion->param5 != NULL)
-        free(instruccion->param5);
-    free(instruccion);
 }
 
 t_id string_id_to_enum_id(char *id_string)
@@ -418,7 +405,7 @@ void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tam
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
         list_add(param, list_get(direcciones_fisicas, i));
 
-    devolver_contexto(DESALOJO_IO_GEN_SLEEP, param);
+    devolver_contexto(DESALOJO_IO, param);
 }
 
 void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio)
@@ -430,7 +417,7 @@ void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_t
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
         list_add(param, list_get(direcciones_fisicas, i));
 
-    devolver_contexto(DESALOJO_IO_GEN_SLEEP, param);
+    devolver_contexto(DESALOJO_IO, param);
 }
 
 void exit_inst()

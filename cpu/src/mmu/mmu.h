@@ -8,8 +8,8 @@
 #include <utils/funcionalidades_basicas.h>
 #include <utils/comunicacion/comunicacion.h>
 #include "../configuraciones.h"
+#include "interface_cpu.h"
 
-extern int tamanio_pagina;
 typedef struct
 {
     uint32_t PID;
@@ -29,6 +29,7 @@ typedef struct
 
 t_TLB *crear_TLB();
 void destruir_TLB(t_TLB *tlb);
+int buscar_marco(t_TLB *tlb, uint32_t PID, int pagina);
 // Devuelve el marco de la página de un proceso o -1 si no la encuentra
 int buscar_en_TLB(t_TLB *tlb, uint32_t PID, int pagina);
 void agregar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco);
