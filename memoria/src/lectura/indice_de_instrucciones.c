@@ -1,0 +1,26 @@
+#include "lectura.h"
+
+t_dictionary *crear_indice_de_instrucciones()
+{
+    return dictionary_create();
+}
+
+void destruir_indice_de_instrucciones(t_dictionary *indice_de_instrucciones)
+{
+    dictionary_destroy_and_destroy_elements(indice_de_instrucciones, free);
+}
+
+void agregar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID, char *path)
+{
+    t_list *instrucciones_de_proceso = subir_instrucciones(path); // sube las instrucciones a la estructura de memoria
+    dictionary_put(indice_de_instrucciones, string_itoa(PID), instrucciones_de_proceso);
+}
+
+void quitar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID)
+{
+    t_list *instrucciones_de_proceso = dictionary_remove(indice_de_instrucciones, string_itoa(PID));
+    if (instrucciones_de_proceso != NULL)
+    {
+        list_destroy(instrucciones_de_proceso);
+    }
+}
