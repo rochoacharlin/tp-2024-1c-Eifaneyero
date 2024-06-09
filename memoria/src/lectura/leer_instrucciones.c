@@ -1,11 +1,37 @@
 #include "lectura.h"
 
-t_list *subir_instrucciones()
+t_list *subir_instrucciones(char *path)
 {
-    return NULL; // TODO: sube las instrucciones a una estructura de memoria y retorna la misma
+    FILE *archivo = fopen(path, "r");
+    if (archivo == NULL)
+    {
+        // loggear algo
+        return NULL;
+    }
+
+    t_list *instrucciones = list_create();
+    char *instruccion;
+
+    while ((instruccion = leer_instruccion(archivo)) != NULL)
+    {
+        list_add(instrucciones, instruccion);
+    }
+
+    fclose(archivo);
+    return instrucciones;
 }
 
-t_instruccion_cadena *leer_instruccion(int desplazamiento)
+char *leer_instruccion(FILE *archivo)
 {
-    return NULL; // TODO: desde la estructura de instrucciones extrae la instruccion y la retorna
+    char buffer[256];
+    if (fgets(buffer, sizeof(buffer), archivo) != NULL)
+    {
+        size_t tamanio = strlen(buffer);
+        if (tamanio > 0 && buffer[tamanio - 1] == '\n')
+        {
+            buffer[tamanio - 1] = '\0'; // Elimina el carácter de nueva línea
+        }
+        return strdup(buffer); // Duplica la cadena y la devuelve
+    }
+    return NULL;
 }
