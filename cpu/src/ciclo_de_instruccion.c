@@ -55,37 +55,37 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
 
 char *fetch()
 {
-    uint32_t desplazamiento = obtener_valor_registro(contexto->registros_cpu, "PC"); // TODO:
-    solicitar_lectura_de_instruccion(desplazamiento);
+    solicitar_lectura_de_instruccion(contexto->PID, obtener_valor_registro(contexto->registros_cpu, "PC"));
     char *instruccion_string = recibir_instruccion_string_memoria();
-
     loggear_fetch_instrucccion(contexto->PID, obtener_valor_registro(contexto->registros_cpu, "PC"));
-
     return instruccion_string;
 }
 
-// char *recibir_instruccion_string_memoria() // TODO F
-// {
-//     if (recibir_operacion(conexion_cpu_memoria) == INSTRUCCION)
-//     {
-//         t_list *paquete = recibir_paquete(conexion_cpu_memoria);
-//         t_instruccion_cadena *instruccion_string;
-//         generar_instruccion(instruccion_string, paquete);
-
-//         return instruccion_string->instruccion;
-//     }
-// }
-
-char *recibir_instruccion_string_memoria() // TODO F
+char *recibir_instruccion_string_memoria()
 {
-    char *unaInstruccion = string_new();
-    // unaInstruccion = string_duplicate("JNZ PC 7");
-    unaInstruccion = string_duplicate("SET AX 10");
-    // unaInstruccion = string_duplicate("SET PC 10");
-    // unaInstruccion = string_duplicate("IO_GEN_SLEEP Generica 10");
-    // unaInstruccion = string_duplicate("EXIT");
-    return unaInstruccion;
+    if (recibir_operacion(conexion_cpu_memoria) == INSTRUCCION)
+    {
+        char *instruccion_string = recibir_string(conexion_cpu_memoria);
+        log_info(logger_propio, "String recibido de memoria: %s", instruccion_string);
+        return instruccion_string;
+    }
+    else
+    {
+        log_info(logger_propio, "Codigo de operacion al recibir instruccion, incorrecto");
+        return NULL;
+    }
 }
+
+// char *recibir_instruccion_string_memoria() // Para prueba
+// {
+//     char *unaInstruccion = string_new();
+//     // unaInstruccion = string_duplicate("JNZ PC 7");
+//     // unaInstruccion = string_duplicate("SET AX 10");
+//     // unaInstruccion = string_duplicate("SET PC 10");
+//     // unaInstruccion = string_duplicate("IO_GEN_SLEEP Generica 10");
+//     // unaInstruccion = string_duplicate("EXIT");
+//     return unaInstruccion;
+// }
 
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
 {
