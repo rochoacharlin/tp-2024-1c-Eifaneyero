@@ -21,8 +21,8 @@ void solicitar_marco_memoria(uint32_t PID, int pagina)
 {
     t_paquete *paquete = crear_paquete(SOLICITUD_MARCO);
 
-    agregar_a_paquete(PID);
-    agregar_a_paquete(pagina);
+    agregar_a_paquete_uint32(paquete, PID);
+    agregar_a_paquete(paquete, &pagina, sizeof(int));
 
     enviar_paquete(paquete, conexion_cpu_memoria);
     eliminar_paquete(paquete);
