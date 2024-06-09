@@ -80,6 +80,6 @@ void agregar_a_paquete_string(t_paquete *paquete, char *data);
 int recibir_operacion(int socketCliente);
 void *recibir_buffer(int socket, int *size);
 t_list *recibir_paquete(int socket_cliente);
-char *recibir_mensaje(int socket_cliente);
+char *recibir_string(int socket_cliente);
 
 #endif /* SERIALIZACION_H */
