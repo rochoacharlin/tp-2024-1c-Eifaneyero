@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/string.h>
@@ -15,6 +16,7 @@
 #include "configuraciones.h"
 // #include "conexiones/conexiones.h" //Para usar conexiones globales
 #include "interface_cpu.h"
+#include "mmu/mmu.h"
 
 // ID instruccion
 
@@ -26,7 +28,10 @@ typedef struct
     char *param3;
     char *param4;
     char *param5;
+    t_list *direcciones_fisicas;
 } t_instruccion;
+
+extern t_TLB *tlb;
 
 // Version 2.0: Posiblemente quedaba mejor
 // typedef struct {
@@ -39,8 +44,8 @@ typedef struct
 // -------------------- CICLO DE INSTRUCCION -------------------- //
 
 void ciclo_de_instruccion(t_contexto *contexto);
-t_instruccion *fetch();
-void decode(t_instruccion *instruccion);
+char *fetch();
+t_instruccion *decode(char *instruccion);
 void execute(t_instruccion *instruccion);
 void check_interrupt(t_instruccion *instruccion);
 
@@ -63,6 +68,10 @@ t_id string_id_to_enum_id(char *id_string);
 // Liberar memoria dinámica (podría ser más bella si params[])
 void destruir_instruccion(t_instruccion *instruccion);
 
+// ---------- DECODE ---------- //
+
+uint8_t tamanio_de_registro(char *registro);
+
 // ---------- OTRAS ---------- //
 
 bool instruccion_bloqueante(t_id id_instruccion);
@@ -74,6 +83,8 @@ void sum(char *nombre_destino, char *nombre_origen);
 void sub(char *nombre_destino, char *nombre_origen);
 void jnz(char *nombre_registro, char *nro_instruccion);
 void io_gen_sleep(char *nombre, char *unidades);
+void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);
+void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);
 void exit_inst();
 
 // -------------------- MANEJO DE CONTEXTO -------------------- //

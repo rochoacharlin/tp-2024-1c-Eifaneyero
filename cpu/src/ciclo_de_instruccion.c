@@ -7,6 +7,23 @@ bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
 t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto?
 
+void destruir_instruccion(t_instruccion *instruccion)
+{
+    if (instruccion->param1 != NULL)
+        free(instruccion->param1);
+    if (instruccion->param2 != NULL)
+        free(instruccion->param2);
+    if (instruccion->param3 != NULL)
+        free(instruccion->param3);
+    if (instruccion->param4 != NULL)
+        free(instruccion->param4);
+    if (instruccion->param5 != NULL)
+        free(instruccion->param5);
+
+    list_destroy_and_destroy_elements(instruccion->direcciones_fisicas, free);
+    free(instruccion);
+}
+
 void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
 {
     contexto = contexto_a_ejecutar;
@@ -15,34 +32,34 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
 
     while (continua_ejecucion)
     {
-        t_instruccion *instruccion = fetch();
-        decode(instruccion); // No hace nada, por ahora
+        char *instruccion_leida = fetch();
+        t_instruccion *instruccion = decode(instruccion_leida);
+
+        free(instruccion_leida);
+
         execute(instruccion);
         check_interrupt(instruccion);
+
         //----- BORRAR ----//
         devolver_contexto(DESALOJO_EXIT_SUCCESS, NULL); // TODO F : Agrego para test
         log_info(logger_propio, "Contexto devuelto al kernel");
         //----- BORRAR ----//
+
         destruir_instruccion(instruccion);
     }
 }
 
 // -------------------- FETCH -------------------- //
 
-t_instruccion *fetch()
+char *fetch()
 {
-    t_instruccion *instruccion_recibida = malloc(sizeof(t_instruccion));
     uint32_t desplazamiento = obtener_valor_registro(contexto->registros_cpu, "PC"); // TODO:
-
     solicitar_lectura_de_instruccion(desplazamiento);
-
     char *instruccion_string = recibir_instruccion_string_memoria();
 
-    instruccion_recibida = convertir_string_a_instruccion(instruccion_string);
-
-    free(instruccion_string);
     loggear_fetch_instrucccion(contexto->PID, obtener_valor_registro(contexto->registros_cpu, "PC"));
-    return instruccion_recibida;
+
+    return instruccion_string;
 }
 
 // char *recibir_instruccion_string_memoria() // TODO F
@@ -173,9 +190,78 @@ t_id string_id_to_enum_id(char *id_string)
 
 // -------------------- DECODE -------------------- //
 
-void decode(t_instruccion *instruccion)
+t_instruccion *decode(char *instruccion_leida)
 {
-    1;
+    t_instruccion *instruccion = malloc(sizeof(t_instruccion));
+    instruccion->direcciones_fisicas = list_create();
+    instruccion = convertir_string_a_instruccion(instruccion_leida);
+
+    // traducir direcciones lógicas si corresponde
+    uint32_t direccion_logica = 0;
+    int tamanio_a_operar = 0;
+
+    switch (instruccion->id)
+    {
+    case IO_STDIN_READ:
+    case IO_STDOUT_WRITE:
+        direccion_logica = obtener_valor_registro(contexto->registros_cpu, instruccion->param2);
+        tamanio_a_operar = obtener_valor_registro(contexto->registros_cpu, instruccion->param3);
+        break;
+
+    case MOV_IN:
+        direccion_logica = obtener_valor_registro(contexto->registros_cpu, instruccion->param2);
+        tamanio_a_operar = tamanio_de_registro(instruccion->param1);
+        break;
+
+    case MOV_OUT:
+        direccion_logica = obtener_valor_registro(contexto->registros_cpu, instruccion->param1);
+        tamanio_a_operar = tamanio_de_registro(instruccion->param2);
+        break;
+
+    default:
+        break;
+    }
+
+    if (tamanio_a_operar < 0)
+    {
+        int pagina, desplazamiento, direccion_fisica = 0;
+        pagina = floor(direccion_logica / tamanio_pagina);
+        desplazamiento = direccion_logica - pagina * tamanio_pagina;
+        direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
+        list_add(instruccion->direcciones_fisicas, &direccion_fisica);
+        int bytes_disponibles_en_marco = tamanio_pagina - desplazamiento;
+
+        if (bytes_disponibles_en_marco < tamanio_a_operar)
+        {
+            direccion_logica += bytes_disponibles_en_marco;
+            tamanio_a_operar -= bytes_disponibles_en_marco;
+            int cantidad_pags_necesarias = (tamanio_a_operar + tamanio_pagina - 1) / tamanio_pagina;
+
+            for (int i = 0; i < cantidad_pags_necesarias; i++)
+            {
+                direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
+                list_add(instruccion->direcciones_fisicas, &direccion_fisica);
+                direccion_logica += tamanio_pagina;
+            }
+        }
+    }
+
+    return instruccion;
+}
+
+uint8_t tamanio_de_registro(char *registro)
+{
+    if (strlen(registro) == 3 || !strcmp(registro, "SI") || !strcmp(registro, "DI") || !strcmp(registro, "PC")) // caso registros de 4 bytes
+    {
+        return 4;
+    }
+
+    else if (strlen(registro) == 2) // caso registros de 1 bytes
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 // -------------------- EXECUTE -------------------- //
@@ -206,7 +292,17 @@ void execute(t_instruccion *instruccion)
 
     case IO_GEN_SLEEP:
         io_gen_sleep(instruccion->param1, instruccion->param2);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SLEEP - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_GEN_SLEEP - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
+        break;
+
+    case IO_STDIN_READ:
+        io_stdin_read(instruccion->param1, instruccion->direcciones_fisicas, instruccion->param3);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_STDIN_READ - <%s %s %s> ", contexto->PID, instruccion->param1, instruccion->param2, instruccion->param3);
+        break;
+
+    case IO_STDOUT_WRITE:
+        io_stdout_write(instruccion->param1, instruccion->direcciones_fisicas, instruccion->param3);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_STDOUT_WRITE - <%s %s %s> ", contexto->PID, instruccion->param1, instruccion->param2, instruccion->param3);
         break;
 
     case EXIT:
@@ -307,10 +403,34 @@ void jnz(char *nombre_registro, char *nro_instruccion)
 void io_gen_sleep(char *nombre, char *unidades)
 {
     t_list *param = list_create();
-    list_add(param, string_itoa(IO_GEN_SLEEP));
     list_add(param, nombre);
+    list_add(param, string_itoa(IO_GEN_SLEEP));
     list_add(param, unidades);
     devolver_contexto(DESALOJO_IO, param);
+}
+
+void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio)
+{
+    t_list *param = list_create();
+    list_add(param, nombre);
+    list_add(param, string_itoa(IO_STDIN_READ));
+    list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
+    for (int i = 0; i < list_size(direcciones_fisicas); i++)
+        list_add(param, list_get(direcciones_fisicas, i));
+
+    devolver_contexto(DESALOJO_IO_GEN_SLEEP, param);
+}
+
+void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio)
+{
+    t_list *param = list_create();
+    list_add(param, nombre);
+    list_add(param, string_itoa(IO_STDOUT_WRITE));
+    list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
+    for (int i = 0; i < list_size(direcciones_fisicas); i++)
+        list_add(param, list_get(direcciones_fisicas, i));
+
+    devolver_contexto(DESALOJO_IO_GEN_SLEEP, param);
 }
 
 void exit_inst()
