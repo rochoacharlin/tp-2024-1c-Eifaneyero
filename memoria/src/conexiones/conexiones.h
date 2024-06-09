@@ -8,6 +8,8 @@
 #include <utils/funcionalidades_basicas.h>
 #include <utils/comunicacion/comunicacion.h>
 #include <utils/estructuras_compartidas/instrucciones.h>
+#include <configuraciones.h>
+#include <lectura/lectura.h>
 
 extern t_log *logger_propio;
 extern int server_fd;
@@ -17,5 +19,7 @@ void esperar_a(char *tipo, int *socket, int server);
 void iniciar_conexiones();
 
 void atender_cpu();
+
+void iniciar_servidor_memoria();
 
 #endif

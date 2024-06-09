@@ -1,5 +1,8 @@
 #include "conexiones.h"
 
+int server_fd;
+int sockets[3];
+
 void atender_cpu()
 {
     while (1)
@@ -17,7 +20,7 @@ void atender_cpu()
             t_solicitud_de_instruccion *solicitud = crear_solicitud_de_instruccion();
 
             valores_paquete = recibir_paquete(sockets[0]);
-            generar_solicitud_de_instruccion(solicitud, valores_solicitud);
+            generar_solicitud_de_instruccion(solicitud, valores_paquete);
 
             int pc = solicitud->desplazamiento;
             t_instruccion_cadena *instruccion = leer_instruccion(pc);
@@ -41,7 +44,7 @@ void atender_cpu()
 
         list_destroy(valores_paquete);
 
-        usleep(obtener_configuracion("RETARDO_RESPUESTA"));
+        usleep(obtener_retardo_respuesta());
     }
 }
 
@@ -68,6 +71,6 @@ void iniciar_conexiones()
 
 void iniciar_servidor_memoria()
 {
-    int server_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha());
+    server_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha());
     log_info(logger_propio, "Memoria lista para recibir clientes");
 }
