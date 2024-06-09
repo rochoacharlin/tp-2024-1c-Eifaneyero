@@ -183,8 +183,8 @@ void atender_cpu(int socket_cliente)
             break;
 
         // recibo el numero de pagina del proceso buscado de cpu
-        case ACCESO_TABLA_PAGINAS:
-
+        case SOLICITUD_MARCO:
+            atender_solicitud_marco();
             break;
 
         default:
@@ -198,4 +198,36 @@ void atender_cpu(int socket_cliente)
 void atender_io(int socket_cliente)
 {
     1;
+}
+
+void enviar_marco(int marco)
+{
+    t_paquete *paquete = crear_paquete(SOLICITUD_MARCO);
+    agregar_a_paquete(paquete, &marco, sizeof(int));
+    enviar_paquete(paquete, sockets[0]);
+    eliminar_paquete(paquete);
+}
+
+void recibir_solicitud_marco(uint32_t *PID, int *pagina)
+{
+    t_list *valores_paquete = recibir_paquete(sockets[0]);
+    *PID = *(uint32_t *)list_get(valores_paquete, 0);
+    *pagina = *(int *)list_get(valores_paquete, 1);
+    list_destroy_and_destroy_elements(valores_paquete, free);
+}
+
+int buscar_marco(uint32_t PID, int pagina)
+{
+    t_list *tp_de_proceso = dictionary_get(indice_tablas, string_itoa(PID));
+    int marco = *(int *)list_get(tp_de_proceso, pagina);
+    return marco;
+}
+
+void atender_solicitud_marco()
+{
+    uint32_t PID;
+    int pagina;
+    recibir_solicitud_marco(&PID, &pagina);
+    int marco = *(int *)list_get(dictionary_get(indice_tablas, string_itoa(PID)), pagina);
+    enviar_marco(marco);
 }

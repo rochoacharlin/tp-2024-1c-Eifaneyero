@@ -15,6 +15,7 @@
 #include <utils/estructuras_compartidas/instrucciones.h>
 #include <configuraciones.h>
 #include <lectura/lectura.h>
+#include "gestion_memoria.h"
 
 extern t_log *logger_propio;
 extern int server_fd;
@@ -31,5 +32,10 @@ void iniciar_conexiones();
 void atender_kernel(int socket_cliente);
 void atender_cpu(int socket_cliente);
 void atender_io(int socket_cliente);
+
+void enviar_marco(int marco);
+void recibir_solicitud_marco(uint32_t *PID, int *pagina);
+int buscar_marco(uint32_t PID, int pagina);
+void atender_solicitud_marco();
 
 #endif
