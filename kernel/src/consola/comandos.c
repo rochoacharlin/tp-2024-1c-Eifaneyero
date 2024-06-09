@@ -49,9 +49,7 @@ void finalizar_proceso(char *PID)
     if (pcb == NULL)
         log_error(logger_propio, "No existe un PCB con ese PID.");
     else
-    {
         enviar_interrupcion("EXIT");
-    }
 }
 
 void detener_planificacion(void)

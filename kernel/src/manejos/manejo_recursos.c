@@ -57,6 +57,11 @@ void wait_recurso(char *recurso, t_pcb *pcb)
 
 void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
 {
+    bool condicion_liberar_recurso(void *elemento)
+    {
+        return strcmp(recurso, (char *)elemento) == 0;
+    }
+
     if (existe_recurso(recurso))
     {
         int cantidad_instancias_recurso = ++instancias_recursos[posicion_recurso(recurso)];
@@ -78,7 +83,8 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
         }
         else
         {
-            // TODO: Eliminar una de las apariciones o la aparicion del recurso en la lista de recursos asignados del PCB
+            // VERIFICAR: Funciona esto?
+            list_remove_by_condition(pcb->recursos_asignados, condicion_liberar_recurso);
         }
     }
     else
