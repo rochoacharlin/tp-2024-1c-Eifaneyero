@@ -6,6 +6,7 @@
 #include <string.h>
 #include <utils/funcionalidades_basicas.h>
 #include <commons/collections/list.h>
+#include <configuraciones.h>
 
 extern int tamanio_pagina;
 
