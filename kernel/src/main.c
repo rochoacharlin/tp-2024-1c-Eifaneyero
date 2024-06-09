@@ -74,7 +74,7 @@ void chicken_test()
         log_info(logger_propio, "AX: %d", obtener_valor_registro(myBigContext->registros_cpu, "AX"));
         destruir_contexto(myBigContext);
     }
-    else if (motivo_desalojo == DESALOJO_IO_GEN_SLEEP)
+    else if (motivo_desalojo == DESALOJO_IO)
     { // no hago el recibir contexto porque me deja los parámetros extra afuera... TODO lograr eso en una función o varias
         t_contexto *contexto = iniciar_contexto();
 

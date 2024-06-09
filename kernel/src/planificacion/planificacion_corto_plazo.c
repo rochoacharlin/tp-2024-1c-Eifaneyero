@@ -86,18 +86,18 @@ void encolar_pcb_segun_algoritmo(t_pcb *pcb, int rafaga_cpu)
 void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
-    t_contexto *contexto = recibir_contexto(conexion_kernel_cpu_dispatch);
-    rafaga_cpu_ejecutada = contexto->rafaga_cpu_ejecutada;
+    t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
+    t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
     actualizar_pcb(pcb, contexto);
     // printf("%d, %d\n", motivo_desalojo, obtener_valor_registro(pcb->registros_cpu, "AX"));
     // pcb_en_EXEC = NULL;
-    // que pasa con el pcb_en_EXEC ??? quien lo elimina? quien lo pasa a READY? Supongo que es aca
 
     switch (motivo_desalojo) // ACTUALIZAR EL ESTADO DEL PCB Y TENER EN CUENTA QUE NO LO SACA DE EXEC HASTA QUE TENGA OTRO PARA PASAR A EXEC.
     {
-    case DESALOJO_IO_GEN_SLEEP:
-        // enviar_gen_sleep((char *)list_get(paquete, 2), (int)list_get(paquete, 3));
-        // si sale bien y no hay errores debe cambiar el estado del proceso a BLOCKED
+    case DESALOJO_IO:
+        t_list *parametros = obtener_parametros_de_paquete_desalojo(paquete);
+        // enviar_a_entrada_salida(parametros);
+
         break;
 
     case DESALOJO_EXIT_SUCCESS:
@@ -168,4 +168,38 @@ void enviar_interrupcion(char *motivo) // considerar meterlo en otro archivo si 
     agregar_a_paquete_string(paquete, motivo);
     enviar_paquete(paquete, conexion_kernel_cpu_interrupt);
     eliminar_paquete(paquete);
+}
+
+t_contexto *obtener_contexto_de_paquete_desalojo(t_list *paquete)
+{
+    t_contexto *contexto = iniciar_contexto();
+
+    memcpy(&(contexto->PID), (uint32_t *)list_get(paquete, 0), sizeof(uint32_t));
+    dictionary_put(contexto->registros_cpu, "AX", memcpy(malloc(sizeof(uint8_t)), list_get(paquete, 1), sizeof(uint8_t)));
+    dictionary_put(contexto->registros_cpu, "EAX", memcpy(malloc(sizeof(uint32_t)), list_get(paquete, 2), sizeof(uint32_t)));
+    dictionary_put(contexto->registros_cpu, "BX", memcpy(malloc(sizeof(uint8_t)), list_get(paquete, 3), sizeof(uint8_t)));
+    dictionary_put(contexto->registros_cpu, "EBX", memcpy(malloc(sizeof(uint32_t)), list_get(paquete, 4), sizeof(uint32_t)));
+    dictionary_put(contexto->registros_cpu, "CX", memcpy(malloc(sizeof(uint8_t)), list_get(paquete, 5), sizeof(uint8_t)));
+    dictionary_put(contexto->registros_cpu, "ECX", memcpy(malloc(sizeof(uint32_t)), list_get(paquete, 6), sizeof(uint32_t)));
+    dictionary_put(contexto->registros_cpu, "DX", memcpy(malloc(sizeof(uint8_t)), list_get(paquete, 7), sizeof(uint8_t)));
+    dictionary_put(contexto->registros_cpu, "EDX", memcpy(malloc(sizeof(uint32_t)), list_get(paquete, 8), sizeof(uint32_t)));
+    dictionary_put(contexto->registros_cpu, "PC", memcpy(malloc(sizeof(uint32_t)), list_get(paquete, 9), sizeof(uint32_t)));
+    dictionary_put(contexto->registros_cpu, "SI", memcpy(malloc(sizeof(uint32_t)), list_get(paquete, 10), sizeof(uint32_t)));
+    dictionary_put(contexto->registros_cpu, "DI", memcpy(malloc(sizeof(uint32_t)), list_get(paquete, 11), sizeof(uint32_t)));
+
+    return contexto;
+}
+
+t_list *obtener_parametros_de_paquete_desalojo(t_list *paquete)
+{
+    t_list *parametros = list_create();
+
+    for (int i = 12; i > list_size(paquete); i++)
+    {
+        list_add(parametros, list_get(paquete, i));
+    }
+
+    list_destroy_and_destroy_elements(paquete, free);
+
+    return parametros;
 }

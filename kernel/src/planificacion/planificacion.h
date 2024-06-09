@@ -71,6 +71,8 @@ t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
 t_pcb *proximo_a_ejecutar_segun_VRR(void);
 void esperar_contexto_y_actualizar_pcb(t_pcb *pcb);
 void encolar_pcb_segun_algoritmo(t_pcb *pcb, int rafaga_cpu);
+t_contexto *obtener_contexto_de_paquete_desalojo(t_list *paquete);
+t_list *obtener_parametros_de_paquete_desalojo(t_list *paquete);
 
 // relacionado con la CPU
 void procesar_pcb_segun_algoritmo(t_pcb *pcb);
