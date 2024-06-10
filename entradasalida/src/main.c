@@ -88,6 +88,7 @@ op_code atender_gen(int cod_op, t_list *parametros)
 
     if (cod_op == IO_GEN_SLEEP)
     {
+        // creo que el primer parametro de la lista no es un PID cuando se manda en el kernel, habria que verificar eso
         loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
 
         int unidades_de_trabajo = atoi((char *)list_get(parametros, 1));
@@ -115,7 +116,25 @@ uint32_t calcular_tiempo_de_espera(int unidades_de_trabajo)
 
 op_code atender_stdin(int cod_op, t_list *parametros)
 {
-    return 1; // TODO
+    op_code respuesta = OK;
+
+    if (cod_op == IO_STDIN_READ)
+    {
+        // creo que el primer parametro de la lista no es un PID cuando se manda en el kernel, habria que verificar eso
+        loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
+
+        // esperar que el alumno ingrese un texto por teclado
+        char lectura[(int)list_get(parametros, 3)];
+        scanf("%s", lectura);
+        // COMPLETAR: guardar en la memoria la lectura en la direccion logica que me pasan en los parametros
+        // VERIFICAR: que en esos indices se encuentran los parametros que espero verdaderamente
+    }
+    else
+    {
+        respuesta = OPERACION_INVALIDA;
+    }
+
+    return respuesta;
 }
 
 op_code atender_stdout(int cod_op, t_list *parametros)
