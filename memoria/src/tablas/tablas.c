@@ -39,7 +39,7 @@ t_list *obtener_tp_de_proceso(uint32_t PID)
 void agregar_pagina(t_list *tp)
 {
     int nuevo_marco = obtener_marco_libre();
-    // marcar_como_ocupado(nuevo_marco);
+    marcar_como_ocupado(nuevo_marco);
     list_add(tp, &nuevo_marco);
 }
 

@@ -14,7 +14,6 @@
 #include <utils/comunicacion/comunicacion.h>
 #include <utils/estructuras_compartidas/instrucciones.h>
 #include <configuraciones.h>
-#include <lectura/lectura.h>
 #include "gestion_memoria.h"
 
 extern t_log *logger_propio;
@@ -39,11 +38,6 @@ void atender_solicitud_marco();
 
 void recibir_solicitud_resize(uint32_t *PID, uint32_t *tamanio_proceso);
 void atender_resize();
-// TODO pendiente pasar estas funciones a algún otro archivo que se encargue de manejar el bitmap de marcos libres
-void marcar_como_libre(int marco);
-int obtener_marco_libre();
-int cantidad_marcos_libres();
-//------------------
 op_code resize(uint32_t PID, uint32_t tamanio_proceso);
 
 #endif

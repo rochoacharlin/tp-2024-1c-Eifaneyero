@@ -237,12 +237,6 @@ void atender_resize()
     enviar_cod_op(respuesta, sockets[0]);
 }
 
-void marcar_como_libre(int marco) {} // TODO
-
-int cantidad_marcos_libres() { return 0; } // TODO
-
-int obtener_marco_libre() { return 0; } // TODO
-
 op_code resize(uint32_t PID, uint32_t tamanio_proceso)
 {
     t_list *tp_de_proceso = obtener_tp_de_proceso(PID);

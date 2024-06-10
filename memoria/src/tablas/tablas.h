@@ -7,6 +7,7 @@
 #include <utils/funcionalidades_basicas.h>
 #include <commons/collections/list.h>
 #include <configuraciones.h>
+#include "marcos_libres.h"
 
 extern int tamanio_pagina;
 extern t_dictionary *indice_tablas;
