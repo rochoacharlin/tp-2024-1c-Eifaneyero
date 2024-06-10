@@ -276,13 +276,13 @@ void execute(t_instruccion *instruccion)
         break;
 
     case MOV_IN:
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_IN - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
         mov_in(instruccion->param1, instruccion->param2);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_IN - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
         break;
 
     case MOV_OUT:
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_IN - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
         mov_out(instruccion->param1, instruccion->param2);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_OUT - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
         break;
 
     case EXIT:
