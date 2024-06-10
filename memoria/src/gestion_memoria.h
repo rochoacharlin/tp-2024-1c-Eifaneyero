@@ -4,6 +4,7 @@
 #include <configuraciones.h>
 #include "lectura/lectura.h"
 #include "tablas/tablas.h"
+#include <pthread.h>
 
 extern void *espacio_usuario;
 extern t_dictionary *indice_tablas;

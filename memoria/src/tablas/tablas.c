@@ -9,7 +9,7 @@ t_dictionary *crear_indice_de_tablas()
     return diccionario;
 }
 
-void destruir_tabla_de_paginas(t_list *tp)
+void destruir_tabla_de_paginas(void *tp)
 {
     list_destroy_and_destroy_elements(tp, free);
 }

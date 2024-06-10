@@ -16,7 +16,7 @@ t_dictionary *crear_indice_de_tablas();
 void agregar_proceso_al_indice(uint32_t PID);
 void quitar_proceso_del_indice(uint32_t PID);
 t_list *obtener_tp_de_proceso(uint32_t PID); // TODO: facu fijate si te gusta el nombre ahora. Trabajo Práctico?
-void destruir_tabla_de_paginas(t_list *tp);
+void destruir_tabla_de_paginas(void *tp);
 void destruir_indice_de_tablas();
 
 // TABLA DE PÁGINAS -------------------------------

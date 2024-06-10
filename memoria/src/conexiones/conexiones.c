@@ -65,7 +65,9 @@ void iniciar_conexiones()
 {
     iniciar_servidor_memoria();
 
-    sockets = {-1, -1, -1};
+    sockets[0] = -1;
+    sockets[1] = -1;
+    sockets[2] = -1;
 
     while (sockets[0] == -1 || sockets[1] == -1 || sockets[2] == -1)
     {
