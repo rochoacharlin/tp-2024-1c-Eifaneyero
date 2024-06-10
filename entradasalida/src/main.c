@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     // conectar_a
     // usleep(1000 * 100);
     // int conexion_memoria = conectar_a("MEMORIA", logger_propio, 5);
+    // enviar_cod_op(CONEXION_IO, conexion_kernel_memoria);
 
     // conectar al kernel y presentarse
     int conexion = crear_conexion(logger_propio, obtener_ip_kernel(), obtener_puerto_kernel());
