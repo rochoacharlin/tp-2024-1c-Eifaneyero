@@ -275,10 +275,21 @@ void execute(t_instruccion *instruccion)
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_STDOUT_WRITE - <%s %s %s> ", contexto->PID, instruccion->param1, instruccion->param2, instruccion->param3);
         break;
 
+    case MOV_IN:
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_IN - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
+        mov_in(instruccion->param1, instruccion->param2);
+        break;
+
+    case MOV_OUT:
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_IN - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
+        mov_out(instruccion->param1, instruccion->param2);
+        break;
+
     case EXIT:
         exit_inst();
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: EXIT", contexto->PID);
         break;
+
     default:
         break;
     }
@@ -401,6 +412,56 @@ void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_t
         list_add(param, list_get(direcciones_fisicas, i));
 
     devolver_contexto(DESALOJO_IO, param);
+}
+
+void mov_in(char *registro_datos_destino, char *registro_con_direccion_logica)
+{
+    // Ro, como defino el tipo de dato de direccion lógica? 8 o 32? Me explicassss? Creo que tengo ese problema en toda la funcion.
+    uint32_t direccion_logica = obtener_valor_registro(contexto->registros_cpu, registro_con_direccion_logica);
+    int direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
+
+    t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
+    agregar_a_paquete_uint32(paquete_direccion, direccion_fisica);
+    enviar_paquete(paquete_direccion, conexion_cpu_memoria);
+    eliminar_paquete(paquete_direccion);
+
+    if (recibir_operacion(conexion_cpu_memoria) == OK)
+    {
+        t_list *paquete_valor = recibir_paquete(conexion_cpu_memoria);
+        uint32_t valor = *(uint32_t *)list_get(paquete_valor, 0);
+
+        set(registro_datos_destino, string_itoa(valor));
+        list_destroy_and_destroy_elements(paquete_valor, free);
+    }
+    else
+    {
+        log_info(logger_propio, "Conflicto en mov_in"); // Temp
+    }
+}
+
+void mov_out(char *registro_con_direccion_destino, char *registro_datos)
+{
+    // Ro, como defino el tipo de dato de direccion lógica? 8 o 32? Me explicassss? Creo que tengo ese problema en toda la funcion.
+    uint32_t valor = obtener_valor_registro(contexto->registros_cpu, registro_datos);
+    uint32_t direccion_logica = obtener_valor_registro(contexto->registros_cpu, registro_con_direccion_destino);
+    int direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
+
+    // Envio PID, dir fisica y valor a escribir.
+    t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
+    agregar_a_paquete_uint32(paquete_direccion, contexto->PID);
+    agregar_a_paquete_uint32(paquete_direccion, direccion_fisica);
+    agregar_a_paquete_uint32(paquete_direccion, valor);
+    enviar_paquete(paquete_direccion, conexion_cpu_memoria);
+    eliminar_paquete(paquete_direccion);
+
+    if (recibir_operacion(conexion_cpu_memoria) == OK)
+    {
+        log_info(logger_propio, "Mov_out ejecutado correctamente");
+    }
+    else
+    {
+        log_info(logger_propio, "Conflicto en mov_out"); // Temp
+    }
 }
 
 void exit_inst()

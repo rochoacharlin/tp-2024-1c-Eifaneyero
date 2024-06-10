@@ -85,6 +85,8 @@ void jnz(char *nombre_registro, char *nro_instruccion);
 void io_gen_sleep(char *nombre, char *unidades);
 void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);
 void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);
+void mov_in(char *registro_datos_destino, char *registro_con_direccion_logica);
+void mov_out(char *registro_con_direccion_destino, char *registro_datos);
 void exit_inst();
 
 // -------------------- MANEJO DE CONTEXTO -------------------- //
