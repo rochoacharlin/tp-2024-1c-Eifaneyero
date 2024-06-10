@@ -291,6 +291,11 @@ void execute(t_instruccion *instruccion)
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_OUT - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
         break;
 
+    case RESIZE:
+        resize(atoi(instruccion->param1));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: RESIZE - <%s> ", contexto->PID, instruccion->param1);
+        break;
+
     case EXIT:
         exit_inst();
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: EXIT", contexto->PID);
@@ -469,6 +474,23 @@ void mov_out(char *registro_con_direccion_destino, char *registro_datos)
     else
     {
         log_info(logger_propio, "Conflicto en mov_out"); // Temp
+    }
+}
+
+void resize(uint32_t tamanio)
+{
+    // solicita resize a memoria
+    t_paquete *paquete = crear_paquete(RESIZE_PROCESO);
+    agregar_a_paquete_uint32(paquete, contexto->PID);
+    agregar_a_paquete_uint32(paquete, tamanio);
+    enviar_paquete(paquete, conexion_cpu_memoria);
+    eliminar_paquete(paquete);
+
+    // lee respuesta de la memoria
+    int respuesta = recibir_operacion(conexion_cpu_memoria);
+    if (respuesta == OUT_OF_MEMORY)
+    {
+        devolver_contexto(DESALOJO_OUT_OF_MEMORY, NULL);
     }
 }
 
