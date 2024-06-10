@@ -124,13 +124,15 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         for (int i = 3; i < list_size(parametros); i++)
         {
             char lectura[tam];
-            scanf("Ingresar texto %d para STDIN: %s", i - 2, lectura);
+            scanf("Ingresar texto para STDIN: %s", lectura);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
             agregar_a_paquete_string(paquete, lectura);
-            int direccion_fisica = list_get(parametros, i);
-            agregar_a_paquete(paquete, direccion_fisica);
+            int *direccion_fisica = list_get(parametros, i);
+            agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
             enviar_paquete(paquete, conexion_memoria);
+
+            eliminar_paquete(paquete);
         }
     }
     else
@@ -154,12 +156,14 @@ op_code atender_stdout(int cod_op, t_list *parametros)
         for (int i = 3; i < list_size(parametros); i++)
         {
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
-            int direccion_fisica = list_get(parametros, i);
-            agregar_a_paquete(paquete, direccion_fisica);
+            int *direccion_fisica = list_get(parametros, i);
+            agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
             enviar_paquete(paquete, conexion_memoria);
 
-            void *valor_leido = recibir_buffer(conexion_memoria, tam);
+            char *valor_leido = recibir_buffer(conexion_memoria, &tam);
             log_info(logger_propio, "El valor %d leido de la memoria para STDOUT es: %s", i - 2, valor_leido);
+
+            eliminar_paquete(paquete);
         }
     }
     else
