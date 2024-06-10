@@ -6,10 +6,14 @@ t_dictionary *crear_indice_de_instrucciones()
     return diccionario;
 }
 
+void destruir_lista_instrucciones(void *tp)
+{
+    list_destroy_and_destroy_elements(tp, free);
+}
+
 void destruir_indice_de_instrucciones(t_dictionary *indice_de_instrucciones)
 {
-    // TODO F: Un free no libera las listas. Está bien destruir el indice así?
-    dictionary_destroy_and_destroy_elements(indice_de_instrucciones, free);
+    dictionary_destroy_and_destroy_elements(indice_de_instrucciones, destruir_lista_instrucciones);
 }
 
 void agregar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID, char *path)
