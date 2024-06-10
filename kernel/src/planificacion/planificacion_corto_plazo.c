@@ -128,7 +128,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
     {
     case DESALOJO_IO:
         t_list *parametros = obtener_parametros_de_paquete_desalojo(paquete);
-        // enviar_a_entrada_salida(parametros);
+        manejador_interfaz(pcb, parametros);
 
         break;
 

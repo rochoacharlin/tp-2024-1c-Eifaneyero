@@ -10,8 +10,6 @@ void *ejecutar_espera_interfaces(void) // ESTO SE RELACIONA CON LA FUNCION DE CO
     {
         int fd_cliente = esperar_cliente(logger_propio, servidor_kernel_fd);
         int op = recibir_operacion(fd_cliente);
-        char *nombre_interfaz, *tipo_interfaz;
-        // nombre_interfaz = recibir_string(fd_cliente);
         t_list *interfaz = recibir_paquete(fd_cliente);
         agregar_a_lista_io_global((char *)list_get(interfaz, 0), (char *)list_get(interfaz, 1), fd_cliente);
     }
@@ -24,60 +22,175 @@ void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
     strcpy(interfaz->nombre, nombre);
     strcpy(interfaz->tipo, tipo);
     interfaz->procesos_bloqueados = list_create();
+    pthread_mutex_init(&(interfaz->cola_bloqueados), NULL);
+    sem_init(&(interfaz->procesos_en_cola), 0, 0);
     list_add(interfaces, (void *)interfaz);
+
+    // creo hilo para atender cada interfaz se conecta
+    // atender_io(interfaz);
+    pthread_t hilo_interfaz;
+    if (pthread_create(&hilo_interfaz, NULL, atender_interfaz, (void *)interfaz) != 0)
+    {
+        perror("Error al crear el hilo");
+    }
+    pthread_detach(hilo_interfaz);
 }
 
-void manejador_interfaz(void *arg)
+void manejador_interfaz(t_pcb *pcb, t_list *parametros)
 {
-    // se hace el casteo de los parametros, pcb, y a_ejecutar
 
-    // pthreaad_mutex_lock(&semaforo_lista_io))
-    // POR AHORA SOLO IMPLENTA PARA IO_GENERIC
-    /*t_io_list *io = buscar_interfaz(interfaz_e); // que es interfaz_e?
+    char *nombre_interfaz = (char *)list_remove(parametros, 0);
+
+    char *tipo_de_operacion = (char *)list_get(parametros, 0);
+
+    t_io_list *io = buscar_interfaz(nombre_interfaz); // Verifico que se conecto
+
     if (io != NULL)
     {
-        if (strcmp(io->tipo, interfaz_s)) // que es interfaz_s?
+
+        if (puede_realizar_operacion(io, tipo_de_operacion)) // verifico que puede hacer el tipo de operación
         {
 
-            pthread_mutex_lock(&cola_pcb_bloqueados);
-            agregar_a_lista_bloqueados(pcb);
-            pthreas_mutex_unlock(&cola_pcb_bloqueados);
+            pthread_mutex_lock(&mutex_lista_BLOCKED);
+            // Agrego pcb a bloqueados ;
+            list_add(pcbs_en_BLOCKED, (void *)pcb);
+            // LOGGEO CAMBIO DE ESTADO DE EXEC A BLOCKED;
+            loggear_cambio_de_estado(pcb->PID, EXEC, BLOCKED);
+            // LOGGEO MOTIVO DE BLOQUEO
+            loggear_motivo_de_bloqueo(pcb->PID, nombre_interfaz);
+            pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
-            pthread_mutex_lock(&generic_cola_bloqueados);
-            agregar_a_cola_io(io->cola_pcb_bloqueados, pcb);
-            pthread_mutex_unlock(&generic_cola_bloqueados);
+            // Creo la estructura para guardar el pcb y los parametros
+            t_proceso_bloqueado *proceso_bloqueado = malloc_or_die(sizeof(t_proceso_bloqueado), "No se pudo asignar memoria a proceso_bloqueado");
+            proceso_bloqueado->parametros = parametros;
+            proceso_bloqueado->pcb = pcb;
 
-            sem_post(&semaforo_hay_procesos_en_generic);
+            pthread_mutex_lock(&io->cola_bloqueados);
+            // agrego a la lista de bloqueados de la io
+            list_add(io->procesos_bloqueados, (void *)proceso_bloqueado);
+            pthread_mutex_unlock(&io->cola_bloqueados);
+
+            sem_post(&io->procesos_en_cola);
         }
-    }*/
+        else
+        {
+
+            enviar_proceso_a_exit(pcb);
+        }
+    }
+    enviar_proceso_a_exit(pcb);
 }
 
-void enviar_gen_sleep(char *nombre, int cantidad)
+bool puede_realizar_operacion(t_io_list *io, char *operacion)
 {
-    // TODO
-}
-
-void *ejecutar_io_generica(void)
-{
-    while (1)
+    if (strcmp(io->tipo, "IO_STDOUT") == 0)
     {
-        /*
-        sem_wait(&semaforo_hay_procesos_en_generic);
-        pthread_mut
-    return NULL; // creo que hay que retornar un pcb actualizado no un contextoener_proceso_de_cola()
-        pthread_mutex_unlock(&generic_cola_bloqueados);
-        armar_paquete_para_io();
-        enviar_paquete();
-        respuesta= esperar_respuesta_io();
-        if(respuesta=OK){
-
-            enviar_proceso_a_ready(pcb);
+        return strcmp(operaciones_stdout[0], operacion) == 0;
+    }
+    else if (strcmp(io->tipo, "IO_STDIN") == 0)
+    {
+        return strcmp(operaciones_stdin[0], operacion) == 0;
+    }
+    else if (strcmp(io->tipo, "IO_GENERIC") == 0)
+    {
+        return strcmp(operaciones_generic[0], operacion) == 0;
+    }
+    else if (strcmp(io->tipo, "IO_FS") == 0)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            if (strcmp(operaciones_fs[i], operacion) == 0)
+            {
+                return true;
+            }
         }
-        */
+        return false;
+    }
+    else
+    {
+        return false;
     }
 }
 
-t_io_list *buscar_interfaz(int interfaz)
+void *atender_interfaz(void *interfaz)
 {
-    // TODO
+    t_io_list *io = (t_io_list *)interfaz;
+
+    while (1)
+    {
+        sem_wait(&io->procesos_en_cola);
+
+        pthread_mutex_lock(&io->cola_bloqueados);
+        t_proceso_bloqueado *process = list_remove(io->procesos_bloqueados, 0);
+        char *op_a_realizar = (char *)list_remove(process->parametros, 0);
+        int op_interfaz = itoa_string(op_a_realizar);
+        t_paquete *p_interfaz = crear_paquete(op_interfaz);
+        agregar_a_paquete(p_interfaz, (void *)process->pcb->PID, sizeof(int));
+        agregar_parametros_a_paquete(p_interfaz, process->parametros);
+        int estado_al_enviar = enviar_paquete_interfaz(p_interfaz, io->fd);
+        if (estado_al_enviar != -1)
+        {
+
+            int respuesta;
+            recv(io->fd, &respuesta, sizeof(int), MSG_WAITALL); // recibe resultado de realizar interfaz
+            if (respuesta != -1)
+            {
+                // podria ser redundante tener dos lista de bloqueados
+                // ver que hacer
+
+                /*
+                pthread_mutex_lock(&mutex_lista_BLOCKED);
+                int indice = buscar_indice_pcb(process->pcb->PID);
+                list_remove(pcbs_en_BLOCKED,indice);
+                pthread_mutex_lock(&mutex_lista_BLOCKED);
+                */
+
+                // agrego a ready el pcb;
+                pthread_mutex_lock(&mutex_lista_READY);
+                list_add(pcbs_en_READY, (void *)process->pcb);
+                pthread_mutex_unlock(&mutex_lista_READY);
+            }
+            // se podria hacer algo más si el resultado no es ok ???
+            // se deberia considerar
+        }
+        else
+        {
+            enviar_proceso_a_exit(process->pcb);
+            eliminar_process(process);
+            liberar_procesos_io(io->procesos_bloqueados);
+            eliminar_paquete(p_interfaz);
+        }
+
+        eliminar_process(process);
+        eliminar_paquete(p_interfaz);
+    }
+}
+
+void liberar_procesos_io(t_list *procesos_io)
+{
+
+    int size = list_size(procesos_io);
+    for (int i = 0; i <= size; i++)
+    {
+
+        t_proceso_bloqueado *process = list_remove(procesos_io, i);
+        enviar_proceso_a_exit(process->pcb);
+        eliminar_process(process);
+    }
+}
+void agregar_parametros_a_paquete(t_paquete *paquete, t_list *parametros, )
+{
+
+    for (int i = 0; i < list_size(parametros); i++)
+    {
+        char *param = list_get(parametros, i);
+        agregar_a_paquete(paquete, (void *)param, sizeof(param));
+    }
+}
+
+void eliminar_process(t_proceso_bloqueado *process)
+{
+
+    list_destroy_and_destroy_elements(process->parametros, free);
+    free(process);
 }
