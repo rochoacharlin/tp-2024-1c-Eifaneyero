@@ -1,7 +1,5 @@
 #include "tablas.h"
 
-int tamanio_pagina;
-
 // INDICE DE TABLA DE PAGINAS ---------------------
 t_dictionary *crear_indice_de_tablas()
 {
@@ -14,8 +12,9 @@ void destruir_indice_tablas()
     dictionary_destroy_and_destroy_elements(indice_tablas, free);
 }
 
-void agregar_proceso_al_indice(uint32_t PID, t_list *tabla_de_paginas)
+void agregar_proceso_al_indice(uint32_t PID)
 {
+    t_list *tabla_de_paginas = list_create();
     dictionary_put(indice_tablas, string_itoa(PID), tabla_de_paginas);
 }
 

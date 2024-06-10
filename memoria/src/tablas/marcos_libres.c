@@ -7,8 +7,11 @@ t_bitarray *crear_marcos_libres()
     cant_marcos_memoria = (obtener_tam_memoria() + obtener_tam_pagina() - 1) / obtener_tam_pagina();
     size_t bytes_necesarios = (cant_marcos_memoria + 8 - 1) / 8;
     void *espacio_bitarray = malloc(bytes_necesarios);
-    memset(espacio_bitarray, 1, bytes_necesarios);
-    return bitarray_create_with_mode(espacio_bitarray, bytes_necesarios, LSB_FIRST);
+    t_bitarray *marcos = bitarray_create_with_mode(espacio_bitarray, bytes_necesarios, LSB_FIRST);
+    for (int i = 0; i < cant_marcos_memoria; i++)
+        bitarray_set_bit(marcos, i);
+
+    return marcos;
 }
 
 void marcar_como_libre(int marco)

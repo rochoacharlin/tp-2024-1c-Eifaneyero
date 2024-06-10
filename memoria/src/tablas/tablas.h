@@ -9,12 +9,11 @@
 #include <configuraciones.h>
 #include "marcos_libres.h"
 
-extern int tamanio_pagina;
 extern t_dictionary *indice_tablas;
 
 // INDICE DE TABLA DE PAGINAS ---------------------
 t_dictionary *crear_indice_de_tablas();
-void agregar_proceso_al_indice(uint32_t PID, t_list *tabla_de_paginas);
+void agregar_proceso_al_indice(uint32_t PID);
 void quitar_proceso_del_indice(uint32_t PID);
 t_list *obtener_tp_de_proceso(uint32_t PID); // TODO: facu fijate si te gusta el nombre ahora
 void destruir_indice_de_tablas();

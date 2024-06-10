@@ -241,7 +241,7 @@ op_code resize(uint32_t PID, uint32_t tamanio_proceso)
 {
     t_list *tp_de_proceso = obtener_tp_de_proceso(PID);
     int cantidad_pags = list_size(tp_de_proceso);
-    int pags_solicitadas = (tamanio_proceso + tamanio_pagina - 1) / tamanio_pagina;
+    int pags_solicitadas = (tamanio_proceso + obtener_tam_pagina() - 1) / obtener_tam_pagina();
     op_code resultado = OK;
 
     if (pags_solicitadas < cantidad_pags)
