@@ -8,6 +8,8 @@ t_log *logger_obligatorio;
 t_log *logger_propio;
 t_config *config;
 
+void test_resize();
+
 int main(int argc, char *argv[])
 {
     logger_obligatorio = crear_logger("memoria_obligatorio");
