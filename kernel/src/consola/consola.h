@@ -11,6 +11,8 @@ extern sem_t planificacion_liberada;
 extern sem_t planificacion_pausada;
 extern sem_t sem_grado_multiprogramacion;
 
+extern int conexion_kernel_memoria;
+
 typedef struct t_comando
 {
     char *nombre;

@@ -33,8 +33,15 @@ void ejecutar_script(char *path)
 
 void iniciar_proceso(char *path)
 {
-    // COMPLETAR: Falta toda la parte de la memoria y filesystem.
+    // COMPLETAR: falta tener en cuenta el filesystem.
     t_pcb *pcb = crear_pcb();
+
+    t_paquete *paquete = crear_paquete(CREAR_PROCESO_KERNEL);
+    agregar_a_paquete_uint32(paquete, (uint32_t)atoi(pcb->PID));
+    agregar_a_paquete_string(paquete, path);
+    enviar_paquete(paquete, conexion_kernel_memoria);
+    eliminar_paquete(paquete);
+
     ingresar_pcb_a_NEW(pcb);
 }
 
@@ -49,7 +56,14 @@ void finalizar_proceso(char *PID)
     if (pcb == NULL)
         log_error(logger_propio, "No existe un PCB con ese PID.");
     else
+    {
+        t_paquete *paquete = crear_paquete(FINALIZAR_PROCESO_KERNEL);
+        agregar_a_paquete_uint32(paquete, (uint32_t)atoi(PID));
+        enviar_paquete(paquete, conexion_kernel_memoria);
+        eliminar_paquete(paquete);
+
         enviar_interrupcion("EXIT");
+    }
 }
 
 void detener_planificacion(void)
