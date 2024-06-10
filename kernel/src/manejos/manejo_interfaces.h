@@ -31,7 +31,7 @@ typedef struct
 
 typedef struct
 {
-    t_pcb pcb;
+    t_pcb *pcb;
     t_list *parametros;
 
 } t_proceso_bloqueado;
@@ -41,10 +41,10 @@ void *ejecutar_espera_interfaces(void);
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd);
 t_io_list *buscar_interfaz(char *interfaz);
 t_contexto *esperar_contexto(t_pcb *pcb); // hay que buscarle un mejor nombre a esto
-void manejador_interfaz(void *arg);
+void manejador_interfaz(t_pcb *pcb, t_list *parametros);
 void *ejecutar_io_generica(void);
 void *atender_interfaz(void *interfaz);
 void liberar_procesos_io(t_list *procesos_io);
-void eliminar_process(t_proceso_bloqueado *process);
+void eliminar_proceso(t_proceso_bloqueado *proceso);
 
 #endif
