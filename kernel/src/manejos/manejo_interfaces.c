@@ -146,8 +146,13 @@ void *atender_interfaz(void *interfaz)
                 */
 
                 // agrego a ready el pcb;
+
                 pthread_mutex_lock(&mutex_lista_READY);
                 list_add(pcbs_en_READY, (void *)process->pcb);
+
+                // AGREGO LOG DE CAMBIO DE ESTADO DE BLOCKED A READY
+                loggear_cambio_de_estado(process->pcb->PID, BLOCKED, READY);
+
                 pthread_mutex_unlock(&mutex_lista_READY);
             }
             // se podria hacer algo más si el resultado no es ok ???
