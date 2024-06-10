@@ -160,7 +160,6 @@ t_id string_id_to_enum_id(char *id_string)
 }
 
 // -------------------- DECODE -------------------- //
-
 t_instruccion *decode(char *instruccion_leida)
 {
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
@@ -194,24 +193,31 @@ t_instruccion *decode(char *instruccion_leida)
 
     if (tamanio_a_operar > 0)
     {
-        int pagina, desplazamiento, direccion_fisica = 0;
+        int pagina, desplazamiento, bytes_disponibles_en_marco, bytes_a_operar, direccion_fisica = 0;
+
         pagina = floor(direccion_logica / tamanio_pagina);
         desplazamiento = direccion_logica - pagina * tamanio_pagina;
         direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
+        bytes_disponibles_en_marco = tamanio_pagina - desplazamiento;
+        bytes_a_operar = tamanio_a_operar > bytes_disponibles_en_marco ? bytes_disponibles_en_marco : tamanio_a_operar;
         list_add(instruccion->direcciones_fisicas, &direccion_fisica);
-        int bytes_disponibles_en_marco = tamanio_pagina - desplazamiento;
+        list_add(instruccion->direcciones_fisicas, &bytes_a_operar);
 
         if (bytes_disponibles_en_marco < tamanio_a_operar)
         {
             direccion_logica += bytes_disponibles_en_marco;
             tamanio_a_operar -= bytes_disponibles_en_marco;
             int cantidad_pags_necesarias = (tamanio_a_operar + tamanio_pagina - 1) / tamanio_pagina;
+            int bytes_a_operar;
 
             for (int i = 0; i < cantidad_pags_necesarias; i++)
             {
                 direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
+                bytes_a_operar = tamanio_a_operar > tamanio_pagina ? tamanio_pagina : tamanio_a_operar;
                 list_add(instruccion->direcciones_fisicas, &direccion_fisica);
+                list_add(instruccion->direcciones_fisicas, &bytes_a_operar);
                 direccion_logica += tamanio_pagina;
+                tamanio_a_operar -= tamanio_pagina;
             }
         }
     }
@@ -397,7 +403,9 @@ void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tam
     list_add(param, string_itoa(IO_STDIN_READ));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
-        list_add(param, list_get(direcciones_fisicas, i));
+    {
+        list_add(param, string_itoa(*(int *)list_get(direcciones_fisicas, i)));
+    }
 
     devolver_contexto(DESALOJO_IO, param);
 }
@@ -409,7 +417,7 @@ void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_t
     list_add(param, string_itoa(IO_STDOUT_WRITE));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
-        list_add(param, list_get(direcciones_fisicas, i));
+        list_add(param, string_itoa(*(int *)list_get(direcciones_fisicas, i)));
 
     devolver_contexto(DESALOJO_IO, param);
 }
