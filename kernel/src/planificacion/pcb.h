@@ -27,6 +27,7 @@ typedef struct
     t_dictionary *registros_cpu;
     estado estado;
     t_list *recursos_asignados;
+    bool desencolado_de_aux_ready;
 } t_pcb;
 
 extern int32_t procesos_creados;

@@ -10,6 +10,7 @@ t_pcb *crear_pcb()
     pcb->registros_cpu = crear_registros_cpu();
     pcb->estado = NEW;
     pcb->recursos_asignados = list_create();
+    pcb->desencolado_de_aux_ready = false;
 
     return pcb;
 }

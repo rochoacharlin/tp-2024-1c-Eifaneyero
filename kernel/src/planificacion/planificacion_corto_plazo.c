@@ -50,21 +50,27 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
 {
     t_pcb *pcb;
     if (!list_is_empty(pcbs_en_aux_READY))
+    {
         pcb = desencolar_pcb(pcbs_en_aux_READY);
+        pcb->desencolado_de_aux_ready = true;
+    }
     else
+    {
         pcb = desencolar_pcb(pcbs_en_READY);
+        pcb->desencolado_de_aux_ready = false;
+    }
 
     return pcb;
 }
 
-void encolar_pcb_segun_algoritmo(t_pcb *pcb, int ms_en_ejecucion)
+void encolar_pcb_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
 {
-    int rafaga_restante = pcb->quantum - ms_en_ejecucion;
-    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "FIFO") == 0 || (strcmp(algoritmo, "VRR") == 0 && rafaga_restante == 0))
+    int tiempo_restante = pcb->quantum - tiempo_en_ejecucion;
+    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "FIFO") == 0 || (strcmp(algoritmo, "VRR") == 0 && tiempo_restante <= 0))
     {
         ingresar_pcb_a_READY(pcb);
     }
-    else if (strcmp(algoritmo, "VRR") == 0 && rafaga_restante > 0)
+    else if (strcmp(algoritmo, "VRR") == 0 && tiempo_restante > 0)
     {
         encolar_pcb(pcbs_en_aux_READY, pcb);
 
@@ -158,7 +164,7 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
-        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR(contexto), NULL))
+        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR(contexto, pcb), NULL))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
 
         pthread_join(&hilo_quantum);
@@ -187,13 +193,12 @@ void ejecutar_segun_RR(t_contexto *contexto)
     }
 }
 
-void ejecutar_segun_VRR(t_contexto *contexto)
+void ejecutar_segun_VRR(t_contexto *contexto, t_pcb *pcb)
 {
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     temp = temporal_create();
 
-    // creo que nunca va llegar a ser == al quantum se va a acercar
-    ms_en_ejecucion == obtener_quantum() ? usleep(obtener_quantum()) : usleep(obtener_quantum() - ms_en_ejecucion);
+    pcb->desencolado_de_aux_ready ? usleep(obtener_quantum() - ms_en_ejecucion) : usleep(obtener_quantum());
 
     if (!hubo_desalojo)
     {
