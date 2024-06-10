@@ -52,6 +52,17 @@ void enviar_paquete(t_paquete *paquete, int socket)
     free(a_enviar);
 }
 
+int enviar_paquete_interfaz(t_paquete *paquete, int conexion)
+{
+    int bytes = paquete->buffer->size + 2 * sizeof(int); // tamaño del stream + int con streamSize + opCode
+    void *a_enviar = serializar_paquete(paquete, bytes);
+
+    int sigue_la_conexion = send(socket, a_enviar, bytes, SIGPIPE);
+
+    free(a_enviar);
+    return sigue_la_conexion;
+}
+
 void enviar_cod_op(op_code codigo_de_operacion, int socket)
 {
     void *buffer = malloc_or_die(sizeof(int), "Error al reservar memoria para crear buffer de op_code");
