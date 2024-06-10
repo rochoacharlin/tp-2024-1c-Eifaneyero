@@ -160,14 +160,14 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
         if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_RR(contexto), NULL))
             log_error(logger_propio, "Error creando el hilo para el quantum en RR");
 
-        pthread_join(&hilo_quantum);
+        pthread_join(&hilo_quantum, NULL);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
         if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR(contexto, pcb), NULL))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
 
-        pthread_join(&hilo_quantum);
+        pthread_join(&hilo_quantum, NULL);
     }
     else
     {
