@@ -41,7 +41,8 @@ void conexion_dispatch_con_CPU(void)
 void conexion_memoria(void)
 {
     conexion_kernel_memoria = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
-    int32_t handshake = 1;
+    enviar_cod_op(CONEXION_KERNEL, conexion_kernel_memoria);
+    /* int32_t handshake = 1;
     if (handshake_cliente(logger_propio, conexion_kernel_cpu_interrupt, handshake) == 0)
-        log_error(logger_propio, "No se pudo conectar correctamente con la memoria");
+        log_error(logger_propio, "No se pudo conectar correctamente con la memoria"); */
 }
