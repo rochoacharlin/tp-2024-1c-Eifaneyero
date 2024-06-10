@@ -9,18 +9,14 @@ t_dictionary *crear_indice_de_tablas()
     return diccionario;
 }
 
+void destruir_tabla_de_paginas(t_list *tp)
+{
+    list_destroy_and_destroy_elements(tp, free);
+}
+
 void destruir_indice_tablas()
 {
-    // TODO F: Entiendo que un free no libera las listas. Está bien destruir el indice así?
-    dictionary_destroy_and_destroy_elements(indice_tablas, free);
-
-    // t_list* elementos = dictionary_elements(indice_tablas); What about this?
-    // for(int i = 0; i <= list_size(elementos) -1; i++){
-    //     t_list * tabla = (list*) list_get(elementos,i);
-    //     list_destroy_and_destroy_elements(tabla, free);
-    // }
-    // list_destroy(elementos);
-    // dictionary_destroy(indice_tablas);
+    dictionary_destroy_and_destroy_elements(indice_tablas, destruir_tabla_de_paginas);
 }
 
 void agregar_proceso_al_indice(uint32_t PID)
@@ -37,10 +33,7 @@ void quitar_proceso_del_indice(uint32_t PID)
     loggear_creacion_destruccion_tabla_de_paginas(PID, tp_size);
 
     int *tabla_de_paginas = dictionary_remove(indice_tablas, string_itoa(PID));
-    if (tabla_de_paginas != NULL)
-    {
-        free(tabla_de_paginas);
-    }
+    destruir_tabla_de_paginas(tabla_de_paginas);
 }
 
 t_list *obtener_tp_de_proceso(uint32_t PID)
