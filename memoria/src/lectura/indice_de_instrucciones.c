@@ -8,6 +8,7 @@ t_dictionary *crear_indice_de_instrucciones()
 
 void destruir_indice_de_instrucciones(t_dictionary *indice_de_instrucciones)
 {
+    // TODO F: Un free no libera las listas. Está bien destruir el indice así?
     dictionary_destroy_and_destroy_elements(indice_de_instrucciones, free);
 }
 
