@@ -7,14 +7,6 @@
 #include <commons/string.h>
 #include <commons/config.h>
 
-enum
-{
-    SERVIDOR,
-    CONEXION_CPU,
-    CONEXION_MEMORIA,
-    CONEXION_KERNEL
-};
-
 t_log *crear_logger(char *modulo);
 t_config *iniciar_config(t_log *logger, char *ruta_archivo);
 
