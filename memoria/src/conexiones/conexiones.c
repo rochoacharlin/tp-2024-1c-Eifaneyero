@@ -20,12 +20,12 @@ void iniciar_semaforo_para_peticiones(void)
         }
     }
 }
-// TODO: Definir correctamente y reubicar. Por si desean probar. Hallar proxima instrucciion a ejecutar
-char *obtener_instruccion_de_script(uint32_t PID, uint32_t PC)
+
+char *obtener_instruccion_de_indice(uint32_t PID, uint32_t PC)
 {
-    char *string = string_new();
-    string = string_duplicate("SET EAX 37");
-    return string;
+    t_list *instrucciones = (t_list *)dictionary_get(indice_de_instrucciones, string_itoa(PID));
+    char *instruccion = list_get(instrucciones, PC);
+    return instruccion;
 }
 
 void enviar_instruccion_a_cpu(int socket, char *instruccion)
@@ -150,7 +150,7 @@ void atender_cpu(int socket_cliente)
 
             log_info(logger_propio, "Semáforo cruzado en verde tras solicitud de instrucción");
 
-            char *instruccion = obtener_instruccion_de_script(PID, PC); // TODO: Obtengo instr cargada en t_dictionary *script_segun_PID
+            char *instruccion = obtener_instruccion_de_indice(PID, PC); // TODO: Obtengo instr cargada en t_dictionary *script_segun_PID
 
             enviar_instruccion_a_cpu(sockets[0], instruccion);
 
