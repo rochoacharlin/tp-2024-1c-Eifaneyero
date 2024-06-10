@@ -125,6 +125,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         {
             char lectura[tam];
             scanf("Ingresar texto %d para STDIN: %s", i - 2, lectura);
+
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
             agregar_a_paquete_string(paquete, lectura);
             int direccion_fisica = list_get(parametros, i);
