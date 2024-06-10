@@ -2,6 +2,7 @@
 
 int ms_en_ejecucion = 0;
 t_temporal *temp;
+bool hubo_desalojo = false;
 
 void planificar_a_corto_plazo_segun_algoritmo(void)
 {
@@ -34,6 +35,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_en_EXEC->PID, anterior, pcb_en_EXEC->estado);
 
+        hubo_desalojo = false;
         procesar_pcb_segun_algoritmo(pcb_en_EXEC);
         esperar_contexto_y_actualizar_pcb(pcb_en_EXEC);
     }
@@ -93,6 +95,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         temporal_stop(temp);
         ms_en_ejecucion = temporal_gettime(temp);
     }
+    hubo_desalojo = true;
 
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
@@ -150,11 +153,15 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
     {
         if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_RR(contexto), NULL))
             log_error(logger_propio, "Error creando el hilo para el quantum en RR");
+
+        pthread_join(&hilo_quantum);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
         if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR(contexto), NULL))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
+
+        pthread_join(&hilo_quantum);
     }
     else
     {
@@ -172,10 +179,8 @@ void ejecutar_segun_RR(t_contexto *contexto)
 {
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
 
-    // COMPLETAR: No se contempla el caso de que la CPU devuelva el PCB antes del fin de quantum con un motivo de desalojo distinto.
-
     usleep(obtener_quantum());
-    if (0 /* no_hubo_desalojo antes de que termine el quantum  */)
+    if (!hubo_desalojo)
     {
         enviar_interrupcion("FIN_QUANTUM");
         loggear_fin_de_quantum(contexto->PID);
@@ -186,12 +191,11 @@ void ejecutar_segun_VRR(t_contexto *contexto)
 {
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     temp = temporal_create();
-    // COMPLETAR: No se contempla el caso de que la CPU devuelva el PCB antes del fin de quantum con un motivo de desalojo distinto.
 
     // creo que nunca va llegar a ser == al quantum se va a acercar
     ms_en_ejecucion == obtener_quantum() ? usleep(obtener_quantum()) : usleep(obtener_quantum() - ms_en_ejecucion);
 
-    if (0 /* no_hubo_desalojo antes de que termine el quantum */)
+    if (!hubo_desalojo)
     {
         enviar_interrupcion("FIN_QUANTUM");
         loggear_fin_de_quantum(contexto->PID);
