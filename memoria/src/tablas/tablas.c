@@ -1,6 +1,8 @@
 #include "tablas.h"
 
-// INDICE DE TABLA DE PAGINAS ---------------------
+// ------------ INDICE DE TABLA DE PAGINAS --------- //
+// Dict IndTabPag: Key = PID ; Value = t_list * Tablas de Pag . Index list = Pag ; Elem list = marco // Dejo esto porque soy lento
+
 t_dictionary *crear_indice_de_tablas()
 {
     t_dictionary *diccionario = dictionary_create();
@@ -9,17 +11,31 @@ t_dictionary *crear_indice_de_tablas()
 
 void destruir_indice_tablas()
 {
+    // TODO F: Entiendo que un free no libera las listas. Está bien destruir el indice así?
     dictionary_destroy_and_destroy_elements(indice_tablas, free);
+
+    // t_list* elementos = dictionary_elements(indice_tablas); What about this?
+    // for(int i = 0; i <= list_size(elementos) -1; i++){
+    //     t_list * tabla = (list*) list_get(elementos,i);
+    //     list_destroy_and_destroy_elements(tabla, free);
+    // }
+    // list_destroy(elementos);
+    // dictionary_destroy(indice_tablas);
 }
 
 void agregar_proceso_al_indice(uint32_t PID)
 {
+    loggear_creacion_destruccion_tabla_de_paginas(PID, 0);
+
     t_list *tabla_de_paginas = list_create();
     dictionary_put(indice_tablas, string_itoa(PID), tabla_de_paginas);
 }
 
 void quitar_proceso_del_indice(uint32_t PID)
 {
+    int tp_size = list_size(obtener_tp_de_proceso(PID));
+    loggear_creacion_destruccion_tabla_de_paginas(PID, tp_size);
+
     int *tabla_de_paginas = dictionary_remove(indice_tablas, string_itoa(PID));
     if (tabla_de_paginas != NULL)
     {
@@ -27,7 +43,6 @@ void quitar_proceso_del_indice(uint32_t PID)
     }
 }
 
-//
 t_list *obtener_tp_de_proceso(uint32_t PID)
 {
     return (t_list *)dictionary_get(indice_tablas, string_itoa(PID));
@@ -59,4 +74,17 @@ int buscar_marco(uint32_t PID, int pagina)
     t_list *tp_de_proceso = obtener_tp_de_proceso(PID);
     int marco = obtener_marco(tp_de_proceso, pagina);
     return marco;
+}
+
+void liberar_marcos_proceso(uint32_t PID)
+{
+    t_list *tabla_de_paginas = obtener_tp_de_proceso(PID);
+    if (tabla_de_paginas != NULL)
+    {
+        for (int i = 0; i < list_size(tabla_de_paginas); i++)
+        {
+            int marco = obtener_marco(tabla_de_paginas, i);
+            marcar_como_libre(marco);
+        }
+    }
 }
