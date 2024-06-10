@@ -14,6 +14,7 @@
 #include <utils/comunicacion/comunicacion.h>
 #include <utils/estructuras_compartidas/instrucciones.h>
 #include <configuraciones.h>
+#include "../tablas/tablas.h"
 #include "gestion_memoria.h"
 
 extern t_log *logger_propio;

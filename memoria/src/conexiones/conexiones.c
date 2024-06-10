@@ -5,7 +5,6 @@
 int server_fd;
 int sockets[3];
 sem_t semaforos[TOPE_DE_IDS];
-t_dictionary *indice_de_instrucciones;
 
 // Para semaforear que se hayan cargado scripts de los procesos, antes de poder solicitar lectura de instrucciones.
 void iniciar_semaforo_para_peticiones(void)
@@ -23,7 +22,7 @@ void iniciar_semaforo_para_peticiones(void)
 
 char *obtener_instruccion_de_indice(uint32_t PID, uint32_t PC)
 {
-    t_list *instrucciones = (t_list *)dictionary_get(indice_de_instrucciones, string_itoa(PID));
+    t_list *instrucciones = (t_list *)dictionary_get(indice_instrucciones, string_itoa(PID));
     char *instruccion = list_get(instrucciones, PC);
     return instruccion;
 }
@@ -89,7 +88,7 @@ void iniciar_conexiones()
             log_info(logger_propio, "Se conectó la IO como cliente!");
         }
     }
-    // Se estrablecieron todas las conexiones en sus sockets correspondientes
+    // Se establecieron todas las conexiones en sus sockets correspondientes
 
     pthread_t hilo_cpu;
     pthread_create(&hilo_cpu, NULL, (void *)atender_cpu, &(sockets[0]));
@@ -106,31 +105,46 @@ void iniciar_conexiones()
 
 void atender_kernel(int socket_cliente)
 {
-    t_dictionary *indice_de_instrucciones = crear_indice_de_instrucciones();
     while (1)
     {
+        uint32_t PID;
+        // uint32_t PC;
         op_code codigo = recibir_operacion(sockets[1]);
         log_info(logger_propio, "Recibi algo del kernel en memoria");
 
         switch (codigo)
         {
-        case CREAR_PROCESO_KERNEL: // Recibo path y preparo estructuras administrativas necesarias
+            // Agrego script de instrucciones a indice y proceso a indice de tabla de paginas, algo más?
+
+        case CREAR_PROCESO_KERNEL:
 
             log_info(logger_propio, "Llegó orden para crear un proceso");
-            t_list *paquete = recibir_paquete(sockets[1]);
-            uint32_t PID = *(uint32_t *)list_get(paquete, 0);
-            char *PATH = (char *)list_get(paquete, 1);
-            agregar_instrucciones_al_indice(indice_de_instrucciones, PID, PATH);
+            t_list *paquete_crear_proceso = recibir_paquete(sockets[1]);
+            PID = *(uint32_t *)list_get(paquete_crear_proceso, 0);
+            char *path = string_duplicate((char *)list_get(paquete_crear_proceso, 1));
+            list_destroy_and_destroy_elements(paquete_crear_proceso, free);
+
+            agregar_instrucciones_al_indice(indice_instrucciones, PID, path); // TODO F: el path se libera al quitar_instrucciones_al_indice().
+            agregar_proceso_al_indice(PID);
+
             sem_post(&semaforos[PID]); // Libero semáforo para que cpu pueda leer instruccion
             break;
 
         case FINALIZAR_PROCESO_KERNEL:
 
             log_info(logger_propio, "Orden para finalizar proceso");
-            char *PID_a_finalizar = recibir_string(sockets[1]); // TODO: Verificar como se envía el PID
-            // Recibo PID
-            log_info(logger_propio, "Proceso a finalizar. PID: %s", PID_a_finalizar);
-            // TODO: Liberar estructuras. Marcar frames como libres.
+            t_list *paquete_finalizar_procesos = recibir_paquete(sockets[1]);
+            PID = *(uint32_t *)list_get(paquete_finalizar_procesos, 0);
+            list_destroy_and_destroy_elements(paquete_crear_proceso, free);
+
+            log_info(logger_propio, "Proceso a finalizar. PID: %d", PID);
+
+            quitar_instrucciones_al_indice(indice_instrucciones, PID);
+
+            liberar_marcos_proceso(PID); // TODO F: Marcar frames como libres.
+
+            quitar_proceso_del_indice(PID);
+
             break;
 
         default:
@@ -145,52 +159,76 @@ void atender_cpu(int socket_cliente)
 
     while (1)
     {
-
+        uint32_t PID;
+        uint32_t PC;
+        uint32_t direccion_fisica;
         op_code codigo = recibir_operacion(sockets[0]);
         log_info(logger_propio, "Recibí algo de cpu en memoria");
 
         switch (codigo)
         {
 
-        case SOLICITUD_INSTRUCCION: // En base a PID y PC devuelvo instruccion solicitada
+        case SOLICITUD_INSTRUCCION:
 
-            // 1º El kernel manda el archivo a abrir
+            // Para arrancar, el kernel tiene que mandar el archivo a abrir
 
             t_list *pid_y_pc = recibir_paquete(sockets[0]);
-            uint32_t PID = *(uint32_t *)list_get(pid_y_pc, 0);
-            uint32_t PC = *(uint32_t *)list_get(pid_y_pc, 1);
+            PID = *(uint32_t *)list_get(pid_y_pc, 0);
+            PC = *(uint32_t *)list_get(pid_y_pc, 1);
 
-            // TODO: Liberar pid y pc
+            list_destroy_and_destroy_elements(pid_y_pc, free);
 
             sem_wait(&semaforos[PID]); // Blocked hasta que las instrucciones del proceso se hayan cargado.
 
             log_info(logger_propio, "Semáforo cruzado en verde tras solicitud de instrucción");
 
-            char *instruccion = obtener_instruccion_de_indice(PID, PC); // TODO: Obtengo instr cargada en t_dictionary *script_segun_PID
+            char *instruccion = obtener_instruccion_de_indice(PID, PC);
+
+            log_info(logger_propio, "La memoria se durmió buscando la instrucción");
+            usleep(obtener_retardo_respuesta() * 1000);
+            log_info(logger_propio, "Se termino la siesta, envío instrucción");
 
             enviar_instruccion_a_cpu(sockets[0], instruccion);
 
-            log_info(logger_propio, "A hacer noni");
-            usleep(obtener_retardo_respuesta() * 500); // TODO: *1000 o *500?
-            log_info(logger_propio, "Se termino la siesta");
-
-            sem_post(&semaforos[PID]); // Libero semáforo. Pues ya fueron cargadas las intrucciones.
+            sem_post(&semaforos[PID]); // Libero. Ya no hay que esperar la carga de intrucciones.
 
             break;
 
-        // MOV_OUT desde CPU
-        case ACCESO_ESPACIO_USUARIO_ESCRITURA:
+        case ACCESO_ESPACIO_USUARIO_ESCRITURA: // ● MOV_OUT
 
-            // TODO:
+            // Recibo: PID, dirección fisica y valor a escribir. //PID es necesario si la memoria escribe deliberadamente
+            t_list *paquete_escritura_espacio = recibir_paquete(sockets[0]);
+            PID = *(uint32_t *)list_get(paquete_escritura_espacio, 0);
+            direccion_fisica = *(uint32_t *)list_get(paquete_escritura_espacio, 1);
+            uint32_t valor_a_escribir = *(uint32_t *)list_get(paquete_escritura_espacio, 2);
+
+            // Quien verifica que se escriban paginas de este proceso, MMU?. Debería actualizar estado de marcos
+
+            escribir_espacio_usuario(direccion_fisica, valor_a_escribir);
+            enviar_cod_op(OK, sockets[0]);
+
+            loggear_escritura_espacio_de_usuario(PID, direccion_fisica, sizeof(valor_a_escribir));
             break;
 
-        // MOV IN desde cpu
-        case ACCESO_ESPACIO_USUARIO_LECTURA:
+        case ACCESO_ESPACIO_USUARIO_LECTURA: // ● MOV_IN
 
-            // TODO:
+            // Recibo: dirección fisica
+            t_list *paquete_lectura_espacio = recibir_paquete(sockets[0]);
+            direccion_fisica = *(uint32_t *)list_get(paquete_lectura_espacio, 0);
+
+            uint32_t valor_leido = leer_espacio_usuario(direccion_fisica);
+
+            t_paquete *paquete_valor_leido = crear_paquete(OK);
+            agregar_a_paquete_uint32(paquete_valor_leido, valor_leido);
+            enviar_paquete(paquete_valor_leido, sockets[0]);
+            eliminar_paquete(paquete_valor_leido);
+
+            loggear_lectura_espacio_de_usuario(PID, direccion_fisica, sizeof(valor_leido));
             break;
 
-        // recibo el numero de pagina del proceso buscado de cpu
+            // ● COPY_STRING (Tamaño): Toma del string apuntado por el registro SI y copia la cantidad de
+            // bytes indicadas en el parámetro tamaño a la posición de memoria apuntada por el registro DI. (? HELP
+
         case SOLICITUD_MARCO:
             atender_solicitud_marco();
             break;
@@ -209,7 +247,42 @@ void atender_cpu(int socket_cliente)
 
 void atender_io(int socket_cliente)
 {
-    1;
+
+    while (1)
+    {
+        // uint32_t PID;
+        // int direccion_fisica;
+        op_code codigo = recibir_operacion(sockets[2]);
+        log_info(logger_propio, "Recibí algo de una Interfaz de I/O en memoria");
+
+        switch (codigo)
+        {
+
+        // ● IO_STDOUT_WRITE (Interfaz, Registro Dirección, Registro Tamaño): Esta instrucción solicita
+        // al Kernel que mediante la interfaz seleccionada, se lea desde la posición de memoria
+        // indicada por la Dirección Lógica almacenada en el Registro Dirección, un tamaño indicado
+        // por el Registro Tamaño y se imprima por pantalla.
+        case ACCESO_ESPACIO_USUARIO_ESCRITURA:
+
+            // TODO:
+            // loggear_escritura_espacio_de_usuario(PID, direccion_fisica, int tamanio);
+            break;
+
+        // ● IO_STDIN_READ (Interfaz, Registro Dirección, Registro Tamaño): Esta instrucción solicita al
+        // Kernel que mediante la interfaz ingresada se lea desde el STDIN (Teclado) un valor cuyo
+        // tamaño está delimitado por el valor del Registro Tamaño y el mismo se guarde a partir de la
+        // Dirección Lógica almacenada en el Registro Dirección.
+        case ACCESO_ESPACIO_USUARIO_LECTURA:
+
+            // TODO:
+            // loggear_lectura_espacio_de_usuario(PID, direccion_fisica, int tamanio);
+            break;
+
+        default:
+            log_info(logger_propio, "Codigo de operacion incorrecto");
+            break;
+        }
+    }
 }
 
 void enviar_marco(int marco)
