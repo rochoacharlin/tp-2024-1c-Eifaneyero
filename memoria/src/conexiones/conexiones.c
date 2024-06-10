@@ -66,14 +66,30 @@ void iniciar_conexiones()
 {
     iniciar_servidor_memoria();
 
-    sockets[0] = esperar_cliente(logger_propio, server_fd); // socket cpu
-    log_info(logger_propio, "Se conectó la CPU como cliente!");
+    sockets = {-1, -1, -1};
 
-    sockets[1] = esperar_cliente(logger_propio, server_fd); // socket kernel
-    log_info(logger_propio, "Se conectó la Kernel como cliente!");
+    while (sockets[0] == -1 || sockets[1] == -1 || sockets[2] == -1)
+    {
+        int conexion_entrante = esperar_cliente(logger_propio, server_fd);
+        int codigo_de_operacion = recibir_operacion(conexion_entrante);
 
-    sockets[2] = esperar_cliente(logger_propio, server_fd); // socket io
-    log_info(logger_propio, "Se conectó la IO como cliente!");
+        if (codigo_de_operacion == CONEXION_CPU)
+        {
+            sockets[0] = conexion_entrante;
+            log_info(logger_propio, "Se conectó la CPU como cliente!");
+        }
+        if (codigo_de_operacion == CONEXION_KERNEL)
+        {
+            sockets[1] = conexion_entrante;
+            log_info(logger_propio, "Se conectó la Kernel como cliente!");
+        }
+        if (codigo_de_operacion == CONEXION_IO)
+        {
+            sockets[2] = conexion_entrante;
+            log_info(logger_propio, "Se conectó la IO como cliente!");
+        }
+    }
+    // Se estrablecieron todas las conexiones en sus sockets correspondientes
 
     pthread_t hilo_cpu;
     pthread_create(&hilo_cpu, NULL, (void *)atender_cpu, &(sockets[0]));
