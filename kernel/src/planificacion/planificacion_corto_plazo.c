@@ -1,6 +1,7 @@
 #include "planificacion.h"
 
-int rafaga_cpu_ejecutada;
+int ms_en_ejecucion = 0;
+t_temporal *temp;
 
 void planificar_a_corto_plazo_segun_algoritmo(void)
 {
@@ -54,9 +55,9 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
     return pcb;
 }
 
-void encolar_pcb_segun_algoritmo(t_pcb *pcb, int rafaga_cpu)
+void encolar_pcb_segun_algoritmo(t_pcb *pcb, int ms_en_ejecucion)
 {
-    int rafaga_restante = pcb->quantum - rafaga_cpu;
+    int rafaga_restante = pcb->quantum - ms_en_ejecucion;
     if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "FIFO") == 0 || (strcmp(algoritmo, "VRR") == 0 && rafaga_restante == 0))
     {
         ingresar_pcb_a_READY(pcb);
@@ -86,9 +87,17 @@ void encolar_pcb_segun_algoritmo(t_pcb *pcb, int rafaga_cpu)
 void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
+
+    if (strcmp(algoritmo, "VRR") == 0)
+    {
+        temporal_stop(temp);
+        ms_en_ejecucion = temporal_gettime(temp);
+    }
+
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
     actualizar_pcb(pcb, contexto);
+
     // printf("%d, %d\n", motivo_desalojo, obtener_valor_registro(pcb->registros_cpu, "AX"));
     // pcb_en_EXEC = NULL;
 
@@ -109,7 +118,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         break;
 
     case DESALOJO_FIN_QUANTUM:
-        encolar_pcb_segun_algoritmo(pcb, rafaga_cpu_ejecutada);
+        encolar_pcb_segun_algoritmo(pcb, ms_en_ejecucion);
         break;
 
     case DESALOJO_WAIT:
@@ -119,7 +128,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 
     case DESALOJO_SIGNAL:
         // COMPLETAR: Todavia no esa hecha la funcion en la CPU y por lo tanto no se como me mandan los datos
-        signal_recurso("", pcb, rafaga_cpu_ejecutada);
+        signal_recurso("", pcb, ms_en_ejecucion);
         break;
 
     default:
@@ -131,14 +140,21 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 void procesar_pcb_segun_algoritmo(t_pcb *pcb)
 {
     t_contexto *contexto = crear_contexto(pcb);
+    pthread_t hilo_quantum;
 
     if (strcmp(algoritmo, "FIFO") == 0)
     {
         ejecutar_segun_FIFO(contexto);
     }
-    else if (strcmp(algoritmo, "RR") == 0 || strcmp(algoritmo, "VRR") == 0)
+    else if (strcmp(algoritmo, "RR") == 0)
     {
-        ejecutar_segun_RR_o_VRR(contexto);
+        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_RR(contexto), NULL))
+            log_error(logger_propio, "Error creando el hilo para el quantum en RR");
+    }
+    else if (strcmp(algoritmo, "VRR") == 0)
+    {
+        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR(contexto), NULL))
+            log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
     }
     else
     {
@@ -152,13 +168,34 @@ void ejecutar_segun_FIFO(t_contexto *contexto)
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
 }
 
-void ejecutar_segun_RR_o_VRR(t_contexto *contexto)
+void ejecutar_segun_RR(t_contexto *contexto)
 {
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
 
+    // COMPLETAR: No se contempla el caso de que la CPU devuelva el PCB antes del fin de quantum con un motivo de desalojo distinto.
+
     usleep(obtener_quantum());
-    enviar_interrupcion("FIN_QUANTUM");
-    loggear_fin_de_quantum(contexto->PID);
+    if (0 /* no_hubo_desalojo antes de que termine el quantum  */)
+    {
+        enviar_interrupcion("FIN_QUANTUM");
+        loggear_fin_de_quantum(contexto->PID);
+    }
+}
+
+void ejecutar_segun_VRR(t_contexto *contexto)
+{
+    enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
+    temp = temporal_create();
+    // COMPLETAR: No se contempla el caso de que la CPU devuelva el PCB antes del fin de quantum con un motivo de desalojo distinto.
+
+    // creo que nunca va llegar a ser == al quantum se va a acercar
+    ms_en_ejecucion == obtener_quantum() ? usleep(obtener_quantum()) : usleep(obtener_quantum() - ms_en_ejecucion);
+
+    if (0 /* no_hubo_desalojo antes de que termine el quantum */)
+    {
+        enviar_interrupcion("FIN_QUANTUM");
+        loggear_fin_de_quantum(contexto->PID);
+    }
 }
 
 void enviar_interrupcion(char *motivo) // considerar meterlo en otro archivo si hay mas funciones sobre las interrupciones

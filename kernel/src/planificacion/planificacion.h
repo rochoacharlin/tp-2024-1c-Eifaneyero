@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <commons/temporal.h>
 #include "pcb.h"
 #include "../manejos/manejo_interfaces.h"
 #include "../manejos/manejo_recursos.h"
@@ -46,7 +47,7 @@ typedef enum
     SUCCESS,
     INVALID_RESOURCE,
     INVALID_INTERFACE,
-    OUT_OF_MEMORY,
+    FINALIZACION_OUT_OF_MEMORY,
     INTERRUPTED_BY_USER
 } motivo_finalizacion;
 
