@@ -119,19 +119,18 @@ op_code atender_stdin(int cod_op, t_list *parametros)
     if (cod_op == IO_STDIN_READ)
     {
         loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
-
         int tam = (int)list_get(parametros, 3);
-        char lectura[tam];
-        scanf("Ingresar un texto para STDIN: %s", lectura);
 
-        t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
-        agregar_a_paquete_string(paquete, lectura);
         for (int i = 3; i < list_size(parametros); i++)
         {
+            char lectura[tam];
+            scanf("Ingresar texto %d para STDIN: %s", i - 2, lectura);
+            t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
+            agregar_a_paquete_string(paquete, lectura);
             int direccion_fisica = list_get(parametros, i);
             agregar_a_paquete(paquete, direccion_fisica);
+            enviar_paquete(paquete, conexion_memoria);
         }
-        enviar_paquete(paquete, conexion_memoria);
     }
     else
     {
@@ -149,10 +148,18 @@ op_code atender_stdout(int cod_op, t_list *parametros)
     {
         // creo que el primer parametro de la lista no es un PID cuando se manda en el kernel, habria que verificar eso
         loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
+        int tam = (int)list_get(parametros, 3);
 
-        // COMPLETAR: leer el valor que se encuentra en la direccion fisica
-        // log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", valor_leido);
-        // VERIFICAR: que en esos indices se encuentran los parametros que espero verdaderamente
+        for (int i = 3; i < list_size(parametros); i++)
+        {
+            t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
+            int direccion_fisica = list_get(parametros, i);
+            agregar_a_paquete(paquete, direccion_fisica);
+            enviar_paquete(paquete, conexion_memoria);
+
+            void *valor_leido = recibir_buffer(conexion_memoria, tam);
+            log_info(logger_propio, "El valor %d leido de la memoria para STDOUT es: %s", i - 2, valor_leido);
+        }
     }
     else
     {
