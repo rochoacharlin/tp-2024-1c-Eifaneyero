@@ -42,11 +42,6 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
         execute(instruccion);
         check_interrupt(instruccion);
 
-        //----- BORRAR ----//
-        devolver_contexto(DESALOJO_EXIT_SUCCESS, NULL); // TODO F : Agrego para test
-        log_info(logger_propio, "Contexto devuelto al kernel");
-        //----- BORRAR ----//
-
         destruir_instruccion(instruccion);
     }
 }
@@ -56,12 +51,12 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
 char *fetch()
 {
     solicitar_lectura_de_instruccion(contexto->PID, obtener_valor_registro(contexto->registros_cpu, "PC"));
-    char *instruccion_string = recibir_instruccion_string_memoria();
+    char *instruccion_string = recibir_instruccion_string();
     loggear_fetch_instrucccion(contexto->PID, obtener_valor_registro(contexto->registros_cpu, "PC"));
     return instruccion_string;
 }
 
-char *recibir_instruccion_string_memoria()
+char *recibir_instruccion_string()
 {
     if (recibir_operacion(conexion_cpu_memoria) == INSTRUCCION)
     {
@@ -76,17 +71,6 @@ char *recibir_instruccion_string_memoria()
     }
 }
 
-// char *recibir_instruccion_string_memoria() // Para prueba
-// {
-//     char *unaInstruccion = string_new();
-//     // unaInstruccion = string_duplicate("JNZ PC 7");
-//     // unaInstruccion = string_duplicate("SET AX 10");
-//     // unaInstruccion = string_duplicate("SET PC 10");
-//     // unaInstruccion = string_duplicate("IO_GEN_SLEEP Generica 10");
-//     // unaInstruccion = string_duplicate("EXIT");
-//     return unaInstruccion;
-// }
-
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
 {
     t_instruccion *instruccion = malloc_or_die(sizeof(t_instruccion), "Error al asignar memoria para la instrucción");
@@ -96,7 +80,6 @@ t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
     char **instruccion_array = string_split(instruccion_string, " ");
     char *instruccion_array_fixed[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
-    // Copiar los elementos del array original al nuevo array fijo
     for (int i = 0; i < 6 && instruccion_array[i] != NULL; i++)
     {
         instruccion_array_fixed[i] = instruccion_array[i];
@@ -312,7 +295,7 @@ void execute(t_instruccion *instruccion)
 
 bool instruccion_bloqueante(t_id id_instruccion)
 {
-    if (id_instruccion == IO_GEN_SLEEP || id_instruccion == EXIT) // TODO:Agregar nuevas instrucciones bloqueantes
+    if (id_instruccion == IO_GEN_SLEEP || id_instruccion == EXIT) // TODO F: Agregar nuevas instrucciones bloqueantes
         return true;
     return false;
 }

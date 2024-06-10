@@ -54,7 +54,7 @@ void check_interrupt(t_instruccion *instruccion);
 // ---------- FETCH ---------- //
 
 // Recibir string de memoria con instrucccion (id + parametros)
-char *recibir_instruccion_string_memoria();
+char *recibir_instruccion_string();
 
 // Castear instruccion tipo string que llega de memoria.
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string);
