@@ -30,7 +30,8 @@ extern sem_t planificacion_liberada;
 extern sem_t hay_pcbs_READY;
 
 extern pthread_mutex_t mutex_lista_NEW;
-extern pthread_mutex_t mutex_lista_READY;
+extern pthread_mutex_t mutex_cola_READY;
+extern pthread_mutex_t mutex_cola_aux_READY;
 extern pthread_mutex_t mutex_lista_BLOCKED;
 extern pthread_mutex_t mutex_pcb_EXEC;
 extern pthread_mutex_t mutex_lista_memoria;
@@ -50,6 +51,12 @@ typedef enum
     FINALIZACION_OUT_OF_MEMORY,
     INTERRUPTED_BY_USER
 } motivo_finalizacion;
+
+typedef struct
+{
+    t_contexto *contexto;
+    t_pcb *pcb;
+} t_args; // argumentos para el hilo de VRR
 
 // largo plazo
 void planificar_a_largo_plazo(void);
@@ -71,14 +78,15 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
 t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
 t_pcb *proximo_a_ejecutar_segun_VRR(void);
 void esperar_contexto_y_actualizar_pcb(t_pcb *pcb);
-void encolar_pcb_segun_algoritmo(t_pcb *pcb, int rafaga_cpu);
+void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion);
 t_contexto *obtener_contexto_de_paquete_desalojo(t_list *paquete);
 t_list *obtener_parametros_de_paquete_desalojo(t_list *paquete);
 
 // relacionado con la CPU
 void procesar_pcb_segun_algoritmo(t_pcb *pcb);
 void ejecutar_segun_FIFO(t_contexto *contexto);
-void ejecutar_segun_RR_o_VRR(t_contexto *contexto);
+void ejecutar_segun_RR(t_contexto *contexto);
+void ejecutar_segun_VRR(t_contexto *contexto, t_pcb *pcb);
 void enviar_interrupcion(char *motivo);
 
 #endif

@@ -43,7 +43,10 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
 
 t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void)
 {
-    return desencolar_pcb(pcbs_en_READY);
+    pthread_mutex_lock(&mutex_cola_READY);
+    t_pcb *pcb = desencolar_pcb(pcbs_en_READY);
+    pthread_mutex_unlock(&mutex_cola_READY);
+    return pcb;
 }
 
 t_pcb *proximo_a_ejecutar_segun_VRR(void)
@@ -51,20 +54,30 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
     t_pcb *pcb;
     if (!list_is_empty(pcbs_en_aux_READY))
     {
+        pthread_mutex_lock(&mutex_cola_aux_READY);
         pcb = desencolar_pcb(pcbs_en_aux_READY);
+        pthread_mutex_unlock(&mutex_cola_aux_READY);
         pcb->desencolado_de_aux_ready = true;
     }
     else
     {
+        pthread_mutex_lock(&mutex_cola_READY);
         pcb = desencolar_pcb(pcbs_en_READY);
+        pthread_mutex_unlock(&mutex_cola_READY);
         pcb->desencolado_de_aux_ready = false;
     }
 
     return pcb;
 }
 
-void encolar_pcb_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
+void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
 {
+    estado anterior = pcb->estado;
+    pcb->estado = READY;
+
+    // log minimo y obligatorio
+    loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
+
     int tiempo_restante = pcb->quantum - tiempo_en_ejecucion;
     if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "FIFO") == 0 || (strcmp(algoritmo, "VRR") == 0 && tiempo_restante <= 0))
     {
@@ -72,7 +85,9 @@ void encolar_pcb_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
     }
     else if (strcmp(algoritmo, "VRR") == 0 && tiempo_restante > 0)
     {
+        pthread_mutex_lock(&mutex_cola_aux_READY);
         encolar_pcb(pcbs_en_aux_READY, pcb);
+        pthread_mutex_unlock(&mutex_cola_aux_READY);
 
         sem_post(&hay_pcbs_READY);
 
@@ -82,8 +97,6 @@ void encolar_pcb_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
         mostrar_PIDS(pcbs_en_aux_READY);
         loggear_ingreso_a_READY(lista_PIDS);
         free(lista_PIDS);
-
-        // COMPLETAR: Garantizar que cuando este proceso vaya a EXEC ejecute solo la rafaga restante
     }
     else
     {
@@ -100,6 +113,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
     {
         temporal_stop(temp);
         ms_en_ejecucion = temporal_gettime(temp);
+        temporal_destroy(temp);
     }
     hubo_desalojo = true;
 
@@ -127,7 +141,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         break;
 
     case DESALOJO_FIN_QUANTUM:
-        encolar_pcb_segun_algoritmo(pcb, ms_en_ejecucion);
+        encolar_pcb_ready_segun_algoritmo(pcb, ms_en_ejecucion);
         break;
 
     case DESALOJO_WAIT:
@@ -157,23 +171,24 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
     }
     else if (strcmp(algoritmo, "RR") == 0)
     {
-        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_RR(contexto), NULL))
+        if (pthread_create(&hilo_quantum, NULL, ejecutar_segun_RR, (void *)contexto))
             log_error(logger_propio, "Error creando el hilo para el quantum en RR");
-
-        pthread_join(&hilo_quantum, NULL);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
-        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR(contexto, pcb), NULL))
+        t_args *args = malloc(sizeof(t_args));
+        args->contexto = contexto;
+        args->pcb = pcb;
+        if (pthread_create(&hilo_quantum, NULL, ejecutar_segun_VRR, (void *)args))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
-
-        pthread_join(&hilo_quantum, NULL);
     }
     else
     {
         log_error(logger_propio, "Algoritmo invalido. Debe ingresar FIFO, RR o VRR");
         abort();
     }
+
+    pthread_join(hilo_quantum, NULL);
 }
 
 void ejecutar_segun_FIFO(t_contexto *contexto)

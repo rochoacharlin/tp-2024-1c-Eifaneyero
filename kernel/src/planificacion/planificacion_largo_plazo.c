@@ -15,7 +15,8 @@ sem_t planificacion_liberada;
 sem_t planificacion_pausada;
 
 pthread_mutex_t mutex_lista_NEW;
-pthread_mutex_t mutex_lista_READY;
+pthread_mutex_t mutex_cola_READY;
+pthread_mutex_t mutex_cola_aux_READY;
 pthread_mutex_t mutex_lista_BLOCKED;
 pthread_mutex_t mutex_pcb_EXEC;
 pthread_mutex_t mutex_lista_memoria;
@@ -59,9 +60,9 @@ t_pcb *obtener_siguiente_pcb_READY(void)
 
 void ingresar_pcb_a_READY(t_pcb *pcb)
 {
-    pthread_mutex_lock(&mutex_lista_READY);
+    pthread_mutex_lock(&mutex_cola_READY);
     encolar_pcb(pcbs_en_READY, pcb);
-    pthread_mutex_unlock(&mutex_lista_READY);
+    pthread_mutex_unlock(&mutex_cola_READY);
 
     sem_post(&hay_pcbs_READY);
 
@@ -113,7 +114,8 @@ void destruir_listas_planificacion(void)
 void inicializar_semaforos_planificacion(void)
 {
     pthread_mutex_init(&mutex_lista_NEW, NULL);
-    pthread_mutex_init(&mutex_lista_READY, NULL);
+    pthread_mutex_init(&mutex_cola_READY, NULL);
+    pthread_mutex_init(&mutex_cola_aux_READY, NULL);
     pthread_mutex_init(&mutex_lista_BLOCKED, NULL);
     pthread_mutex_init(&mutex_pcb_EXEC, NULL);
     pthread_mutex_init(&mutex_lista_memoria, NULL);
@@ -127,7 +129,8 @@ void inicializar_semaforos_planificacion(void)
 void destruir_semaforos_planificacion(void)
 {
     pthread_mutex_destroy(&mutex_lista_NEW);
-    pthread_mutex_destroy(&mutex_lista_READY);
+    pthread_mutex_destroy(&mutex_cola_READY);
+    pthread_mutex_destroy(&mutex_cola_aux_READY);
     pthread_mutex_destroy(&mutex_lista_BLOCKED);
     pthread_mutex_destroy(&mutex_pcb_EXEC);
     pthread_mutex_destroy(&mutex_lista_memoria);
@@ -170,9 +173,17 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
         break;
 
     case READY:
-        pthread_mutex_lock(&mutex_lista_READY);
+        pthread_mutex_lock(&mutex_cola_READY);
         list_remove_element(pcbs_en_READY, pcb);
-        pthread_mutex_unlock(&mutex_lista_READY);
+        pthread_mutex_unlock(&mutex_cola_READY);
+
+        if (strcmp("VRR", algoritmo) == 0)
+        {
+            pthread_mutex_lock(&mutex_cola_aux_READY);
+            list_remove_element(pcbs_en_aux_READY, pcb);
+            pthread_mutex_unlock(&mutex_cola_aux_READY);
+        }
+
         break;
 
     case EXEC:

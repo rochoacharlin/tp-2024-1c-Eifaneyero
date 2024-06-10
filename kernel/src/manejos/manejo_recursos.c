@@ -75,7 +75,7 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
             // log minimo y obligatorio
             loggear_cambio_de_estado(pcb_a_desbloquear->PID, BLOCKED, READY);
 
-            encolar_pcb_segun_algoritmo(pcb_a_desbloquear, rafaga_cpu_ejecutada);
+            encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear, rafaga_cpu_ejecutada);
 
             // devolvemos la ejecucion al pcb
             procesar_pcb_segun_algoritmo(pcb);
