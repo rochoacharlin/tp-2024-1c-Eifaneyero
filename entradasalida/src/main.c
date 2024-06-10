@@ -125,7 +125,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
         // esperar que el alumno ingrese un texto por teclado
         char lectura[(int)list_get(parametros, 3)];
-        scanf("%s", lectura);
+        scanf("Ingresar un texto para STDIN: %s", lectura);
         // COMPLETAR: guardar en la memoria la lectura en la direccion logica que me pasan en los parametros
         // VERIFICAR: que en esos indices se encuentran los parametros que espero verdaderamente
     }
@@ -139,7 +139,23 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
 op_code atender_stdout(int cod_op, t_list *parametros)
 {
-    return 1; // TODO
+    op_code respuesta = OK;
+
+    if (cod_op == IO_STDOUT_WRITE)
+    {
+        // creo que el primer parametro de la lista no es un PID cuando se manda en el kernel, habria que verificar eso
+        loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
+
+        // COMPLETAR: leer el valor que se encuentra en la direccion fisica
+        // log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", valor_leido);
+        // VERIFICAR: que en esos indices se encuentran los parametros que espero verdaderamente
+    }
+    else
+    {
+        respuesta = OPERACION_INVALIDA;
+    }
+
+    return respuesta;
 }
 
 op_code atender_dialfs(int cod_op, t_list *parametros)
