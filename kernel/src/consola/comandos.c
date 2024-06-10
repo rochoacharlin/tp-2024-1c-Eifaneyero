@@ -37,7 +37,7 @@ void iniciar_proceso(char *path)
     t_pcb *pcb = crear_pcb();
 
     t_paquete *paquete = crear_paquete(CREAR_PROCESO_KERNEL);
-    agregar_a_paquete_uint32(paquete, (uint32_t)atoi(pcb->PID));
+    agregar_a_paquete_uint32(paquete, pcb->PID);
     agregar_a_paquete_string(paquete, path);
     enviar_paquete(paquete, conexion_kernel_memoria);
     eliminar_paquete(paquete);
