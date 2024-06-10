@@ -3,6 +3,7 @@
 t_log *logger_obligatorio;
 t_log *logger_propio;
 t_config *config;
+int conexion_memoria;
 
 uint32_t calcular_tiempo_de_espera(int unidades_de_trabajo);
 op_code atender_gen(int cod_op, t_list *parametros);
@@ -28,10 +29,8 @@ int main(int argc, char *argv[])
 
     setear_config(argv[2]);
 
-    // conectar_a
-    // usleep(1000 * 100);
-    // int conexion_memoria = conectar_a("MEMORIA", logger_propio, 5);
-    // enviar_cod_op(CONEXION_IO, conexion_kernel_memoria);
+    // conectar a memoria
+    // conexion_memoria = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_kernel());
 
     // conectar al kernel y presentarse
     int conexion = crear_conexion(logger_propio, obtener_ip_kernel(), obtener_puerto_kernel());
@@ -88,7 +87,6 @@ op_code atender_gen(int cod_op, t_list *parametros)
 
     if (cod_op == IO_GEN_SLEEP)
     {
-        // creo que el primer parametro de la lista no es un PID cuando se manda en el kernel, habria que verificar eso
         loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
 
         int unidades_de_trabajo = atoi((char *)list_get(parametros, 1));
@@ -120,14 +118,20 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
     if (cod_op == IO_STDIN_READ)
     {
-        // creo que el primer parametro de la lista no es un PID cuando se manda en el kernel, habria que verificar eso
         loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
 
-        // esperar que el alumno ingrese un texto por teclado
-        char lectura[(int)list_get(parametros, 3)];
+        int tam = (int)list_get(parametros, 3);
+        char lectura[tam];
         scanf("Ingresar un texto para STDIN: %s", lectura);
-        // COMPLETAR: guardar en la memoria la lectura en la direccion logica que me pasan en los parametros
-        // VERIFICAR: que en esos indices se encuentran los parametros que espero verdaderamente
+
+        t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
+        agregar_a_paquete_string(paquete, lectura);
+        for (int i = 3; i < list_size(parametros); i++)
+        {
+            int direccion_fisica = list_get(parametros, i);
+            agregar_a_paquete(paquete, direccion_fisica);
+        }
+        enviar_paquete(paquete, conexion_memoria);
     }
     else
     {
