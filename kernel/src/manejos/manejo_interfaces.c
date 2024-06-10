@@ -6,6 +6,7 @@ t_list *interfaces; // falta inicializarlo en algun lado
 
 void *ejecutar_espera_interfaces(void) // ESTO SE RELACIONA CON LA FUNCION DE CONEXIONES "SERVIDOR()"
 {
+    inicizalizar_interfaces(interfaces);
     while (1)
     {
         int fd_cliente = esperar_cliente(logger_propio, servidor_kernel_fd);
@@ -133,7 +134,7 @@ void *atender_interfaz(void *interfaz)
 
             int respuesta;
             recv(io->fd, &respuesta, sizeof(int), MSG_WAITALL); // recibe resultado de realizar interfaz
-            if (respuesta != -1)
+            if (respuesta == OK)
             {
                 // podria ser redundante tener dos lista de bloqueados
                 // ver que hacer
