@@ -171,7 +171,7 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
     }
     else if (strcmp(algoritmo, "RR") == 0)
     {
-        if (pthread_create(&hilo_quantum, NULL, ejecutar_segun_RR, (void *)contexto))
+        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_RR, (void *)contexto))
             log_error(logger_propio, "Error creando el hilo para el quantum en RR");
     }
     else if (strcmp(algoritmo, "VRR") == 0)
@@ -179,7 +179,7 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
         t_args *args = malloc(sizeof(t_args));
         args->contexto = contexto;
         args->pcb = pcb;
-        if (pthread_create(&hilo_quantum, NULL, ejecutar_segun_VRR, (void *)args))
+        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR, (void *)args))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
     }
     else

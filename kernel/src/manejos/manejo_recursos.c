@@ -24,6 +24,15 @@ void crear_colas_de_bloqueo(void)
     destruir_lista_string(instancias_aux);
 }
 
+void liberar_recursos(t_pcb *pcb)
+{
+    for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
+    {
+        char *recurso = list_get(pcb->recursos_asignados, i);
+        instancias_recursos[posicion_recurso(recurso)]++;
+    }
+}
+
 void wait_recurso(char *recurso, t_pcb *pcb)
 {
     if (existe_recurso(recurso))

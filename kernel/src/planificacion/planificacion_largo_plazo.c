@@ -155,6 +155,7 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
     // log minimo y obligatorio
     loggear_fin_de_proceso(pcb->PID, motivo);
 
+    liberar_recursos(pcb);
     // COMPLETAR: Liberar recursos, memoria y archivos
 }
 
@@ -201,5 +202,12 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
     default:
         log_error(logger_propio, "Error al remover un pcb de una lista global.");
         break;
+    }
+
+    // elimino el pcb de las colas de recursos
+    for (int i = 0; i < list_size(colas_de_recursos); i++)
+    {
+        t_list *cola = list_get(colas_de_recursos, i);
+        list_remove_element(cola, pcb);
     }
 }

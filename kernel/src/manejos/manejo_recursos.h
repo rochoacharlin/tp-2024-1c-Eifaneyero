@@ -9,7 +9,7 @@
 #include "../planificacion/planificacion.h"
 
 extern int *instancias_recursos;
-extern t_list *recursos;
+extern t_list *colas_de_recursos;
 extern char **nombres_recursos;
 
 void crear_colas_de_bloqueo(void);
@@ -19,5 +19,6 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada);
 bool existe_recurso(char *recurso);
 int posicion_recurso(char *recurso);
 int cantidad_recursos(void);
+void liberar_recursos(t_pcb *pcb);
 
 #endif
