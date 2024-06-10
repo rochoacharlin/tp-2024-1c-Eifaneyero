@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
     // inicializar_memoria();
     // iniciar_conexiones();
-
+    test_resize();
     // testeaba cosas de bitarray
     // int cantidad_marcos = (obtener_tam_memoria() + obtener_tam_pagina() - 1) / obtener_tam_pagina();
     // size_t bytes_necesarios = (cantidad_marcos + 8 - 1) / 8;
@@ -77,6 +77,6 @@ void test_resize()
 
     // caso out of memory
     log_info(logger_propio, "Páginas antes de out of memory (deben ser 2): %d", list_size(obtener_tp_de_proceso(PID3)));
-    log_info(logger_propio, "Resultado de out of memory: %d", resize(PID2, 255));
+    log_info(logger_propio, "Resultado de out of memory: %d", resize(PID3, 255));
     log_info(logger_propio, "Páginas luego de out of memory: %d", list_size(obtener_tp_de_proceso(PID3)));
 }

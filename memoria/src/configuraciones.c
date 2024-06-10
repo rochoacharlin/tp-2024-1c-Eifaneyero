@@ -1,26 +1,26 @@
 #include "configuraciones.h"
 
-void loggear_creacion_destruccion_tabla_de_paginas(int PID, int cantidad_paginas)
+void loggear_creacion_destruccion_tabla_de_paginas(uint32_t PID, int cantidad_paginas)
 {
     // TODO
 }
 
-void loggear_acceso_tablas_de_paginas(int PID, int pagina, int marco)
+void loggear_acceso_tablas_de_paginas(uint32_t PID, int pagina, int marco)
 {
-    // TODO
+    log_info(logger_obligatorio, "PID: <%d> - Pagina: <%d> - Marco: <%d>", PID, pagina, marco);
 }
 
-void loggear_ampliacion_de_proceso(int PID, int tamanio_actual, int tamanio_a_ampliar)
+void loggear_ampliacion_de_proceso(uint32_t PID, int tamanio_actual, int tamanio_a_ampliar)
 {
-    // TODO
+    log_info(logger_obligatorio, "PID: <%d> - Tamaño Actual: <%d> - Tamaño a Ampliar: <%d>", PID, tamanio_actual, tamanio_a_ampliar);
 }
 
-void loggear_reduccion_de_proceso(int PID, int tamanio_actual, int tamanio_a_reducir)
+void loggear_reduccion_de_proceso(uint32_t PID, int tamanio_actual, int tamanio_a_reducir)
 {
-    // TODO
+    log_info(logger_obligatorio, "PID: <%d> - Tamaño Actual: <%d> - Tamaño a Reducir: <%d>", PID, tamanio_actual, tamanio_a_reducir);
 }
 
-void loggear_acceso_a_espacio_de_usuario(int PID, int accion, int direccion_fisica, int tamanio)
+void loggear_acceso_a_espacio_de_usuario(uint32_t PID, int accion, int direccion_fisica, int tamanio)
 {
     // TODO
 }

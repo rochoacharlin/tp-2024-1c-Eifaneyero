@@ -218,6 +218,7 @@ void atender_solicitud_marco()
     int pagina;
     recibir_solicitud_marco(&PID, &pagina);
     int marco = buscar_marco(PID, pagina);
+    loggear_acceso_tablas_de_paginas(PID, pagina, marco);
     enviar_marco(marco);
 }
 
@@ -246,6 +247,8 @@ op_code resize(uint32_t PID, uint32_t tamanio_proceso)
 
     if (pags_solicitadas < cantidad_pags)
     {
+        loggear_reduccion_de_proceso(PID, cantidad_pags * obtener_tam_pagina(), tamanio_proceso);
+
         for (int i = cantidad_pags - 1; i >= pags_solicitadas; i--)
         {
             quitar_ultima_pagina(tp_de_proceso);
@@ -254,6 +257,8 @@ op_code resize(uint32_t PID, uint32_t tamanio_proceso)
 
     if (pags_solicitadas > cantidad_pags)
     {
+        loggear_ampliacion_de_proceso(PID, cantidad_pags * obtener_tam_pagina(), tamanio_proceso);
+
         int pags_adicionales = pags_solicitadas - cantidad_pags;
         if (cantidad_marcos_libres() >= pags_adicionales)
         {
