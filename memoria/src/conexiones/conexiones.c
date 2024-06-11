@@ -68,10 +68,16 @@ void iniciar_conexiones()
     pthread_join(hilo_io, NULL);
 }
 
+void retardo_de_peticion()
+{
+    usleep(obtener_retardo_respuesta() * 1000);
+}
+
 void atender_kernel(int socket_cliente)
 {
     while (1)
     {
+        retardo_de_peticion();
         switch (recibir_operacion(socket_cliente))
         {
         case CREAR_PROCESO_KERNEL:
@@ -93,6 +99,7 @@ void atender_cpu(int socket_cliente)
 {
     while (1)
     {
+        retardo_de_peticion();
         switch (recibir_operacion(socket_cliente))
         {
         case SOLICITUD_INSTRUCCION:
@@ -126,6 +133,7 @@ void atender_io(int socket_cliente)
 {
     while (1)
     {
+        retardo_de_peticion();
         switch (recibir_operacion(socket_cliente))
         {
 
@@ -278,7 +286,6 @@ void atender_solicitud_instruccion(void)
     log_info(logger_propio, "Semáforo cruzado en verde tras recibir solicitud de instrucción");
 
     char *instruccion = obtener_instruccion_de_indice(PID, PC);
-    usleep(obtener_retardo_respuesta() * 1000);
     enviar_instruccion_a_cpu(instruccion);
 
     sem_post(&semaforos[PID]); // Libero. Ya no hay que esperar la carga de intrucciones.

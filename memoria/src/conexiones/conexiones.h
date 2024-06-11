@@ -29,6 +29,8 @@ void esperar_a(char *tipo, int *socket, int server);
 void iniciar_servidor_memoria(void);
 void iniciar_conexiones();
 
+void retardo_de_peticion();
+
 void atender_kernel(int socket_cliente);
 void atender_cpu(int socket_cliente);
 void atender_io(int socket_cliente);
