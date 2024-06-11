@@ -10,10 +10,8 @@ extern void *espacio_usuario;
 extern t_dictionary *indice_tablas;
 extern t_bitarray *marcos_libres;
 extern t_dictionary *indice_instrucciones;
+extern pthread_mutex_t mutex_memoria;
 
 void inicializar_memoria(void);
-
-uint32_t leer_espacio_usuario(uint32_t direccion);
-void escribir_espacio_usuario(uint32_t direccion, uint32_t valor);
 
 #endif

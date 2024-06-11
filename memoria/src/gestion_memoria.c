@@ -20,24 +20,3 @@ void inicializar_memoria(void)
 
     pthread_mutex_init(&mutex_memoria, NULL);
 }
-
-// No sé donde ponerles:
-// Interpreto que los registros de memoria son de 32 bits
-uint32_t leer_espacio_usuario(uint32_t direccion)
-{
-    uint32_t valor;
-
-    pthread_mutex_lock(&mutex_memoria);
-    memcpy(&valor, espacio_usuario + direccion, sizeof(uint32_t));
-    pthread_mutex_unlock(&mutex_memoria);
-
-    return valor;
-}
-
-// Escribo sin importar si me voy de la página.
-void escribir_espacio_usuario(uint32_t direccion, uint32_t valor)
-{
-    pthread_mutex_lock(&mutex_memoria);
-    memcpy(espacio_usuario + direccion, &valor, sizeof(int));
-    pthread_mutex_unlock(&mutex_memoria);
-}
