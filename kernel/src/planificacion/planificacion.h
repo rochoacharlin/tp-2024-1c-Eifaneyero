@@ -44,6 +44,7 @@ extern int *instancias_recursos;
 extern char *estadosProcesos[5];
 extern int conexion_kernel_cpu_dispatch;
 extern int conexion_kernel_cpu_interrupt;
+extern int conexion_kernel_memoria;
 extern char *algoritmo;
 
 typedef enum

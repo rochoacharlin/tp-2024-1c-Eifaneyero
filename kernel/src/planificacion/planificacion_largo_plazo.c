@@ -162,7 +162,14 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
     loggear_fin_de_proceso(pcb->PID, motivo);
 
     liberar_recursos(pcb);
-    // COMPLETAR: Liberar recursos, memoria y archivos
+
+    // libero memoria
+    t_paquete *paquete = crear_paquete(FINALIZAR_PROCESO_KERNEL);
+    agregar_a_paquete_uint32(paquete, pcb->PID);
+    enviar_paquete(paquete, conexion_kernel_memoria);
+    eliminar_paquete(paquete);
+
+    // COMPLETAR: Liberar archivos?
 }
 
 void remover_pcb_de_listas_globales(t_pcb *pcb)
