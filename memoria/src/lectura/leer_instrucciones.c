@@ -18,7 +18,6 @@ t_list *subir_instrucciones(char *path)
     }
 
     fclose(archivo);
-    free(path);
     return instrucciones;
 }
 
