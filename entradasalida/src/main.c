@@ -118,7 +118,8 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
     if (cod_op == IO_STDIN_READ)
     {
-        loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
+        int *PID = (int *)list_get(parametros, 0);
+        loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
 
         int *tam = (int *)list_get(parametros, 1);
         char lectura[*tam];
@@ -136,8 +137,10 @@ op_code atender_stdin(int cod_op, t_list *parametros)
             strncpy(texto_a_enviar, lectura + desplazamiento, *bytes_a_operar);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
+            agregar_a_paquete(paquete, PID, sizeof(int));
             agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
             agregar_a_paquete_string(paquete, texto_a_enviar);
+            agregar_a_paquete(paquete, *bytes_a_operar, sizeof(int));
             enviar_paquete(paquete, conexion_memoria);
 
             desplazamiento += *bytes_a_operar;
