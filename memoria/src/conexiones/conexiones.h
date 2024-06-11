@@ -33,6 +33,27 @@ void atender_kernel(int socket_cliente);
 void atender_cpu(int socket_cliente);
 void atender_io(int socket_cliente);
 
+void crear_estructuras_administrativas(uint32_t PID, char *path);
+void recibir_creacion_proceso(uint32_t *PID, char **ptr_path);
+void atender_crear_proceso(void);
+
+void liberar_estructuras_administrativas(uint32_t PID);
+void recibir_pid(uint32_t *PID);
+void atender_finalizar_proceso(void);
+
+void enviar_instruccion_a_cpu(char *instruccion);
+void recibir_solicitud_instruccion(uint32_t *PID, uint32_t *PC);
+void atender_solicitud_instruccion(void);
+
+void escribir_espacio_usuario(uint32_t direccion, uint32_t valor);
+void recibir_escritura_espacio_usuario(uint32_t *PID, uint32_t *direccion_fisica, uint32_t *valor_a_escribir);
+void atender_escritura_espacio_usuario(void);
+
+void enviar_valor_leido_cpu(uint32_t valor_leido);
+uint32_t leer_espacio_usuario(uint32_t direccion);
+void recibir_lectura_espacio_usuario(uint32_t *PID, uint32_t *direccion_fisica, uint32_t *tamanio_a_leer);
+void atender_lectura_espacio_usuario(void);
+
 void enviar_marco(int marco);
 void recibir_solicitud_marco(uint32_t *PID, int *pagina);
 void atender_solicitud_marco();
