@@ -122,13 +122,13 @@ void *atender_interfaz(void *interfaz)
         pthread_mutex_lock(&io->cola_bloqueados);
         t_proceso_bloqueado *proceso = list_remove(io->procesos_bloqueados, 0);
         char *op_a_realizar = (char *)list_remove(proceso->parametros, 0);
-        int op_interfaz = string_itoa(op_a_realizar);
+        int op_interfaz = string_to_enum_io(op_a_realizar);
         t_paquete *p_interfaz = crear_paquete(op_interfaz);
         agregar_a_paquete(p_interfaz, (void *)proceso->pcb->PID, sizeof(int));
         agregar_parametros_a_paquete(p_interfaz, proceso->parametros);
-        int estado_al_enviar; // enviar_paquete_interfaz(p_interfaz, io->fd);
+        int estado_a_enviar; // enviar_paquete_interfaz(p_interfaz, io->fd);
 
-        if (estado_al_enviar != -1)
+        if (estado_a_enviar != -1)
         {
             int respuesta;
             recv(io->fd, &respuesta, sizeof(int), MSG_WAITALL); // recibe resultado de realizar interfaz
@@ -180,17 +180,31 @@ void liberar_procesos_io(t_list *procesos_io)
     }
 }
 
-void agregar_parametros_a_paquete(t_paquete *paquete, t_list *parametros)
-{
-    for (int i = 0; i < list_size(parametros); i++)
-    {
-        char *param = list_get(parametros, i);
-        agregar_a_paquete(paquete, (void *)param, sizeof(param));
-    }
-}
-
 void eliminar_proceso(t_proceso_bloqueado *proceso)
 {
     list_destroy_and_destroy_elements(proceso->parametros, free);
     free(proceso);
+}
+
+t_id_io string_to_enum_io(char *str)
+{
+
+    if (strcmp(str, "IO_GEN_SLEEP") == 0)
+        return IO_GEN_SLEEP;
+    if (strcmp(str, "IO_STDIN_READ") == 0)
+        return IO_STDIN_READ;
+    if (strcmp(str, "IO_STDOUT_WRITE") == 0)
+        return IO_STDOUT_WRITE;
+    if (strcmp(str, "IO_FS_CREATE") == 0)
+        return IO_FS_CREATE;
+    if (strcmp(str, "IO_FS_DELETE") == 0)
+        return IO_FS_DELETE;
+    if (strcmp(str, "IO_FS_TRUNCATE") == 0)
+        return IO_FS_TRUNCATE;
+    if (strcmp(str, "IO_FS_WRITE") == 0)
+        return IO_FS_WRITE;
+    if (strcmp(str, "IO_FS_READ") == 0)
+        return IO_FS_READ;
+    // Este caso no lo considero por que no podrian enviar otros que no sean los anteriores
+    // return -1;
 }

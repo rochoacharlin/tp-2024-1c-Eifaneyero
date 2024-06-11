@@ -36,6 +36,18 @@ typedef struct
 
 } t_proceso_bloqueado;
 
+typedef enum
+{
+    IO_GEN_SLEEP = 10,
+    IO_STDIN_READ,
+    IO_STDOUT_WRITE,
+    IO_FS_CREATE,
+    IO_FS_DELETE,
+    IO_FS_TRUNCATE,
+    IO_FS_WRITE,
+    IO_FS_READ
+} t_id_io;
+
 bool puede_realizar_operacion(t_io_list *io, char *operacion);
 void *ejecutar_espera_interfaces(void);
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd);
@@ -46,5 +58,6 @@ void *ejecutar_io_generica(void);
 void *atender_interfaz(void *interfaz);
 void liberar_procesos_io(t_list *procesos_io);
 void eliminar_proceso(t_proceso_bloqueado *proceso);
+t_id_io string_to_enum_io(char *str);
 
 #endif
