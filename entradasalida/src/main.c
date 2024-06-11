@@ -178,7 +178,7 @@ op_code atender_stdout(int cod_op, t_list *parametros)
             agregar_a_paquete(paquete, bytes_a_operar, sizeof(int));
             enviar_paquete(paquete, conexion_memoria);
 
-            char *valor_leido = recibir_buffer(conexion_memoria, bytes_a_operar);
+            char *valor_leido = (char *)recibir_buffer(conexion_memoria, bytes_a_operar);
             strncat(valor_leido_completo, valor_leido, *bytes_a_operar);
 
             free(valor_leido);

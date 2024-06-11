@@ -68,16 +68,18 @@ void finalizar_proceso(char *PID)
 
 void detener_planificacion(void)
 {
-    // COMPLETAR: El proceso que se encuentra en ejecución NO es desalojado,
-    //            pero una vez que salga de EXEC se va a pausar el manejo de su motivo de desalojo.
-    sem_wait(&planificacion_liberada);
+    sem_wait(&planificacion_largo_plazo_liberada);
+    sem_wait(&planificacion_corto_plazo_liberada);
+    sem_wait(&desalojo_liberado);
     sem_post(&planificacion_pausada);
 }
 
 void iniciar_planificacion(void)
 {
-    sem_wait(&planificacion_pausada); // para asegurar que libere la planificacion cuando este pausada.
-    sem_post(&planificacion_liberada);
+    sem_wait(&planificacion_pausada); // para asegurar que solo se libere la planificacion cuando este pausada.
+    sem_post(&planificacion_largo_plazo_liberada);
+    sem_post(&planificacion_corto_plazo_liberada);
+    sem_post(&desalojo_liberado);
 }
 
 void cambiar_grado_multiprogramacion(char *valor_deseado)

@@ -26,6 +26,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
     crear_colas_de_bloqueo();
     while (1)
     {
+        sem_wait(&planificacion_corto_plazo_liberada);
         sem_wait(&hay_pcbs_READY);
         pcb_en_EXEC = proximo_a_ejecutar();
 
@@ -38,6 +39,8 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         hubo_desalojo = false;
         procesar_pcb_segun_algoritmo(pcb_en_EXEC);
         esperar_contexto_y_actualizar_pcb(pcb_en_EXEC);
+
+        sem_post(&planificacion_corto_plazo_liberada);
     }
 }
 
@@ -121,15 +124,13 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
     actualizar_pcb(pcb, contexto);
 
-    // printf("%d, %d\n", motivo_desalojo, obtener_valor_registro(pcb->registros_cpu, "AX"));
-    // pcb_en_EXEC = NULL;
+    sem_wait(&desalojo_liberado);
 
-    switch (motivo_desalojo) // ACTUALIZAR EL ESTADO DEL PCB Y TENER EN CUENTA QUE NO LO SACA DE EXEC HASTA QUE TENGA OTRO PARA PASAR A EXEC.
+    switch (motivo_desalojo)
     {
     case DESALOJO_IO:
         t_list *parametros = obtener_parametros_de_paquete_desalojo(paquete);
         manejador_interfaz(pcb, parametros);
-
         break;
 
     case DESALOJO_EXIT_SUCCESS:
@@ -145,19 +146,19 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         break;
 
     case DESALOJO_WAIT:
-        // COMPLETAR: Todavia no esa hecha la funcion en la CPU y por lo tanto no se como me mandan los datos
-        wait_recurso("", pcb);
+        wait_recurso((char *)list_get(paquete, 12), pcb);
         break;
 
     case DESALOJO_SIGNAL:
-        // COMPLETAR: Todavia no esa hecha la funcion en la CPU y por lo tanto no se como me mandan los datos
-        signal_recurso("", pcb, ms_en_ejecucion);
+        signal_recurso((char *)list_get(paquete, 12), pcb, ms_en_ejecucion);
         break;
 
     default:
         log_error(logger_propio, "Motivo de desalojo incorrecto.");
         break;
     }
+
+    sem_post(&desalojo_liberado);
 }
 
 void procesar_pcb_segun_algoritmo(t_pcb *pcb)

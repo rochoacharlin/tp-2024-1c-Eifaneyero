@@ -11,7 +11,9 @@ t_list *pcbs_en_BLOCKED;
 sem_t hay_pcbs_NEW;
 sem_t hay_pcbs_READY;
 sem_t sem_grado_multiprogramacion;
-sem_t planificacion_liberada;
+sem_t planificacion_largo_plazo_liberada;
+sem_t planificacion_corto_plazo_liberada;
+sem_t desalojo_liberado;
 sem_t planificacion_pausada;
 
 pthread_mutex_t mutex_lista_NEW;
@@ -30,7 +32,7 @@ void planificar_a_largo_plazo(void)
     algoritmo = obtener_algoritmo_planificacion();
     while (1)
     {
-        sem_wait(&planificacion_liberada);
+        sem_wait(&planificacion_largo_plazo_liberada);
         sem_wait(&hay_pcbs_NEW);
         sem_wait(&sem_grado_multiprogramacion);
 
@@ -45,8 +47,8 @@ void planificar_a_largo_plazo(void)
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
 
-        sem_post(&planificacion_liberada);
         ingresar_pcb_a_READY(pcb);
+        sem_post(&planificacion_largo_plazo_liberada);
     }
 }
 
@@ -123,7 +125,9 @@ void inicializar_semaforos_planificacion(void)
     sem_init(&hay_pcbs_NEW, 0, 0);
     sem_init(&hay_pcbs_READY, 0, 0);
     sem_init(&sem_grado_multiprogramacion, 0, obtener_grado_multiprogramacion());
-    sem_init(&planificacion_liberada, 0, 1);
+    sem_init(&planificacion_largo_plazo_liberada, 0, 1);
+    sem_init(&planificacion_corto_plazo_liberada, 0, 1);
+    sem_init(&desalojo_liberado, 0, 1);
 }
 
 void destruir_semaforos_planificacion(void)
@@ -138,7 +142,9 @@ void destruir_semaforos_planificacion(void)
     sem_close(&hay_pcbs_NEW);
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
-    sem_close(&planificacion_liberada);
+    sem_close(&planificacion_largo_plazo_liberada);
+    sem_close(&planificacion_corto_plazo_liberada);
+    sem_close(&desalojo_liberado);
 }
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
