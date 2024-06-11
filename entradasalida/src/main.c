@@ -120,30 +120,29 @@ op_code atender_stdin(int cod_op, t_list *parametros)
     {
         loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
 
-        int *tam = list_get(parametros, 1);
-        char lectura[*tam + 1];
+        int *tam = (int *)list_get(parametros, 1);
+        char lectura[*tam];
 
         printf("Ingresar texto para STDIN: ");
         scanf("%s", lectura);
 
         int desplazamiento = 0;
-        for (int i = 2; i < list_size(parametros); i++)
+        for (int i = 2; i < list_size(parametros); i += 2)
         {
-            int *direccion_fisica = list_get(parametros, i);
-            int *bytes_a_operar = list_get(parametros, i + 1);
+            int *direccion_fisica = (int *)ist_get(parametros, i);
+            int *bytes_a_operar = (int *)list_get(parametros, i + 1);
 
-            char texto_a_enviar[*bytes_a_operar + 1];
+            char texto_a_enviar[*bytes_a_operar];
             strncpy(texto_a_enviar, lectura + desplazamiento, *bytes_a_operar);
-            texto_a_enviar[*bytes_a_operar] = '\0';
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
             agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
             agregar_a_paquete_string(paquete, texto_a_enviar);
             enviar_paquete(paquete, conexion_memoria);
 
-            i++;
             eliminar_paquete(paquete);
             desplazamiento += *bytes_a_operar;
+            respuesta = recibir_operacion(conexion_memoria);
         }
     }
     else
@@ -162,7 +161,8 @@ op_code atender_stdout(int cod_op, t_list *parametros)
     {
         // creo que el primer parametro de la lista no es un PID cuando se manda en el kernel, habria que verificar eso
         loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
-        int *tam = list_get(parametros, 3);
+        int *tam = (int *)list_get(parametros, 3);
+        char valor_leido_completo[*tam];
 
         for (int i = 3; i < list_size(parametros); i++)
         {
@@ -172,10 +172,12 @@ op_code atender_stdout(int cod_op, t_list *parametros)
             enviar_paquete(paquete, conexion_memoria);
 
             char *valor_leido = recibir_buffer(conexion_memoria, tam);
-            log_info(logger_propio, "El valor %d leido de la memoria para STDOUT es: %s", i - 2, valor_leido);
+            // el valor_leido debe con
 
             eliminar_paquete(paquete);
         }
+
+        log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", valor_leido_completo);
     }
     else
     {
