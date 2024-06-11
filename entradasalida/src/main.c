@@ -140,10 +140,15 @@ op_code atender_stdin(int cod_op, t_list *parametros)
             agregar_a_paquete_string(paquete, texto_a_enviar);
             enviar_paquete(paquete, conexion_memoria);
 
-            eliminar_paquete(paquete);
             desplazamiento += *bytes_a_operar;
             respuesta = recibir_operacion(conexion_memoria);
+
+            eliminar_paquete(paquete);
+            free(direccion_fisica);
+            free(bytes_a_operar);
         }
+
+        free(tam);
     }
     else
     {
@@ -165,23 +170,25 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 
         for (int i = 1; i < list_size(parametros); i += 2)
         {
-
             int *direccion_fisica = (int *)list_get(parametros, i);
             int *bytes_a_operar = (int *)list_get(parametros, i + 1);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
-            agregar_a_paquete(paquete, *direccion_fisica, sizeof(int));
-            agregar_a_paquete(paquete, *bytes_a_operar, sizeof(int));
+            agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
+            agregar_a_paquete(paquete, bytes_a_operar, sizeof(int));
             enviar_paquete(paquete, conexion_memoria);
 
-            char *valor_leido = recibir_buffer(conexion_memoria, *bytes_a_operar);
-            strncat(valor_leido_completo, valor_leido, *tam - strlen(valor_leido_completo));
+            char *valor_leido = recibir_buffer(conexion_memoria, bytes_a_operar);
+            strncat(valor_leido_completo, valor_leido, *bytes_a_operar);
 
             free(valor_leido);
+            free(direccion_fisica);
+            free(bytes_a_operar);
             eliminar_paquete(paquete);
         }
 
         log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", valor_leido_completo);
+        free(tam);
     }
     else
     {
