@@ -14,12 +14,19 @@ int buscar_marco(t_TLB *tlb, uint32_t PID, int pagina)
 {
     int marco = buscar_en_TLB(tlb, PID, pagina);
 
-    if (marco == -1)
+    if (marco == -1) // TLB MISS
     {
+        loggear_tlb_miss(PID, pagina);
         solicitar_marco_memoria(PID, pagina);
         marco = recibir_marco_memoria();
         agregar_pagina_TLB(tlb, PID, pagina, marco);
     }
+    else
+    { // TLB hit
+        loggear_tlb_hit(PID, pagina);
+    }
+
+    loggear_obtener_marco(PID, pagina, marco);
 
     return marco;
 }
