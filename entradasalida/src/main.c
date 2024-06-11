@@ -129,7 +129,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         int desplazamiento = 0;
         for (int i = 2; i < list_size(parametros); i += 2)
         {
-            int *direccion_fisica = (int *)ist_get(parametros, i);
+            int *direccion_fisica = (int *)list_get(parametros, i);
             int *bytes_a_operar = (int *)list_get(parametros, i + 1);
 
             char texto_a_enviar[*bytes_a_operar];
@@ -159,21 +159,25 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 
     if (cod_op == IO_STDOUT_WRITE)
     {
-        // creo que el primer parametro de la lista no es un PID cuando se manda en el kernel, habria que verificar eso
         loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
-        int *tam = (int *)list_get(parametros, 3);
+        int *tam = (int *)list_get(parametros, 1);
         char valor_leido_completo[*tam];
 
-        for (int i = 3; i < list_size(parametros); i++)
+        for (int i = 1; i < list_size(parametros); i += 2)
         {
+
+            int *direccion_fisica = (int *)list_get(parametros, i);
+            int *bytes_a_operar = (int *)list_get(parametros, i + 1);
+
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
-            int *direccion_fisica = list_get(parametros, i);
-            agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
+            agregar_a_paquete(paquete, *direccion_fisica, sizeof(int));
+            agregar_a_paquete(paquete, *bytes_a_operar, sizeof(int));
             enviar_paquete(paquete, conexion_memoria);
 
-            char *valor_leido = recibir_buffer(conexion_memoria, tam);
-            // el valor_leido debe con
+            char *valor_leido = recibir_buffer(conexion_memoria, *bytes_a_operar);
+            strncat(valor_leido_completo, valor_leido, *tam - strlen(valor_leido_completo));
 
+            free(valor_leido);
             eliminar_paquete(paquete);
         }
 
