@@ -78,4 +78,6 @@ void *recibir_buffer(int socket, int *size);
 t_list *recibir_paquete(int socket_cliente);
 char *recibir_string(int socket_cliente);
 
+void agregar_parametros_a_paquete(t_paquete *paquete, t_list *parametros);
+
 #endif /* SERIALIZACION_H */
