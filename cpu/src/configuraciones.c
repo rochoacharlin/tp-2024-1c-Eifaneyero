@@ -13,20 +13,25 @@ void loggear_instrucion_ejecutada(uint32_t PID, t_instruccion instruccion)
 */
 void loggear_tlb_hit(uint32_t PID, int numero_pagina)
 {
-    // TODO:
+    log_info(logger_obligatorio, "PID: <%d> - TLB HIT - Pagina: <%d>", PID, numero_pagina);
 }
 
 void loggear_tlb_miss(uint32_t PID, int numero_pagina)
 {
-    // TODO
+    log_info(logger_obligatorio, "PID: <%d> - TLB MISS - Pagina: <%d>", PID, numero_pagina);
 }
 
 void loggear_obtener_marco(uint32_t PID, int numero_pagina, int numero_marco)
 {
-    // TODO
+    log_info(logger_obligatorio, "PID: <%d> - OBTENER MARCO - Página: <%d> - Marco: <%d>", PID, numero_pagina, numero_marco);
 }
 
-void loggear_lectura_o_escritura_memoria(uint32_t PID, char accion, int direccion_fisica, int valor) // ni idea si estos son los tipos de datos correctos
+void loggear_lectura_memoria(uint32_t PID, uint32_t direccion_fisica, char *valor)
 {
-    // TODO
+    log_info(logger_obligatorio, "PID: <%d> - Acción: <LEER> - Dirección Física: <%d> - Valor: <%s>", PID, direccion_fisica, valor);
+}
+
+void loggear_escritura_memoria(uint32_t PID, uint32_t direccion_fisica, char *valor)
+{
+    log_info(logger_obligatorio, "PID: <%d> - Acción: <ESCRIBIR> - Dirección Física: <%d> - Valor: <%s>", PID, direccion_fisica, valor);
 }
