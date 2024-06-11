@@ -57,10 +57,19 @@ int enviar_paquete_interfaz(t_paquete *paquete, int conexion)
     int bytes = paquete->buffer->size + 2 * sizeof(int); // tamaño del stream + int con streamSize + opCode
     void *a_enviar = serializar_paquete(paquete, bytes);
 
-    int sigue_la_conexion = send(socket, a_enviar, bytes, SIGPIPE);
+    int sigue_la_conexion = send(conexion, a_enviar, bytes, MSG_NOSIGNAL);
 
     free(a_enviar);
     return sigue_la_conexion;
+}
+
+void agregar_parametros_a_paquete(t_paquete *paquete, t_list *parametros)
+{
+    for (int i = 0; i < list_size(parametros); i++)
+    {
+        char *param = list_get(parametros, i);
+        agregar_a_paquete(paquete, (void *)param, sizeof(param));
+    }
 }
 
 void enviar_cod_op(op_code codigo_de_operacion, int socket)
