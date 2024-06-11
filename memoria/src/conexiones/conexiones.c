@@ -1,35 +1,27 @@
 #include <conexiones/conexiones.h>
 
-#define TOPE_DE_IDS 10 // Elegí numero aleatorio.
+#define TOPE_DE_IDS 100 // Elegí numero aleatorio.
 
 int server_fd;
 int sockets[3];
-sem_t semaforos[TOPE_DE_IDS];
+sem_t semaforos[TOPE_DE_IDS]; // TODOF: t_list, agregar semaforo a medida que inicio proceso
 
-// Para semaforear que se hayan cargado scripts de los procesos, antes de poder solicitar lectura de instrucciones.
-void iniciar_semaforo_para_peticiones(void)
+void iniciar_semaforo_para_peticiones(void) // Para semaforear carga scripts, antes de poder solicitar lectura de instrucciones.
 {
     uint32_t i;
     for (i = 0; i < TOPE_DE_IDS; i++)
     {
         if (sem_init(&semaforos[i], 0, 0) != 0)
         {
-            log_info(logger_propio, "Error en semaforos, choque inminente"); // TODO: logueo diferente los errores?
+            log_info(logger_propio, "Error en semaforos, choque inminente");
             exit(1);
         }
     }
 }
 
-char *obtener_instruccion_de_indice(uint32_t PID, uint32_t PC)
-{
-    t_list *instrucciones = (t_list *)dictionary_get(indice_instrucciones, string_itoa(PID));
-    char *instruccion = list_get(instrucciones, PC);
-    return instruccion;
-}
-
 void iniciar_servidor_memoria(void)
 {
-    server_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha()); // Inicio el server memoria
+    server_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha());
     log_info(logger_propio, "Memoria lista para recibir clientes");
 }
 
@@ -62,7 +54,6 @@ void iniciar_conexiones()
             log_info(logger_propio, "Se conectó la IO como cliente!");
         }
     }
-    // Se establecieron todas las conexiones en sus sockets correspondientes
 
     pthread_t hilo_kernel;
     pthread_create(&hilo_kernel, NULL, (void *)atender_kernel, &(sockets[0]));
@@ -81,7 +72,7 @@ void atender_kernel(int socket_cliente)
 {
     while (1)
     {
-        switch (recibir_operacion(sockets[0]))
+        switch (recibir_operacion(socket_cliente))
         {
         case CREAR_PROCESO_KERNEL:
             atender_crear_proceso();
@@ -92,7 +83,7 @@ void atender_kernel(int socket_cliente)
             break;
 
         default:
-            log_info(logger_propio, "Codigo de operacion incorrecto");
+            log_info(logger_propio, "Codigo de operacion incorrecto en atender_kernel");
             break;
         }
     }
@@ -102,18 +93,18 @@ void atender_cpu(int socket_cliente)
 {
     while (1)
     {
-        switch (recibir_operacion(sockets[1]))
+        switch (recibir_operacion(socket_cliente))
         {
         case SOLICITUD_INSTRUCCION:
-            atender_solicitud_instruccion(); // Para arrancar, el kernel tiene que mandar el archivo a abrir
+            atender_solicitud_instruccion(); // Para arrancar, el kernel tiene que mandar el archivo a abrir.
             break;
 
         case ACCESO_ESPACIO_USUARIO_ESCRITURA:
-            atender_escritura_espacio_usuario();
+            atender_escritura_espacio_usuario(socket_cliente);
             break;
 
         case ACCESO_ESPACIO_USUARIO_LECTURA:
-            atender_lectura_espacio_usuario();
+            atender_lectura_espacio_usuario(socket_cliente);
             break;
 
         case SOLICITUD_MARCO:
@@ -125,7 +116,7 @@ void atender_cpu(int socket_cliente)
             break;
 
         default:
-            log_info(logger_propio, "Codigo de operacion incorrecto");
+            log_info(logger_propio, "Codigo de operacion incorrecto en atender_cpu");
             break;
         }
     }
@@ -135,31 +126,19 @@ void atender_io(int socket_cliente)
 {
     while (1)
     {
-        switch (recibir_operacion(sockets[2]))
+        switch (recibir_operacion(socket_cliente))
         {
 
-        // ● IO_STDOUT_WRITE (Interfaz, Registro Dirección, Registro Tamaño): Esta instrucción solicita
-        // al Kernel que mediante la interfaz seleccionada, se lea desde la posición de memoria
-        // indicada por la Dirección Lógica almacenada en el Registro Dirección, un tamaño indicado
-        // por el Registro Tamaño y se imprima por pantalla.
         case ACCESO_ESPACIO_USUARIO_ESCRITURA:
-
-            // TODO:
-            // loggear_escritura_espacio_de_usuario(PID, direccion_fisica, int tamanio);
+            atender_escritura_espacio_usuario(socket_cliente);
             break;
 
-        // ● IO_STDIN_READ (Interfaz, Registro Dirección, Registro Tamaño): Esta instrucción solicita al
-        // Kernel que mediante la interfaz ingresada se lea desde el STDIN (Teclado) un valor cuyo
-        // tamaño está delimitado por el valor del Registro Tamaño y el mismo se guarde a partir de la
-        // Dirección Lógica almacenada en el Registro Dirección.
         case ACCESO_ESPACIO_USUARIO_LECTURA:
-
-            // TODO:
-            // loggear_lectura_espacio_de_usuario(PID, direccion_fisica, int tamanio);
+            atender_lectura_espacio_usuario(socket_cliente);
             break;
 
         default:
-            log_info(logger_propio, "Codigo de operacion incorrecto");
+            log_info(logger_propio, "Codigo de operacion incorrecto en atender_io");
             break;
         }
     }
@@ -313,6 +292,13 @@ void recibir_solicitud_instruccion(uint32_t *PID, uint32_t *PC)
     list_destroy_and_destroy_elements(pid_y_pc, free);
 }
 
+char *obtener_instruccion_de_indice(uint32_t PID, uint32_t PC)
+{
+    t_list *instrucciones = (t_list *)dictionary_get(indice_instrucciones, string_itoa(PID));
+    char *instruccion = list_get(instrucciones, PC);
+    return instruccion;
+}
+
 void enviar_instruccion_a_cpu(char *instruccion)
 {
     t_paquete *paquete_instruccion = crear_paquete(INSTRUCCION);
@@ -321,74 +307,74 @@ void enviar_instruccion_a_cpu(char *instruccion)
     eliminar_paquete(paquete_instruccion);
 }
 
-void atender_escritura_espacio_usuario(void)
+void atender_escritura_espacio_usuario(int sockete)
 {
-    // Recibo: PID, dirección fisica y valor a escribir. //PID es necesario si la memoria escribe deliberadamente
-    uint32_t PID, direccion_fisica, valor_a_escribir;
-    recibir_escritura_espacio_usuario(&PID, &direccion_fisica, &valor_a_escribir);
+    uint32_t PID, direccion_fisica, tamanio; // Orden
+    void *valor_a_escribir = NULL;
+    recibir_escritura_espacio_usuario(sockete, &PID, &direccion_fisica, valor_a_escribir, &tamanio);
+    escribir_espacio_usuario(direccion_fisica, valor_a_escribir, tamanio);
+    enviar_cod_op(OK, sockete);
 
-    // Quien verifica que se escriban paginas de este proceso, MMU?.
-    // Actualizar estado de marcos
-
-    escribir_espacio_usuario(direccion_fisica, valor_a_escribir);
-    enviar_cod_op(OK, sockets[1]);
-
-    loggear_escritura_espacio_de_usuario(PID, direccion_fisica, sizeof(valor_a_escribir));
+    loggear_escritura_espacio_de_usuario(PID, direccion_fisica, tamanio);
+    free(valor_a_escribir);
 }
 
-void recibir_escritura_espacio_usuario(uint32_t *PID, uint32_t *direccion_fisica, uint32_t *valor_a_escribir) // Revisar tipo de dato valor_a_escribir
+void recibir_escritura_espacio_usuario(int sockete, uint32_t *PID, uint32_t *direccion_fisica,
+                                       void *valor_a_escribir, uint32_t *tamanio)
 {
-    t_list *paquete_escritura_espacio = recibir_paquete(sockets[1]);
+    t_list *paquete_escritura_espacio = recibir_paquete(sockete);
     *PID = *(uint32_t *)list_get(paquete_escritura_espacio, 0);
     *direccion_fisica = *(uint32_t *)list_get(paquete_escritura_espacio, 1);
-    *valor_a_escribir = *(uint32_t *)list_get(paquete_escritura_espacio, 2);
+    void *valor_temp = list_get(paquete_escritura_espacio, 2);
+    *tamanio = *(uint32_t *)list_get(paquete_escritura_espacio, 3);
+
+    valor_a_escribir = malloc(*tamanio);
+    memcpy(valor_a_escribir, valor_temp, *tamanio);
+
     list_destroy_and_destroy_elements(paquete_escritura_espacio, free);
 }
 
-// Escribo sin importar si me voy de la página.
-void escribir_espacio_usuario(uint32_t direccion, uint32_t valor)
+void escribir_espacio_usuario(uint32_t direccion, void *valor, uint32_t tamanio)
 {
     pthread_mutex_lock(&mutex_memoria);
-    memcpy(espacio_usuario + direccion, &valor, sizeof(int));
+    memcpy(espacio_usuario + direccion, valor, tamanio);
     pthread_mutex_unlock(&mutex_memoria);
 }
 
-void atender_lectura_espacio_usuario(void)
+void atender_lectura_espacio_usuario(int sockete)
 {
-    // Recibo: dirección fisica
     uint32_t PID, direccion_fisica, tamanio_a_leer;
-    recibir_lectura_espacio_usuario(&PID, &direccion_fisica, &tamanio_a_leer);
-    uint32_t valor_leido = leer_espacio_usuario(direccion_fisica);
-    enviar_valor_leido_cpu(valor_leido);
+    recibir_lectura_espacio_usuario(sockete, &PID, &direccion_fisica, &tamanio_a_leer);
+    void *valor_leido = leer_espacio_usuario(direccion_fisica, tamanio_a_leer);
+    enviar_valor_leido(sockete, valor_leido, tamanio_a_leer);
 
-    loggear_lectura_espacio_de_usuario(PID, direccion_fisica, sizeof(valor_leido));
+    loggear_lectura_espacio_de_usuario(PID, direccion_fisica, tamanio_a_leer);
+    free(valor_leido);
 }
 
-void recibir_lectura_espacio_usuario(uint32_t *PID, uint32_t *direccion_fisica, uint32_t *tamanio_a_leer)
+void recibir_lectura_espacio_usuario(int sockete, uint32_t *PID, uint32_t *direccion_fisica, uint32_t *tamanio_a_leer)
 {
-    t_list *paquete_lectura_espacio = recibir_paquete(sockets[1]);
+    t_list *paquete_lectura_espacio = recibir_paquete(sockete);
     *PID = *(uint32_t *)list_get(paquete_lectura_espacio, 0);
     *direccion_fisica = *(uint32_t *)list_get(paquete_lectura_espacio, 1);
     *tamanio_a_leer = *(uint32_t *)list_get(paquete_lectura_espacio, 2);
     list_destroy_and_destroy_elements(paquete_lectura_espacio, free);
 }
 
-// Interpreto que los registros de memoria son de 32 bits
-uint32_t leer_espacio_usuario(uint32_t direccion)
+void *leer_espacio_usuario(uint32_t direccion, uint32_t tamanio_a_leer)
 {
-    uint32_t valor;
-
+    void *valor = malloc(tamanio_a_leer);
     pthread_mutex_lock(&mutex_memoria);
-    memcpy(&valor, espacio_usuario + direccion, sizeof(uint32_t));
+    memcpy(&valor, espacio_usuario + direccion, tamanio_a_leer);
     pthread_mutex_unlock(&mutex_memoria);
 
     return valor;
 }
 
-void enviar_valor_leido_cpu(uint32_t valor_leido)
+void enviar_valor_leido(int sockete, void *valor_leido, uint32_t tamanio_valor)
 {
     t_paquete *paquete_valor_leido = crear_paquete(OK);
-    agregar_a_paquete_uint32(paquete_valor_leido, valor_leido);
-    enviar_paquete(paquete_valor_leido, sockets[1]);
+    agregar_a_paquete(paquete_valor_leido, valor_leido, tamanio_valor);
+    enviar_paquete(paquete_valor_leido, sockete);
     eliminar_paquete(paquete_valor_leido);
 }
