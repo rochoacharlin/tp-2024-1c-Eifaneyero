@@ -87,7 +87,7 @@ op_code atender_gen(int cod_op, t_list *parametros)
 
     if (cod_op == IO_GEN_SLEEP)
     {
-        loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
+        loggear_operacion(*(uint32_t *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
 
         int unidades_de_trabajo = atoi((char *)list_get(parametros, 1));
         uint32_t tiempo_de_espera_ms = calcular_tiempo_de_espera(unidades_de_trabajo) * 1000;
@@ -118,7 +118,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
     if (cod_op == IO_STDIN_READ)
     {
-        uint32_t *PID = (int *)list_get(parametros, 0);
+        uint32_t *PID = (uint32_t *)list_get(parametros, 0);
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
 
         int *tam = (int *)list_get(parametros, 1);
