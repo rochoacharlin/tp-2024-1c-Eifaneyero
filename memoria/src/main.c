@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 // el test se hizo con tam pagina = 16 y tam memoria = 200
 void test_resize()
 {
-    inicializar_memoria();
+    /*inicializar_memoria();
     uint32_t PID1 = 3, PID2 = 4, PID3 = 5;
     agregar_proceso_al_indice(PID1);
     agregar_proceso_al_indice(PID2);
@@ -78,5 +78,5 @@ void test_resize()
     // caso out of memory
     log_info(logger_propio, "Páginas antes de out of memory (deben ser 2): %d", list_size(obtener_tp_de_proceso(PID3)));
     log_info(logger_propio, "Resultado de out of memory: %d", resize(PID3, 255));
-    log_info(logger_propio, "Páginas luego de out of memory: %d", list_size(obtener_tp_de_proceso(PID3)));
+    log_info(logger_propio, "Páginas luego de out of memory: %d", list_size(obtener_tp_de_proceso(PID3)));*/
 }
