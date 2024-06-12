@@ -1,9 +1,6 @@
 #include <conexiones/conexiones.h>
 
-#define TOPE_DE_IDS 100 // Elegí numero aleatorio.
-
 int server_fd;
-int sockets[3];
 
 void iniciar_servidor_memoria(void)
 {
@@ -14,10 +11,6 @@ void iniciar_servidor_memoria(void)
 void iniciar_conexiones()
 {
     iniciar_servidor_memoria();
-
-    sockets[0] = -1;
-    sockets[1] = -1;
-    sockets[2] = -1;
 
     while (1)
     {
