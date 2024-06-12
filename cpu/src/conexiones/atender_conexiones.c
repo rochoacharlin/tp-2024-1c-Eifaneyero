@@ -35,8 +35,17 @@ void iniciar_conexion_memoria(void)
 {
     conexion_cpu_memoria = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
     enviar_cod_op(CONEXION_CPU, conexion_cpu_memoria);
-    // int32_t handshake = 1;
-    // int handshake_respuesta = handshake_cliente(logger_propio, conexion_cpu_memoria, handshake);
+    if (recibir_operacion(conexion_cpu_memoria) == MENSAJE)
+    {
+        t_list *valores = recibir_paquete(conexion_cpu_memoria);
+        tamanio_pagina = *(int *)list_get(valores, 0);
+        list_destroy_and_destroy_elements(valores, free);
+    }
+    else
+    {
+        log_info(logger_propio, "No se logró conectar adecuadamente con la memoria");
+        exit(1);
+    }
 }
 
 char *recibir_interrupcion() // TODO F: Chequear.
