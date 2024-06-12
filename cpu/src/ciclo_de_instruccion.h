@@ -76,6 +76,9 @@ uint8_t tamanio_de_registro(char *registro);
 
 bool instruccion_bloqueante(t_id id_instruccion);
 
+void enviar_lectura_espacio_usuario(uint32_t PID, void *direccion, int *tamanio);
+void enviar_escritura_espacio_usuario(uint32_t PID, void *direccion, void *valor_a_escribir, int *tamanio);
+
 // -------------------- INSTRUCCIONES -------------------- //
 
 void set(char *nombre_registro, char *valor);
@@ -85,8 +88,8 @@ void jnz(char *nombre_registro, char *nro_instruccion);
 void io_gen_sleep(char *nombre, char *unidades);
 void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);
 void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);
-void mov_in(char *registro_datos_destino, char *registro_con_direccion_logica);
-void mov_out(char *registro_con_direccion_destino, char *registro_datos);
+void mov_in(char *registro_datos_destino, t_list *direcciones_fisicas);
+void mov_out(char *registro_datos, t_list *direcciones_fisicas);
 void resize(uint32_t tamanio);
 void exit_inst();
 

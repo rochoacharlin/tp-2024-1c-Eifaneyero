@@ -283,12 +283,12 @@ void execute(t_instruccion *instruccion)
         break;
 
     case MOV_IN:
-        mov_in(instruccion->param1, instruccion->param2);
+        mov_in(instruccion->param1, instruccion->direcciones_fisicas);
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_IN - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
         break;
 
     case MOV_OUT:
-        mov_out(instruccion->param1, instruccion->param2);
+        mov_out(instruccion->param2, instruccion->direcciones_fisicas);
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_OUT - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
         break;
 
@@ -428,54 +428,73 @@ void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_t
     devolver_contexto(DESALOJO_IO, param);
 }
 
-void mov_in(char *registro_datos_destino, char *registro_con_direccion_logica)
+void mov_in(char *registro_datos_destino, t_list *direcciones_fisicas)
 {
-    // Ro, como defino el tipo de dato de direccion lógica? 8 o 32? Me explicassss? Creo que tengo ese problema en toda la funcion.
-    uint32_t direccion_logica = obtener_valor_registro(contexto->registros_cpu, registro_con_direccion_logica);
-    uint32_t direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
 
-    t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
-    agregar_a_paquete_uint32(paquete_direccion, direccion_fisica);
-    enviar_paquete(paquete_direccion, conexion_cpu_memoria);
-    eliminar_paquete(paquete_direccion);
-
-    if (recibir_operacion(conexion_cpu_memoria) == OK)
+    for (int i = 0; i < list_size(direcciones_fisicas); i += 2)
     {
-        t_list *paquete_valor = recibir_paquete(conexion_cpu_memoria);
-        uint32_t valor = *(uint32_t *)list_get(paquete_valor, 0);
+        void *direccion = list_get(direcciones_fisicas, i);
+        int *tamanio = (int *)list_get(direcciones_fisicas, i + 1);
+        enviar_lectura_espacio_usuario(contexto->PID, direccion, tamanio); // PID | direccion | tamano a leer
 
-        set(registro_datos_destino, string_itoa(valor));
-        list_destroy_and_destroy_elements(paquete_valor, free);
-    }
-    else
-    {
-        log_info(logger_propio, "Conflicto en mov_in"); // Temp
+        if (recibir_operacion(conexion_cpu_memoria) == OK)
+        {
+            t_list *paquete_valor = recibir_paquete(conexion_cpu_memoria);
+            char *valor = (char *)list_get(paquete_valor, 0);
+
+            loggear_lectura_memoria(contexto->PID, *(uint32_t *)direccion, valor);
+
+            set(registro_datos_destino, valor);
+
+            list_destroy_and_destroy_elements(paquete_valor, free);
+        }
+        else
+        {
+            log_info(logger_propio, "Conflicto en mov_in"); //
+        }
     }
 }
 
-void mov_out(char *registro_con_direccion_destino, char *registro_datos)
+void enviar_lectura_espacio_usuario(uint32_t PID, void *direccion, int *tamanio)
 {
-    // Ro, como defino el tipo de dato de direccion lógica? 8 o 32? Me explicassss? Creo que tengo ese problema en toda la funcion.
-    uint32_t valor = obtener_valor_registro(contexto->registros_cpu, registro_datos);
-    uint32_t direccion_logica = obtener_valor_registro(contexto->registros_cpu, registro_con_direccion_destino);
-    uint32_t direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
-
-    // Envio PID, dir fisica y valor a escribir.
     t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
-    agregar_a_paquete_uint32(paquete_direccion, contexto->PID);
-    agregar_a_paquete_uint32(paquete_direccion, direccion_fisica);
-    agregar_a_paquete_uint32(paquete_direccion, valor);
+    agregar_a_paquete_uint32(paquete_direccion, PID);
+    agregar_a_paquete(paquete_direccion, direccion, *tamanio);
+    agregar_a_paquete(paquete_direccion, tamanio, sizeof(int));
     enviar_paquete(paquete_direccion, conexion_cpu_memoria);
     eliminar_paquete(paquete_direccion);
+}
 
-    if (recibir_operacion(conexion_cpu_memoria) == OK)
+void mov_out(char *registro_datos, t_list *direcciones_fisicas)
+{
+    void *valor = dictionary_get(contexto->registros_cpu, registro_datos);
+    int desplazamiento = 0;
+    for (int i = 0; i < list_size(direcciones_fisicas); i += 2)
     {
-        log_info(logger_propio, "Mov_out ejecutado correctamente");
+        void *direccion = list_get(direcciones_fisicas, i);
+        int *tamanio_a_enviar = (int *)list_get(direcciones_fisicas, i + 1);
+        void *valor_a_enviar = malloc(*tamanio_a_enviar);
+        memcpy(valor_a_enviar, valor + desplazamiento, *tamanio_a_enviar);
+        enviar_escritura_espacio_usuario(contexto->PID, direccion, valor_a_enviar, tamanio_a_enviar);
+        if (recibir_operacion(conexion_cpu_memoria) == OK)
+            loggear_lectura_memoria(contexto->PID, *(uint32_t *)direccion, valor_a_enviar);
+        else
+            log_info(logger_propio, "Conflicto en mov_out"); // TODO E:
+
+        desplazamiento += *tamanio_a_enviar;
     }
-    else
-    {
-        log_info(logger_propio, "Conflicto en mov_out"); // Temp
-    }
+}
+
+void enviar_escritura_espacio_usuario(uint32_t PID, void *direccion, void *valor_a_escribir, int *tamanio)
+{
+    // Envio PID, dir fisica, valor a escribir, tamaño registro.
+    t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
+    agregar_a_paquete_uint32(paquete_direccion, PID);
+    agregar_a_paquete_uint32(paquete_direccion, *(uint32_t *)direccion);
+    agregar_a_paquete(paquete_direccion, valor_a_escribir, *tamanio);
+    agregar_a_paquete(paquete_direccion, tamanio, sizeof(int));
+    enviar_paquete(paquete_direccion, conexion_cpu_memoria);
+    eliminar_paquete(paquete_direccion);
 }
 
 void resize(uint32_t tamanio)
