@@ -4,45 +4,56 @@ void ejecutar_script(char *path)
 {
     FILE *archivo;
 
-    if (path == NULL)
+    if (path != NULL)
+    {
         archivo = fopen(path, "r");
+        if (archivo == NULL)
+        {
+            log_error(logger_propio, "Error al abrir el archivo.");
+            return;
+        }
 
-    if (archivo == NULL)
-    {
-        log_error(logger_propio, "Error al abrir el archivo.");
-        return;
+        char comando[256];
+        while (!feof(archivo))
+        {
+            fgets(comando, sizeof(comando), archivo);
+            char *token = strtok(comando, " ");
+
+            // Eliminar el carácter de nueva línea si está presente
+            size_t longitud = strlen(comando);
+            if (longitud > 0 && comando[longitud - 1] == '\n')
+                comando[longitud - 1] = '\0';
+
+            buscar_y_ejecutar_comando(token);
+        }
+
+        fclose(archivo);
     }
-
-    char comando[256];
-
-    while (!feof(archivo))
+    else
     {
-        fgets(comando, sizeof(comando), archivo);
-        char *token = strtok(comando, " ");
-
-        // Eliminar el carácter de nueva línea si está presente
-        size_t longitud = strlen(comando);
-        if (longitud > 0 && comando[longitud - 1] == '\n')
-            comando[longitud - 1] = '\0';
-
-        buscar_y_ejecutar_comando(token);
+        log_error(logger_propio, "No se ingreso un path para iniciar el proceso.");
     }
-
-    fclose(archivo);
 }
 
 void iniciar_proceso(char *path)
 {
     // COMPLETAR: falta tener en cuenta el filesystem.
-    t_pcb *pcb = crear_pcb();
+    if (path != NULL)
+    {
+        t_pcb *pcb = crear_pcb();
 
-    t_paquete *paquete = crear_paquete(CREAR_PROCESO_KERNEL);
-    agregar_a_paquete_uint32(paquete, pcb->PID);
-    agregar_a_paquete_string(paquete, path);
-    enviar_paquete(paquete, conexion_kernel_memoria);
-    eliminar_paquete(paquete);
+        t_paquete *paquete = crear_paquete(CREAR_PROCESO_KERNEL);
+        agregar_a_paquete_uint32(paquete, pcb->PID);
+        agregar_a_paquete_string(paquete, path);
+        enviar_paquete(paquete, conexion_kernel_memoria);
+        eliminar_paquete(paquete);
 
-    ingresar_pcb_a_NEW(pcb);
+        ingresar_pcb_a_NEW(pcb);
+    }
+    else
+    {
+        log_error(logger_propio, "No se ingreso un path para iniciar el proceso.");
+    }
 }
 
 void finalizar_proceso(char *PID)
@@ -51,17 +62,19 @@ void finalizar_proceso(char *PID)
     t_pcb *pcb = NULL;
 
     if (PID != NULL)
+    {
         pcb = buscar_pcb_por_PID(pcbs_en_memoria, (uint32_t)atoi(PID));
 
-    if (pcb == NULL)
-        log_error(logger_propio, "No existe un PCB con ese PID.");
-    else if (pcb->estado == EXEC)
-    {
-        enviar_interrupcion("EXIT");
+        if (pcb == NULL)
+            log_error(logger_propio, "No existe un PCB con ese PID.");
+        else if (pcb->estado == EXEC)
+            enviar_interrupcion("EXIT");
+        else
+            enviar_pcb_a_EXIT(pcb, INTERRUPTED_BY_USER);
     }
     else
     {
-        enviar_pcb_a_EXIT(pcb, INTERRUPTED_BY_USER);
+        log_error(logger_propio, "No se ingreso un PID para finalizar el proceso.");
     }
 }
 
