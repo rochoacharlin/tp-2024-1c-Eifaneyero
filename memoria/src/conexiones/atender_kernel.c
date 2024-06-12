@@ -7,8 +7,9 @@ void atender_kernel(int socket_cliente)
     socket_kernel = socket_cliente;
     while (1)
     {
+        int op_code = recibir_operacion(socket_kernel);
         retardo_de_peticion();
-        switch (recibir_operacion(socket_kernel))
+        switch (op_code)
         {
         case CREAR_PROCESO_KERNEL:
             atender_crear_proceso();

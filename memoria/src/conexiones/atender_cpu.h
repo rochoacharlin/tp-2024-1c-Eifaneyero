@@ -7,6 +7,8 @@
 
 void atender_cpu(int socket_cliente);
 
+void enviar_tamanio_de_pagina();
+
 void enviar_instruccion_a_cpu(char *instruccion);
 char *obtener_instruccion_de_indice(uint32_t PID, uint32_t PC);
 void recibir_solicitud_instruccion(uint32_t *PID, uint32_t *PC);

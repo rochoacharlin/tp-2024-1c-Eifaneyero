@@ -5,10 +5,13 @@ int socket_cpu;
 void atender_cpu(int socket_cliente)
 {
     socket_cpu = socket_cliente;
+    enviar_tamanio_de_pagina();
+
     while (1)
     {
+        int op_code = recibir_operacion(socket_cpu);
         retardo_de_peticion();
-        switch (recibir_operacion(socket_cpu))
+        switch (op_code)
         {
         case SOLICITUD_INSTRUCCION:
             atender_solicitud_instruccion(); // Para arrancar, el kernel tiene que mandar el archivo a abrir.
@@ -35,6 +38,23 @@ void atender_cpu(int socket_cliente)
             break;
         }
     }
+}
+
+void enviar_tamanio_de_pagina()
+{
+    t_paquete *paquete = crear_paquete(MENSAJE);
+    int tam_pagina = obtener_tam_pagina();
+    agregar_a_paquete(paquete, &tam_pagina, sizeof(int));
+    enviar_paquete(paquete, socket_cpu);
+    eliminar_paquete(paquete);
+}
+
+void enviar_instruccion_a_cpu(char *instruccion)
+{
+    t_paquete *paquete_instruccion = crear_paquete(INSTRUCCION);
+    agregar_a_paquete_string(paquete_instruccion, instruccion);
+    enviar_paquete(paquete_instruccion, socket_cpu);
+    eliminar_paquete(paquete_instruccion);
 }
 
 void atender_solicitud_instruccion(void)
@@ -64,14 +84,6 @@ char *obtener_instruccion_de_indice(uint32_t PID, uint32_t PC)
     t_list *instrucciones = (t_list *)dictionary_get(indice_instrucciones, string_itoa(PID));
     char *instruccion = list_get(instrucciones, PC);
     return instruccion;
-}
-
-void enviar_instruccion_a_cpu(char *instruccion)
-{
-    t_paquete *paquete_instruccion = crear_paquete(INSTRUCCION);
-    agregar_a_paquete_string(paquete_instruccion, instruccion);
-    enviar_paquete(paquete_instruccion, socket_cpu);
-    eliminar_paquete(paquete_instruccion);
 }
 
 void enviar_marco(int marco)
