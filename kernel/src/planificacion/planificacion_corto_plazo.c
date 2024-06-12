@@ -182,14 +182,14 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
         args->pcb = pcb;
         if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR, (void *)args))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
+
+        pthread_join(hilo_quantum, NULL);
     }
     else
     {
         log_error(logger_propio, "Algoritmo invalido. Debe ingresar FIFO, RR o VRR");
         abort();
     }
-
-    pthread_join(hilo_quantum, NULL);
 }
 
 void ejecutar_segun_FIFO(t_contexto *contexto)

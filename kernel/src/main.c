@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     // if (pthread_create(&hilo_servidor, NULL, (void *)servidor, NULL))
     // log_error(logger_propio, "Error creando el hilo servidor");
-    conexion_dispatch_con_CPU();
+    // conexion_dispatch_con_CPU();
     // conexion_interrupt_con_CPU();
     // conexion_memoria();
 
@@ -41,10 +41,11 @@ int main(int argc, char *argv[])
 
     // chicken_test();
     // io_test();
+    // recursos_test();
 
-    close(conexion_kernel_cpu_dispatch);
-    close(conexion_kernel_cpu_interrupt);
-    close(conexion_kernel_memoria);
+    // close(conexion_kernel_cpu_dispatch);
+    // close(conexion_kernel_cpu_interrupt);
+    // close(conexion_kernel_memoria);
     log_destroy(logger_obligatorio);
     log_destroy(logger_propio);
     config_destroy(config);
@@ -123,4 +124,44 @@ void io_test()
     log_info(logger_propio, "Resultado de IO: %d", resultado_io);
 
     close(io_fd);
+}
+
+void recursos_test()
+{
+    crear_colas_de_bloqueo();
+    t_pcb *pcb = crear_pcb();
+    pcb->estado = EXEC;
+    wait_recurso("RB", pcb);
+    wait_recurso("RB", pcb);
+
+    log_info(logger_propio, "PID: %d", (int)pcb->PID);
+    log_info(logger_propio, "Estado: %s", estados[pcb->estado]);
+    log_info(logger_propio, "Recursos: ");
+
+    for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
+    {
+        log_info(logger_propio, "   - %s", (char *)list_get(pcb->recursos_asignados, i));
+    }
+
+    wait_recurso("RB", pcb);
+
+    log_info(logger_propio, "PID: %d", (int)pcb->PID);
+    log_info(logger_propio, "Estado: %s", estados[pcb->estado]);
+    log_info(logger_propio, "Recursos: ");
+
+    for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
+    {
+        log_info(logger_propio, "   - %s", (char *)list_get(pcb->recursos_asignados, i));
+    }
+
+    signal_recurso("RB", pcb, 6);
+
+    log_info(logger_propio, "PID: %d", (int)pcb->PID);
+    log_info(logger_propio, "Estado: %s", estados[pcb->estado]);
+    log_info(logger_propio, "Recursos: ");
+
+    for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
+    {
+        log_info(logger_propio, "   - %s", (char *)list_get(pcb->recursos_asignados, i));
+    }
 }

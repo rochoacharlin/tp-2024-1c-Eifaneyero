@@ -29,7 +29,6 @@ char *algoritmo;
 
 void planificar_a_largo_plazo(void)
 {
-    algoritmo = obtener_algoritmo_planificacion();
     while (1)
     {
         sem_wait(&planificacion_largo_plazo_liberada);
@@ -88,6 +87,8 @@ void ingresar_pcb_a_NEW(t_pcb *pcb)
 
 void inicializar_listas_planificacion(void)
 {
+    algoritmo = obtener_algoritmo_planificacion();
+
     pcbs_en_NEW = list_create();
     pcbs_en_READY = list_create();
 

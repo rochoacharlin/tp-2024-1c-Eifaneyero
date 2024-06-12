@@ -19,6 +19,7 @@
 extern t_log *logger_obligatorio;
 extern t_log *logger_propio;
 extern t_config *config;
+extern char *estados[5];
 
 // Logs minimos y obligatorios
 void loggear_creacion_proceso(int pcbPID);

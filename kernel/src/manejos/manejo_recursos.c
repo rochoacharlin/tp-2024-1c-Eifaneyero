@@ -42,8 +42,10 @@ void wait_recurso(char *recurso, t_pcb *pcb)
         {
             pcb->estado = BLOCKED;
             pcb_en_EXEC = NULL;
-            // VERIFICAR: Hace falta un mutex para blocked?
+
+            pthread_mutex_lock(&mutex_lista_BLOCKED);
             list_add(pcbs_en_BLOCKED, pcb);
+            pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             // logs minimos y obligatorios
             loggear_cambio_de_estado(pcb->PID, EXEC, BLOCKED);
@@ -56,6 +58,10 @@ void wait_recurso(char *recurso, t_pcb *pcb)
         else
         {
             list_add(pcb->recursos_asignados, recurso);
+
+            // devolvemos la ejecucion al pcb
+            procesar_pcb_segun_algoritmo(pcb);
+            esperar_contexto_y_actualizar_pcb(pcb);
         }
     }
     else
@@ -79,22 +85,18 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
             // desbloqueamos al primer proceso de la cola de bloqueados de ese recurso
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
             t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
-            pcb_a_desbloquear->estado = READY;
 
-            // log minimo y obligatorio
-            loggear_cambio_de_estado(pcb_a_desbloquear->PID, BLOCKED, READY);
+            pthread_mutex_lock(&mutex_lista_BLOCKED);
+            list_remove_element(pcbs_en_BLOCKED, pcb);
+            pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear, rafaga_cpu_ejecutada);
+        }
+        list_remove_by_condition(pcb->recursos_asignados, condicion_liberar_recurso);
 
-            // devolvemos la ejecucion al pcb
-            procesar_pcb_segun_algoritmo(pcb);
-            esperar_contexto_y_actualizar_pcb(pcb);
-        }
-        else
-        {
-            // VERIFICAR: Funciona esto?
-            list_remove_by_condition(pcb->recursos_asignados, condicion_liberar_recurso);
-        }
+        // devolvemos la ejecucion al pcb
+        procesar_pcb_segun_algoritmo(pcb);
+        esperar_contexto_y_actualizar_pcb(pcb);
     }
     else
     {
