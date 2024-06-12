@@ -118,7 +118,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
     if (cod_op == IO_STDIN_READ)
     {
-        int *PID = (int *)list_get(parametros, 0);
+        uint32_t *PID = (int *)list_get(parametros, 0);
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
 
         int *tam = (int *)list_get(parametros, 1);
@@ -130,17 +130,17 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         int desplazamiento = 0;
         for (int i = 2; i < list_size(parametros); i += 2)
         {
-            uint32_t *direccion_fisica = list_get(parametros, i);
-            int *bytes_a_operar = (int *)list_get(parametros, i + 1);
+            uint32_t *direccion_fisica = (uint32_t *)list_get(parametros, i);
+            uint32_t *bytes_a_operar = (uint32_t *)list_get(parametros, i + 1);
 
             char texto_a_enviar[*bytes_a_operar];
             strncpy(texto_a_enviar, lectura + desplazamiento, *bytes_a_operar);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
-            agregar_a_paquete(paquete, PID, sizeof(int));
+            agregar_a_paquete(paquete, PID, sizeof(uint32_t));
             agregar_a_paquete(paquete, direccion_fisica, sizeof(uint32_t));
             agregar_a_paquete_string(paquete, texto_a_enviar);
-            agregar_a_paquete(paquete, *bytes_a_operar, sizeof(int));
+            agregar_a_paquete(paquete, *bytes_a_operar, sizeof(uint32_t));
             enviar_paquete(paquete, conexion_memoria);
 
             desplazamiento += *bytes_a_operar;
@@ -167,24 +167,33 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 
     if (cod_op == IO_STDOUT_WRITE)
     {
-        loggear_operacion(*(int *)list_get(parametros, 0), nombres_de_instrucciones[cod_op]);
+        uint32_t *PID = (uint32_t *)list_get(parametros, 0);
+        loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
         int *tam = (int *)list_get(parametros, 1);
         char valor_leido_completo[*tam];
 
         for (int i = 1; i < list_size(parametros); i += 2)
         {
-            uint32_t *direccion_fisica = (int *)list_get(parametros, i);
-            int *bytes_a_operar = (int *)list_get(parametros, i + 1);
+            uint32_t *direccion_fisica = (uint32_t *)list_get(parametros, i);
+            uint32_t *bytes_a_operar = (uint32_t *)list_get(parametros, i + 1);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
+            agregar_a_paquete(paquete, PID, sizeof(uint32_t));
             agregar_a_paquete(paquete, direccion_fisica, sizeof(uint32_t));
-            agregar_a_paquete(paquete, bytes_a_operar, sizeof(int));
+            agregar_a_paquete(paquete, bytes_a_operar, sizeof(uint32_t));
             enviar_paquete(paquete, conexion_memoria);
 
-            char *valor_leido = (char *)recibir_buffer(conexion_memoria, bytes_a_operar);
-            strncat(valor_leido_completo, valor_leido, *bytes_a_operar);
+            op_code codigo = recibir_operacion(conexion_memoria);
+            if (codigo == OK)
+            {
+                t_paquete *paquete_recibido = recibir_paquete(conexion_memoria);
+                char *valor_leido = (char *)list_get(paquete_recibido, 0);
+                strncat(valor_leido_completo, valor_leido, *bytes_a_operar);
 
-            free(valor_leido);
+                free(valor_leido);
+                eliminar_paquete(paquete_recibido);
+            }
+
             free(direccion_fisica);
             free(bytes_a_operar);
             eliminar_paquete(paquete);
