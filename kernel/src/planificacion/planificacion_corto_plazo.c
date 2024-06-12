@@ -141,6 +141,10 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         enviar_pcb_a_EXIT(pcb, INTERRUPTED_BY_USER);
         break;
 
+    case DESALOJO_OUT_OF_MEMORY:
+        enviar_pcb_a_EXIT(pcb, OUT_OF_MEMORY);
+        break;
+
     case DESALOJO_FIN_QUANTUM:
         encolar_pcb_ready_segun_algoritmo(pcb, ms_en_ejecucion);
         break;

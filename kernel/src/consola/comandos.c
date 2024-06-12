@@ -47,7 +47,7 @@ void iniciar_proceso(char *path)
 
 void finalizar_proceso(char *PID)
 {
-    // COMPLETAR: Liberar recursos, archivos y memoria
+    // COMPLETAR: Liberar archivos
     t_pcb *pcb = NULL;
 
     if (PID != NULL)
