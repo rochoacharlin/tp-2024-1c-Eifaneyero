@@ -130,7 +130,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         int desplazamiento = 0;
         for (int i = 2; i < list_size(parametros); i += 2)
         {
-            int *direccion_fisica = (int *)list_get(parametros, i);
+            uint32_t *direccion_fisica = list_get(parametros, i);
             int *bytes_a_operar = (int *)list_get(parametros, i + 1);
 
             char texto_a_enviar[*bytes_a_operar];
@@ -138,7 +138,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
             agregar_a_paquete(paquete, PID, sizeof(int));
-            agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
+            agregar_a_paquete(paquete, direccion_fisica, sizeof(uint32_t));
             agregar_a_paquete_string(paquete, texto_a_enviar);
             agregar_a_paquete(paquete, *bytes_a_operar, sizeof(int));
             enviar_paquete(paquete, conexion_memoria);
@@ -173,11 +173,11 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 
         for (int i = 1; i < list_size(parametros); i += 2)
         {
-            int *direccion_fisica = (int *)list_get(parametros, i);
+            uint32_t *direccion_fisica = (int *)list_get(parametros, i);
             int *bytes_a_operar = (int *)list_get(parametros, i + 1);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
-            agregar_a_paquete(paquete, direccion_fisica, sizeof(int));
+            agregar_a_paquete(paquete, direccion_fisica, sizeof(uint32_t));
             agregar_a_paquete(paquete, bytes_a_operar, sizeof(int));
             enviar_paquete(paquete, conexion_memoria);
 
