@@ -168,8 +168,6 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
     agregar_a_paquete_uint32(paquete, pcb->PID);
     enviar_paquete(paquete, conexion_kernel_memoria);
     eliminar_paquete(paquete);
-
-    // COMPLETAR: Liberar archivos?
 }
 
 void remover_pcb_de_listas_globales(t_pcb *pcb)
@@ -197,7 +195,6 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
             list_remove_element(pcbs_en_aux_READY, pcb);
             pthread_mutex_unlock(&mutex_cola_aux_READY);
         }
-
         break;
 
     case EXEC:

@@ -55,14 +55,13 @@ void finalizar_proceso(char *PID)
 
     if (pcb == NULL)
         log_error(logger_propio, "No existe un PCB con ese PID.");
+    else if (pcb->estado == EXEC)
+    {
+        enviar_interrupcion("EXIT");
+    }
     else
     {
-        t_paquete *paquete = crear_paquete(FINALIZAR_PROCESO_KERNEL);
-        agregar_a_paquete_uint32(paquete, (uint32_t)atoi(PID));
-        enviar_paquete(paquete, conexion_kernel_memoria);
-        eliminar_paquete(paquete);
-
-        enviar_interrupcion("EXIT");
+        enviar_pcb_a_EXIT(pcb, INTERRUPTED_BY_USER);
     }
 }
 
