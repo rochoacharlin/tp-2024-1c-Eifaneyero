@@ -36,6 +36,6 @@ void agregar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco);
 void reemplazar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco);
 int obtener_indice_para_reemplazo(t_TLB *tlb);
 
-int calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, uint32_t direccion_logica);
+uint32_t calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, uint32_t direccion_logica);
 
 #endif

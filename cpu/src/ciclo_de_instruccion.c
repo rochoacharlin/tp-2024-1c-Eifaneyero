@@ -193,7 +193,8 @@ t_instruccion *decode(char *instruccion_leida)
 
     if (tamanio_a_operar > 0)
     {
-        int pagina, desplazamiento, bytes_disponibles_en_marco, bytes_a_operar, direccion_fisica = 0;
+        int pagina, desplazamiento, bytes_disponibles_en_marco, bytes_a_operar;
+        uint32_t direccion_fisica = 0;
 
         pagina = floor(direccion_logica / tamanio_pagina);
         desplazamiento = direccion_logica - pagina * tamanio_pagina;
@@ -431,7 +432,7 @@ void mov_in(char *registro_datos_destino, char *registro_con_direccion_logica)
 {
     // Ro, como defino el tipo de dato de direccion lógica? 8 o 32? Me explicassss? Creo que tengo ese problema en toda la funcion.
     uint32_t direccion_logica = obtener_valor_registro(contexto->registros_cpu, registro_con_direccion_logica);
-    int direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
+    uint32_t direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
 
     t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
     agregar_a_paquete_uint32(paquete_direccion, direccion_fisica);
@@ -457,7 +458,7 @@ void mov_out(char *registro_con_direccion_destino, char *registro_datos)
     // Ro, como defino el tipo de dato de direccion lógica? 8 o 32? Me explicassss? Creo que tengo ese problema en toda la funcion.
     uint32_t valor = obtener_valor_registro(contexto->registros_cpu, registro_datos);
     uint32_t direccion_logica = obtener_valor_registro(contexto->registros_cpu, registro_con_direccion_destino);
-    int direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
+    uint32_t direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
 
     // Envio PID, dir fisica y valor a escribir.
     t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);

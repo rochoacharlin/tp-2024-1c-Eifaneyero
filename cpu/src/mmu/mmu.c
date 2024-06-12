@@ -2,7 +2,7 @@
 
 int tamanio_pagina = 0; // TODO: temporal hasta que se consiga este dato desde la memoria
 
-int calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, uint32_t direccion_logica)
+uint32_t calcular_direccion_fisica(t_TLB *tlb, uint32_t PID, uint32_t direccion_logica)
 {
     int pagina = floor(direccion_logica / tamanio_pagina);
     int desplazamiento = direccion_logica - pagina * tamanio_pagina;
