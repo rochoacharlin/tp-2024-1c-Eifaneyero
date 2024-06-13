@@ -69,9 +69,7 @@ int main(int argc, char *argv[])
     {
         cod_op = recibir_operacion(conexion);
         parametros = recibir_paquete(conexion);
-
         respuesta = atender(cod_op, parametros);
-
         enviar_cod_op(respuesta, conexion);
     }
 
@@ -137,10 +135,10 @@ op_code atender_stdin(int cod_op, t_list *parametros)
             strncpy(texto_a_enviar, lectura + desplazamiento, *bytes_a_operar);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
-            agregar_a_paquete(paquete, PID, sizeof(uint32_t));
-            agregar_a_paquete(paquete, direccion_fisica, sizeof(uint32_t));
+            agregar_a_paquete_uint32(paquete, *PID);
+            agregar_a_paquete_uint32(paquete, *direccion_fisica);
             agregar_a_paquete_string(paquete, texto_a_enviar);
-            agregar_a_paquete(paquete, *bytes_a_operar, sizeof(uint32_t));
+            agregar_a_paquete_uint32(paquete, *bytes_a_operar);
             enviar_paquete(paquete, conexion_memoria);
 
             desplazamiento += *bytes_a_operar;
@@ -178,20 +176,17 @@ op_code atender_stdout(int cod_op, t_list *parametros)
             uint32_t *bytes_a_operar = (uint32_t *)list_get(parametros, i + 1);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
-            agregar_a_paquete(paquete, PID, sizeof(uint32_t));
-            agregar_a_paquete(paquete, direccion_fisica, sizeof(uint32_t));
-            agregar_a_paquete(paquete, bytes_a_operar, sizeof(uint32_t));
+            agregar_a_paquete_uint32(paquete, *PID);
+            agregar_a_paquete_uint32(paquete, *direccion_fisica);
+            agregar_a_paquete_uint32(paquete, *bytes_a_operar);
             enviar_paquete(paquete, conexion_memoria);
 
-            op_code codigo = recibir_operacion(conexion_memoria);
-            if (codigo == OK)
+            if (recibir_operacion(conexion_memoria) == OK)
             {
-                t_paquete *paquete_recibido = recibir_paquete(conexion_memoria);
+                t_list *paquete_recibido = recibir_paquete(conexion_memoria);
                 char *valor_leido = (char *)list_get(paquete_recibido, 0);
                 strncat(valor_leido_completo, valor_leido, *bytes_a_operar);
-
-                free(valor_leido);
-                eliminar_paquete(paquete_recibido);
+                list_destroy_and_destroy_elements(paquete_recibido, free);
             }
 
             free(direccion_fisica);
