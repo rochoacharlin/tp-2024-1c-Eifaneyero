@@ -48,7 +48,13 @@ void iniciar_proceso(char *path)
         enviar_paquete(paquete, conexion_kernel_memoria);
         eliminar_paquete(paquete);
 
-        ingresar_pcb_a_NEW(pcb);
+        if (recibir_operacion(conexion_kernel_memoria) == OK)
+        {
+            log_info(logger_propio, "Creacion de proceso exitosa en memoria.");
+            ingresar_pcb_a_NEW(pcb);
+        }
+        else
+            log_info(logger_propio, "Creacion de proceso fallida en memoria.");
     }
     else
     {

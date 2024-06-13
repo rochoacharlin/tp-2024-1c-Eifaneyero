@@ -171,6 +171,12 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
     agregar_a_paquete_uint32(paquete, pcb->PID);
     enviar_paquete(paquete, conexion_kernel_memoria);
     eliminar_paquete(paquete);
+
+    if (recibir_operacion(conexion_kernel_memoria) == OK)
+        log_info(logger_propio, "Finalizacion de proceso exitosa en memoria.");
+
+    else
+        log_info(logger_propio, "Finalizacion de proceso fallida en memoria.");
 }
 
 void remover_pcb_de_listas_globales(t_pcb *pcb)
