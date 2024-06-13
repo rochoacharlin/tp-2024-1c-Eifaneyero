@@ -78,7 +78,7 @@ bool instruccion_bloqueante(t_id id_instruccion);
 
 void enviar_lectura_espacio_usuario(uint32_t PID, void *direccion, int *tamanio);
 void enviar_escritura_espacio_usuario(uint32_t PID, void *direccion, void *valor_a_escribir, int *tamanio);
-void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_logica, uint_8_t tamanio_a_operar);
+void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_logica, uint8_t tamanio_a_operar);
 
 // -------------------- INSTRUCCIONES -------------------- //
 

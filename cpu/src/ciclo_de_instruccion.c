@@ -195,7 +195,7 @@ t_instruccion *decode(char *instruccion_leida)
         tamanio_a_operar = *(uint8_t *)instruccion->param1;
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
         direccion_logica = obtener_valor_registro(contexto->registros_cpu, "DI");
-        agregar_direcciones_fisicas(instruccion, tamanio_a_operar);
+        agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
         break;
 
     default:
@@ -205,7 +205,7 @@ t_instruccion *decode(char *instruccion_leida)
     return instruccion;
 }
 
-void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_logica, uint_8_t tamanio_a_operar)
+void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_logica, uint8_t tamanio_a_operar)
 {
     if (tamanio_a_operar > 0)
     {
@@ -512,9 +512,10 @@ void resize(uint32_t tamanio)
 
 void copy_string(t_list *direcciones_fisicas)
 {
-    void *direccion, *tamanio;
+    void *direccion;
     int tamanio_list = list_size(direcciones_fisicas);
     // int size = tamanio_list / 2; podria haber más paginas del SI QUE DEL DI, o estoy entendiendo mal;
+    int size = tamanio_list; // Agrego para que compile y hacer pruebas. :D
     char *valores_leidos = string_new();
     char *a_enviar;
 
@@ -523,14 +524,14 @@ void copy_string(t_list *direcciones_fisicas)
 
         direccion = list_get(direcciones_fisicas, i);
         int *tamanio = (int *)list_get(direcciones_fisicas, i + 1);
-        enviar_lectura_espacio_usuario(contexto->PID, *(uint32_t *)direccion, tamanio);
+        enviar_lectura_espacio_usuario(contexto->PID, direccion, tamanio);
         if (recibir_operacion(conexion_cpu_memoria) == OK)
         {
 
             t_list *string_leido = recibir_paquete(conexion_cpu_memoria);
             char *valor_leido = list_get(string_leido, 0);
             string_append(&valores_leidos, valor_leido);
-            loggear_lectura_memoria(contexto->PID, (uint32_t *)direccion, valor_leido);
+            loggear_lectura_memoria(contexto->PID, *(uint32_t *)direccion, valor_leido);
         }
         else
         {
@@ -538,24 +539,22 @@ void copy_string(t_list *direcciones_fisicas)
         }
     }
     // escribimos en memoria
-    for (int o = size; o < list_size(direcciones_fisicas) - size, o += 2)
+    for (int o = size; o < list_size(direcciones_fisicas) - size; o += 2)
     {
 
         direccion = list_get(direcciones_fisicas, o);
         int *tamanio = (int *)list_get(direcciones_fisicas, o + 1);
 
-        char *a_enviar = string_substring(valores_leidos, 0, tamanio); // liberar a_enviar
+        a_enviar = string_substring(valores_leidos, 0, *tamanio); // liberar a_enviar
 
         char *valores_sin_escribir = string_substring_from(valores_leidos, string_length(a_enviar));
         free(valores_leidos); // talves podria ser mejor
         valores_leidos = valores_sin_escribir;
 
-        enviar_escritura_espacio_usuario(contexto->PID, *(uint32_t *)direccion, (void *)a_enviar, tamanio);
+        enviar_escritura_espacio_usuario(contexto->PID, direccion, (void *)a_enviar, tamanio);
 
         if (recibir_operacion(conexion_cpu_memoria) == OK)
-        {
-            loggear_escritura_memoria(contexto->PID, *(uint32_t *)direccion, a_enviar)
-        }
+            loggear_escritura_memoria(contexto->PID, *(uint32_t *)direccion, a_enviar);
         else
         {
             free(a_enviar);
