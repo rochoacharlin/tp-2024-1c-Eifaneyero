@@ -29,20 +29,7 @@ void retardo_de_peticion()
 
 sem_t *obtener_sem_instrucciones(uint32_t PID)
 {
-    sem_t *sem_instrucciones = dictionary_get(sem_instrucciones_listas, string_itoa(PID));
-
-    // crea el semáforo si no existe
-    if (sem_instrucciones == NULL)
-    {
-        if (sem_init(sem_instrucciones, 0, 0) != 0)
-        {
-            log_info(logger_propio, "Error en semaforos, choque inminente");
-            exit(1);
-        }
-        dictionary_put(sem_instrucciones_listas, string_itoa(PID), sem_instrucciones);
-    }
-
-    return sem_instrucciones;
+    return dictionary_get(sem_instrucciones_listas, string_itoa(PID));
 }
 
 void atender_escritura_espacio_usuario(int sockete)

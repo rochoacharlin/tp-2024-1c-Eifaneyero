@@ -32,6 +32,7 @@ void atender_crear_proceso()
     char *path;
     recibir_creacion_proceso(&PID, &path);
     crear_estructuras_administrativas(PID, path);
+    enviar_cod_op(OK, socket_kernel);
     sem_post(obtener_sem_instrucciones(PID)); // Libero semáforo para que cpu pueda leer instruccion
 }
 
@@ -46,8 +47,15 @@ void recibir_creacion_proceso(uint32_t *PID, char **ptr_path)
 void crear_estructuras_administrativas(uint32_t PID, char *path)
 {
     agregar_instrucciones_al_indice(indice_instrucciones, PID, path);
-    agregar_proceso_al_indice(PID);
     free(path);
+    agregar_proceso_al_indice(PID);
+    sem_t *sem_instrucciones = NULL;
+    if (sem_init(sem_instrucciones, 0, 0) != 0)
+    {
+        log_info(logger_propio, "Error en semaforos, choque inminente");
+        exit(1);
+    }
+    dictionary_put(sem_instrucciones_listas, string_itoa(PID), sem_instrucciones);
 }
 
 void atender_finalizar_proceso(void)
@@ -56,6 +64,7 @@ void atender_finalizar_proceso(void)
     recibir_pid(&PID);
     liberar_estructuras_administrativas(PID);
     liberar_marcos_proceso(PID);
+    enviar_cod_op(OK, socket_kernel);
 }
 
 void recibir_pid(uint32_t *PID)
@@ -69,4 +78,5 @@ void liberar_estructuras_administrativas(uint32_t PID)
 {
     quitar_instrucciones_al_indice(indice_instrucciones, PID);
     quitar_proceso_del_indice(PID);
+    dictionary_destroy_and_destroy_elements(sem_instrucciones_listas, (void *)sem_destroy);
 }
