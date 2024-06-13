@@ -18,8 +18,6 @@
 #include "interface_cpu.h"
 #include "mmu/mmu.h"
 
-// ID instruccion
-
 typedef struct
 {
     t_id id;
@@ -33,12 +31,6 @@ typedef struct
 
 extern t_TLB *tlb;
 
-// Version 2.0: Posiblemente quedaba mejor
-// typedef struct {
-//     t_id id;
-//     char* parametros[];
-// }t_instruccion;
-
 // extern pthread_mutex_t mutex_interrupt;
 
 // -------------------- CICLO DE INSTRUCCION -------------------- //
@@ -49,23 +41,12 @@ t_instruccion *decode(char *instruccion);
 void execute(t_instruccion *instruccion);
 void check_interrupt(t_instruccion *instruccion);
 
-// -------------------- CICLO DE INSTRUCCION: Secundarias -------------------- //
-
 // ---------- FETCH ---------- //
 
-// Recibir string de memoria con instrucccion (id + parametros)
 char *recibir_instruccion_string();
-
-// Castear instruccion tipo string que llega de memoria.
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string);
-
-// Setear id en EXIT por default y parametros en NULL
 t_instruccion *inicializar_instruccion(t_instruccion *instruccion);
-
-// Castear instruccion_id tipo string a enum para switch en execute(). Ante instruccion desconocida devuelve EXIT.
 t_id string_id_to_enum_id(char *id_string);
-
-// Liberar memoria dinámica (podría ser más bella si params[])
 void destruir_instruccion(t_instruccion *instruccion);
 
 // ---------- DECODE ---------- //
@@ -76,8 +57,8 @@ uint8_t tamanio_de_registro(char *registro);
 
 bool instruccion_bloqueante(t_id id_instruccion);
 
-void enviar_lectura_espacio_usuario(uint32_t PID, void *direccion, int *tamanio);
-void enviar_escritura_espacio_usuario(uint32_t PID, void *direccion, void *valor_a_escribir, int *tamanio);
+void enviar_lectura_espacio_usuario(uint32_t PID, uint32_t *direccion, uint32_t *bytes_a_leer);
+void enviar_escritura_espacio_usuario(uint32_t PID, uint32_t *direccion, void *valor_a_escribir, uint32_t *bytes_a_escribir);
 void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_logica, int tamanio_a_operar);
 
 // -------------------- INSTRUCCIONES -------------------- //
