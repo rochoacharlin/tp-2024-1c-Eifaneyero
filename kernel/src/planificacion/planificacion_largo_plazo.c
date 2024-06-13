@@ -37,7 +37,9 @@ void planificar_a_largo_plazo(void)
 
         t_pcb *pcb = obtener_siguiente_pcb_READY();
 
-        // recibir_estructuras_iniciales_memoria(pcb);
+        // VERIFICAR: Cuando se crea un proceso en NEW se carga completamente en memoria
+        //            o hay que esperar a que pase a READY para que se creen todas
+        //            sus estructuras?
 
         estado anterior = pcb->estado;
         pcb->estado = READY;

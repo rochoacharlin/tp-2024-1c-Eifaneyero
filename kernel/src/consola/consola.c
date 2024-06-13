@@ -30,17 +30,6 @@ void consola_interactiva(void)
     destruir_listas_planificacion();
 }
 
-void listar_procesos_por_estado(char *estado, t_list *lista)
-{
-    printf("%s: ", estado);
-    for (int i = 0; i < list_size(lista); i++)
-    {
-        t_pcb *pcb = (t_pcb *)list_get(lista, i);
-        printf(" %d ", pcb->PID);
-    }
-    printf("\n");
-}
-
 void buscar_y_ejecutar_comando(char *token)
 {
     if (token != NULL)
@@ -61,6 +50,17 @@ void buscar_y_ejecutar_comando(char *token)
             log_error(logger_propio, "Comando invalido.");
         }
     }
+}
+
+void listar_procesos_por_estado(char *estado, t_list *lista)
+{
+    printf("%s: ", estado);
+    for (int i = 0; i < list_size(lista); i++)
+    {
+        t_pcb *pcb = (t_pcb *)list_get(lista, i);
+        printf(" %d ", pcb->PID);
+    }
+    printf("\n");
 }
 
 void cambiar_valor_de_semaforo(sem_t *sem, int valor_resultante)

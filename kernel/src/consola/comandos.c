@@ -111,7 +111,7 @@ void cambiar_grado_multiprogramacion(char *valor_deseado)
         sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
         log_info(logger_propio, "Grado multiprogramacion actual: %d", valor_actual);
 
-        // TODO: En caso de que se tengan más procesos ejecutando que lo que permite el grado de
+        // VERIFICAR: En caso de que se tengan más procesos ejecutando que lo que permite el grado de
         //       multiprogramación, no se tomarán acciones sobre los mismos y se esperará su finalización normal.
     }
 }

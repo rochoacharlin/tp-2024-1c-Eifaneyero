@@ -112,13 +112,13 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
 
+    hubo_desalojo = true;
     if (strcmp(algoritmo, "VRR") == 0)
     {
         temporal_stop(temp);
         ms_en_ejecucion = temporal_gettime(temp);
         temporal_destroy(temp);
     }
-    hubo_desalojo = true;
 
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
@@ -178,6 +178,8 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
     {
         if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_RR, (void *)contexto))
             log_error(logger_propio, "Error creando el hilo para el quantum en RR");
+
+        pthread_join(hilo_quantum, NULL);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
@@ -227,7 +229,7 @@ void ejecutar_segun_VRR(t_contexto *contexto, t_pcb *pcb)
     }
 }
 
-void enviar_interrupcion(char *motivo) // considerar meterlo en otro archivo si hay mas funciones sobre las interrupciones
+void enviar_interrupcion(char *motivo)
 {
     // ACLARACION: El motivo puede ser: "FIN_QUANTUM" o "EXIT"
     t_paquete *paquete = crear_paquete(INTERRUPCION);
