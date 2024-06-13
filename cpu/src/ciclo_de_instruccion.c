@@ -192,7 +192,7 @@ t_instruccion *decode(char *instruccion_leida)
 
     case COPY_STRING:
         direccion_logica = obtener_valor_registro(contexto->registros_cpu, "SI");
-        tamanio_a_operar = *(uint8_t *)instruccion->param1;
+        tamanio_a_operar = atoi(instruccion->param1);
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
         direccion_logica = obtener_valor_registro(contexto->registros_cpu, "DI");
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
@@ -205,7 +205,7 @@ t_instruccion *decode(char *instruccion_leida)
     return instruccion;
 }
 
-void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_logica, uint8_t tamanio_a_operar)
+void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_logica, int tamanio_a_operar)
 {
     if (tamanio_a_operar > 0)
     {
@@ -312,7 +312,7 @@ void execute(t_instruccion *instruccion)
         break;
 
     case COPY_STRING:
-        copy_string(instruccion->direcciones_fisicas);
+        copy_string(atoi(instruccion->param1), instruccion->direcciones_fisicas);
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: COPY_STRING - <%s> ", contexto->PID, instruccion->param1);
 
     case EXIT:
@@ -510,40 +510,44 @@ void resize(uint32_t tamanio)
     }
 }
 
-void copy_string(t_list *direcciones_fisicas)
+void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
 {
+    int tamanio_a_op = tamanio_a_operar;
     void *direccion;
-    int tamanio_list = list_size(direcciones_fisicas);
-    // int size = tamanio_list / 2; podria haber más paginas del SI QUE DEL DI, o estoy entendiendo mal;
-    int size = tamanio_list; // Agrego para que compile y hacer pruebas. :D
+    int *tamanio;
+    int pos_lectura = 0;
     char *valores_leidos = string_new();
-    char *a_enviar;
+    char *a_enviar = NULL;
 
-    for (int i = 0; i < size; i += 2)
+    for (int i = 0; i < list_size(direcciones_fisicas) && tamanio_a_op > 0; i += 2)
     {
 
         direccion = list_get(direcciones_fisicas, i);
-        int *tamanio = (int *)list_get(direcciones_fisicas, i + 1);
+        tamanio = (int *)list_get(direcciones_fisicas, i + 1);
+        tamanio_a_op -= *tamanio;
         enviar_lectura_espacio_usuario(contexto->PID, direccion, tamanio);
+
         if (recibir_operacion(conexion_cpu_memoria) == OK)
         {
 
             t_list *string_leido = recibir_paquete(conexion_cpu_memoria);
-            char *valor_leido = list_get(string_leido, 0);
+            char *valor_leido = (char *)list_get(string_leido, 0);
             string_append(&valores_leidos, valor_leido);
-            loggear_lectura_memoria(contexto->PID, *(uint32_t *)direccion, valor_leido);
+            loggear_lectura_memoria(contexto->PID, *(int32_t *)direccion, valor_leido);
         }
         else
         {
             log_info(logger_propio, "Algo ocurrio no se pudo leer en memoria");
         }
+        free(tamanio);
+        pos_lectura = i;
     }
     // escribimos en memoria
-    for (int o = size; o < list_size(direcciones_fisicas) - size; o += 2)
+    for (int o = pos_lectura + 2; o < list_size(direcciones_fisicas); o += 2)
     {
 
         direccion = list_get(direcciones_fisicas, o);
-        int *tamanio = (int *)list_get(direcciones_fisicas, o + 1);
+        tamanio = (int *)list_get(direcciones_fisicas, o + 1);
 
         a_enviar = string_substring(valores_leidos, 0, *tamanio); // liberar a_enviar
 
@@ -554,17 +558,18 @@ void copy_string(t_list *direcciones_fisicas)
         enviar_escritura_espacio_usuario(contexto->PID, direccion, (void *)a_enviar, tamanio);
 
         if (recibir_operacion(conexion_cpu_memoria) == OK)
+        {
             loggear_escritura_memoria(contexto->PID, *(uint32_t *)direccion, a_enviar);
+        }
         else
         {
-            free(a_enviar);
-            free(valores_leidos);
             log_info(logger_propio, "Algo ocurrio no se pudo escribir en memoria");
         }
+
+        free(a_enviar);
     }
 
     free(valores_leidos);
-    free(a_enviar);
 }
 
 void exit_inst()
