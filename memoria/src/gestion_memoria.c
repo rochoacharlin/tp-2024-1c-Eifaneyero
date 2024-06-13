@@ -11,14 +11,10 @@ t_dictionary *sem_instrucciones_listas;
 void inicializar_memoria(void)
 {
     espacio_usuario = malloc(obtener_tam_memoria());
-    memset(espacio_usuario, 0, obtener_tam_memoria()); // Inicializo con 0
-
+    memset(espacio_usuario, 0, obtener_tam_memoria());
     indice_tablas = crear_indice_de_tablas();
-
     marcos_libres = crear_marcos_libres();
-
     indice_instrucciones = crear_indice_de_instrucciones();
-
     pthread_mutex_init(&mutex_memoria, NULL);
 }
 
@@ -34,12 +30,11 @@ sem_t *obtener_sem_instrucciones(uint32_t PID)
 
 void atender_escritura_espacio_usuario(int sockete)
 {
-    uint32_t PID, direccion_fisica, tamanio; // Orden
+    uint32_t PID, direccion_fisica, tamanio;
     void *valor_a_escribir = NULL;
     recibir_escritura_espacio_usuario(sockete, &PID, &direccion_fisica, valor_a_escribir, &tamanio);
     escribir_espacio_usuario(direccion_fisica, valor_a_escribir, tamanio);
     enviar_cod_op(OK, sockete);
-
     loggear_escritura_espacio_de_usuario(PID, direccion_fisica, tamanio);
     free(valor_a_escribir);
 }
@@ -52,10 +47,8 @@ void recibir_escritura_espacio_usuario(int sockete, uint32_t *PID, uint32_t *dir
     *direccion_fisica = *(uint32_t *)list_get(paquete_escritura_espacio, 1);
     void *valor_temp = list_get(paquete_escritura_espacio, 2);
     *tamanio = *(uint32_t *)list_get(paquete_escritura_espacio, 3);
-
     valor_a_escribir = malloc(*tamanio);
     memcpy(valor_a_escribir, valor_temp, *tamanio);
-
     list_destroy_and_destroy_elements(paquete_escritura_espacio, free);
 }
 
@@ -72,7 +65,6 @@ void atender_lectura_espacio_usuario(int sockete)
     recibir_lectura_espacio_usuario(sockete, &PID, &direccion_fisica, &tamanio_a_leer);
     void *valor_leido = leer_espacio_usuario(direccion_fisica, tamanio_a_leer);
     enviar_valor_leido(sockete, valor_leido, tamanio_a_leer);
-
     loggear_lectura_espacio_de_usuario(PID, direccion_fisica, tamanio_a_leer);
     free(valor_leido);
 }
@@ -92,7 +84,6 @@ void *leer_espacio_usuario(uint32_t direccion, uint32_t tamanio_a_leer)
     pthread_mutex_lock(&mutex_memoria);
     memcpy(&valor, espacio_usuario + direccion, tamanio_a_leer);
     pthread_mutex_unlock(&mutex_memoria);
-
     return valor;
 }
 
