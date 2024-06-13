@@ -32,7 +32,6 @@ void iniciar_conexiones()
             break;
 
         case CONEXION_CPU:
-
             pthread_t hilo_cpu;
             pthread_create(&hilo_cpu, NULL, (void *)atender_cpu, &conexion_entrante);
             pthread_detach(hilo_cpu);
