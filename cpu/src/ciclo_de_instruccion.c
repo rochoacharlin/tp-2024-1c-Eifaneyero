@@ -522,8 +522,7 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
         direccion = list_get(direcciones_fisicas, i);
         tamanio = (int *)list_get(direcciones_fisicas, i + 1);
         tamanio_a_op -= *tamanio;
-        enviar_lectura_espacio_usuario(contexto->PID, direccion, tamanio);
-
+        enviar_lectura_espacio_usuario(contexto->PID, (uint32_t *)direccion, (uint32_t *)tamanio);
         if (recibir_operacion(conexion_cpu_memoria) == OK)
         {
 
@@ -552,7 +551,7 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
         free(valores_leidos); // talves podria ser mejor
         valores_leidos = valores_sin_escribir;
 
-        enviar_escritura_espacio_usuario(contexto->PID, direccion, (void *)a_enviar, tamanio);
+        enviar_escritura_espacio_usuario(contexto->PID, (uint32_t *)direccion, (void *)a_enviar, (uint32_t *)tamanio);
 
         if (recibir_operacion(conexion_cpu_memoria) == OK)
         {
