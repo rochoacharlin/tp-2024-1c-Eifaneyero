@@ -451,24 +451,21 @@ void mov_in(char *registro_datos_destino, t_list *direcciones_fisicas)
 
     for (int i = 0; i < list_size(direcciones_fisicas); i += 2)
     {
-        void *direccion = list_get(direcciones_fisicas, i);
-        int *tamanio = (int *)list_get(direcciones_fisicas, i + 1);
-        enviar_lectura_espacio_usuario(contexto->PID, direccion, tamanio); // PID | direccion | tamano a leer
+        uint32_t *direccion_fisica = (uint32_t *)list_get(direcciones_fisicas, i);
+        uint32_t *bytes_a_leer = (uint32_t *)list_get(direcciones_fisicas, i + 1);
+        enviar_lectura_espacio_usuario(contexto->PID, direccion_fisica, bytes_a_leer);
 
         if (recibir_operacion(conexion_cpu_memoria) == OK)
         {
             t_list *paquete_valor = recibir_paquete(conexion_cpu_memoria);
             char *valor = (char *)list_get(paquete_valor, 0);
-
-            loggear_lectura_memoria(contexto->PID, *(uint32_t *)direccion, valor);
-
+            loggear_lectura_memoria(contexto->PID, *direccion_fisica, valor);
             set(registro_datos_destino, valor);
-
             list_destroy_and_destroy_elements(paquete_valor, free);
         }
         else
         {
-            log_info(logger_propio, "Conflicto en mov_in"); //
+            log_info(logger_propio, "Conflicto en mov_in"); // TODO E:
         }
     }
 }
@@ -479,17 +476,17 @@ void mov_out(char *registro_datos, t_list *direcciones_fisicas)
     int desplazamiento = 0;
     for (int i = 0; i < list_size(direcciones_fisicas); i += 2)
     {
-        void *direccion = list_get(direcciones_fisicas, i);
-        int *tamanio_a_enviar = (int *)list_get(direcciones_fisicas, i + 1);
-        void *valor_a_enviar = malloc(*tamanio_a_enviar);
-        memcpy(valor_a_enviar, valor + desplazamiento, *tamanio_a_enviar);
-        enviar_escritura_espacio_usuario(contexto->PID, direccion, valor_a_enviar, tamanio_a_enviar);
+        uint32_t *direccion = list_get(direcciones_fisicas, i);
+        uint32_t *bytes_a_escribir = (uint32_t *)list_get(direcciones_fisicas, i + 1);
+        void *valor_a_enviar = malloc(*bytes_a_escribir);
+        memcpy(valor_a_enviar, valor + desplazamiento, *bytes_a_escribir);
+        enviar_escritura_espacio_usuario(contexto->PID, direccion, valor_a_enviar, bytes_a_escribir);
         if (recibir_operacion(conexion_cpu_memoria) == OK)
-            loggear_lectura_memoria(contexto->PID, *(uint32_t *)direccion, valor_a_enviar);
+            loggear_lectura_memoria(contexto->PID, *direccion, valor_a_enviar);
         else
             log_info(logger_propio, "Conflicto en mov_out"); // TODO E:
 
-        desplazamiento += *tamanio_a_enviar;
+        desplazamiento += *bytes_a_escribir;
     }
 }
 
@@ -593,24 +590,23 @@ void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param)
     eliminar_paquete(paquete);
 }
 
-void enviar_lectura_espacio_usuario(uint32_t PID, void *direccion, int *tamanio)
+void enviar_lectura_espacio_usuario(uint32_t PID, uint32_t *direccion, uint32_t *bytes_a_leer)
 {
     t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
     agregar_a_paquete_uint32(paquete_direccion, PID);
-    agregar_a_paquete(paquete_direccion, direccion, *tamanio);
-    agregar_a_paquete(paquete_direccion, tamanio, sizeof(int));
+    agregar_a_paquete_uint32(paquete_direccion, *direccion);
+    agregar_a_paquete_uint32(paquete_direccion, *bytes_a_leer);
     enviar_paquete(paquete_direccion, conexion_cpu_memoria);
     eliminar_paquete(paquete_direccion);
 }
 
-void enviar_escritura_espacio_usuario(uint32_t PID, void *direccion, void *valor_a_escribir, int *tamanio)
+void enviar_escritura_espacio_usuario(uint32_t PID, uint32_t *direccion, void *valor_a_escribir, uint32_t *bytes_a_escribir)
 {
-    // Envio PID, dir fisica, valor a escribir, tamaño registro.
     t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
     agregar_a_paquete_uint32(paquete_direccion, PID);
-    agregar_a_paquete_uint32(paquete_direccion, *(uint32_t *)direccion);
-    agregar_a_paquete(paquete_direccion, valor_a_escribir, *tamanio);
-    agregar_a_paquete(paquete_direccion, tamanio, sizeof(int));
+    agregar_a_paquete_uint32(paquete_direccion, *direccion);
+    agregar_a_paquete(paquete_direccion, valor_a_escribir, *bytes_a_escribir);
+    agregar_a_paquete_uint32(paquete_direccion, *bytes_a_escribir);
     enviar_paquete(paquete_direccion, conexion_cpu_memoria);
     eliminar_paquete(paquete_direccion);
 }
