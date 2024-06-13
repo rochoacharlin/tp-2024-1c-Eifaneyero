@@ -78,6 +78,7 @@ bool instruccion_bloqueante(t_id id_instruccion);
 
 void enviar_lectura_espacio_usuario(uint32_t PID, void *direccion, int *tamanio);
 void enviar_escritura_espacio_usuario(uint32_t PID, void *direccion, void *valor_a_escribir, int *tamanio);
+void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_logica, uint_8_t tamanio_a_operar);
 
 // -------------------- INSTRUCCIONES -------------------- //
 
@@ -91,6 +92,7 @@ void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_t
 void mov_in(char *registro_datos_destino, t_list *direcciones_fisicas);
 void mov_out(char *registro_datos, t_list *direcciones_fisicas);
 void resize(uint32_t tamanio);
+void copy_string(t_list *direcciones_fisicas);
 void exit_inst();
 
 // -------------------- MANEJO DE CONTEXTO -------------------- //
