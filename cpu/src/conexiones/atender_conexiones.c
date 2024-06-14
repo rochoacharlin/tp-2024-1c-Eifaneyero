@@ -4,8 +4,6 @@ int conexion_cpu_memoria;
 int conexion_cpu_kernel_dispatch;
 int conexion_cpu_kernel_interrupt;
 
-// pthread_mutex_t *mutex_interrupt;
-
 pthread_t th_dispatch;
 pthread_t th_interrupt;
 
@@ -15,7 +13,6 @@ void iniciar_servidor_dispatch(void)
     log_info(logger_propio, "CPU lista para recibir clientes (dispatch)");
     conexion_cpu_kernel_dispatch = esperar_cliente(logger_propio, server_fd);
     log_info(logger_propio, "Se conectó un cliente!");
-
     // int32_t handshake_esperado = 4;
     // int handshake_respuesta = handshake_servidor(logger_propio, conexion_cpu_kernel_dispatch, handshake_esperado);
 }
@@ -26,7 +23,6 @@ void iniciar_servidor_interrupt(void)
     log_info(logger_propio, "CPU lista para recibir clientes (interrupt)");
     conexion_cpu_kernel_interrupt = esperar_cliente(logger_propio, server_fd);
     log_info(logger_propio, "Se conectó un cliente!");
-
     // int32_t handshake_esperado = 4;
     // int handshake_respuesta = handshake_servidor(logger_propio, conexion_cpu_kernel_interrupt, handshake_esperado);
 }
@@ -52,19 +48,15 @@ char *recibir_interrupcion() // TODO F: Chequear.
 {
     if (recibir_operacion(conexion_cpu_kernel_interrupt) == INTERRUPCION)
     {
-        int *size = malloc(sizeof(int));
-        recv(conexion_cpu_kernel_interrupt, size, sizeof(int), MSG_WAITALL);
-        void *buffer = malloc(*size);
-        recv(conexion_cpu_kernel_interrupt, buffer, *size, MSG_WAITALL);
-        free(size);
-        log_info(logger_propio, "recibir_interrupcion(): motivo interrupcion: %s", (char *)buffer);
-        return (char *)buffer;
+        char *interrupcion = recibir_string(conexion_cpu_kernel_interrupt);
+        log_info(logger_propio, "recibir_interrupcion(): motivo interrupcion: %s", interrupcion);
+        return interrupcion;
     }
     else
     {
         log_info(logger_propio, "Error: recibir_interrupcion(): Op Code != INTERRUPCION");
+        return NULL; // TODO F ?
     }
-    return NULL; // TODO F ?
 }
 
 void atender_dispatch()
@@ -95,9 +87,9 @@ void atender_interrupt()
     log_info(logger_propio, "CPU escuchando puerto interrupt");
     while (1)
     {
-        while (!hay_interrupcion) // TODO F: Limito la llegada de interrupciones a una // Y con semáforos?
+        while (!hay_interrupcion)
         {
-            motivo_interrupcion = recibir_interrupcion(); // TODO F: free(): Liberar motivo de instruccion luego de usar. En kernel?
+            motivo_interrupcion = recibir_interrupcion();
             hay_interrupcion = true;
         }
     }
