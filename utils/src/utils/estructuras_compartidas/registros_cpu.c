@@ -47,29 +47,7 @@ void destruir_registros_cpu(t_dictionary *registros_cpu)
     dictionary_destroy_and_destroy_elements(registros_cpu, free);
 }
 
-// t_dictionary *copiar_registros_cpu(t_dictionary *a_copiar)
-// {
-//     t_dictionary *copia = dictionary_create();
-
-//     char *keys[] = {"PC", "AX", "BX", "CX", "DX", "EAX", "EBX", "ECX", "EDX", "SI", "DI"}; // Lista de claves y sus tamaños correspondientes
-//     size_t sizes[] = {sizeof(uint32_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint8_t), sizeof(uint32_t),
-//                       sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t)};
-//     size_t num_keys = sizeof(keys) / sizeof(keys[0]);
-
-//     for (size_t i = 0; i < num_keys; i++) // Itero sobre cada clave para copiar los valores
-//     {
-//         void *value = dictionary_get(a_copiar, keys[i]);
-//         void *value_copy = malloc(sizes[i]);
-//         memcpy(value_copy, value, sizes[i]);
-//         dictionary_put(copia, keys[i], value_copy);
-//     }
-
-//     return copia;
-// }
-
-// Si funciona, borrar versión de arriba
-// TODO:Liberar a a_copiar()
-t_dictionary *copiar_registros_cpu(t_dictionary *a_copiar)
+t_dictionary *copiar_registros_cpu(t_dictionary *a_copiar) // TODO:Liberar a a_copiar
 {
     t_dictionary *copia = dictionary_create();
 
