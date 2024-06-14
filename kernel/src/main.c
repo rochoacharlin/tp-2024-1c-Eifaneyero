@@ -23,11 +23,11 @@ int main(int argc, char *argv[])
 
     config = iniciar_config(logger_propio, "kernel.config");
 
-    // if (pthread_create(&hilo_servidor, NULL, (void *)servidor, NULL))
-    // log_error(logger_propio, "Error creando el hilo servidor");
-    // conexion_dispatch_con_CPU();
-    // conexion_interrupt_con_CPU();
-    // conexion_memoria();
+    if (pthread_create(&hilo_servidor, NULL, (void *)servidor, NULL))
+        log_error(logger_propio, "Error creando el hilo servidor");
+    conexion_dispatch_con_CPU();
+    conexion_interrupt_con_CPU();
+    conexion_memoria();
 
     inicializar_listas_planificacion();
     inicializar_semaforos_planificacion();
@@ -39,13 +39,9 @@ int main(int argc, char *argv[])
 
     consola_interactiva();
 
-    // chicken_test();
-    // io_test();
-    // recursos_test();
-
-    // close(conexion_kernel_cpu_dispatch);
-    // close(conexion_kernel_cpu_interrupt);
-    // close(conexion_kernel_memoria);
+    close(conexion_kernel_cpu_dispatch);
+    close(conexion_kernel_cpu_interrupt);
+    close(conexion_kernel_memoria);
     log_destroy(logger_obligatorio);
     log_destroy(logger_propio);
     config_destroy(config);
