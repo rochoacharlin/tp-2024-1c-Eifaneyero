@@ -51,7 +51,7 @@ void enviar_contexto(int socket, t_contexto *contexto)
     eliminar_paquete(paquete);
 }
 
-motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion) // TODO F
+motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion)
 {
     motivo_desalojo motivo;
 
