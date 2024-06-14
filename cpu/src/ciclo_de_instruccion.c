@@ -64,11 +64,8 @@ char *recibir_instruccion_string()
         log_info(logger_propio, "String recibido de memoria: %s", instruccion_string);
         return instruccion_string;
     }
-    else
-    {
-        log_info(logger_propio, "Codigo de operacion al recibir instruccion, incorrecto");
-        return NULL;
-    }
+    log_info(logger_propio, "Error en recibir_instruccion_string()");
+    return "EXIT";
 }
 
 t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
@@ -314,6 +311,17 @@ void execute(t_instruccion *instruccion)
     case COPY_STRING:
         copy_string(atoi(instruccion->param1), instruccion->direcciones_fisicas);
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: COPY_STRING - <%s> ", contexto->PID, instruccion->param1);
+        break;
+
+    case WAIT:
+        wait(instruccion->param1);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: WAIT - <%s> ", contexto->PID, instruccion->param1);
+        break;
+
+    case SIGNAL:
+        signal(instruccion->param1);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SIGNAL - <%s> ", contexto->PID, instruccion->param1);
+        break;
 
     case EXIT:
         exit_inst();
@@ -336,9 +344,21 @@ void execute(t_instruccion *instruccion)
 
 bool instruccion_bloqueante(t_id id_instruccion)
 {
-    if (id_instruccion == IO_GEN_SLEEP || id_instruccion == EXIT) // TODO F: Agregar nuevas instrucciones bloqueantes
+    switch (id_instruccion)
+    {
+    case IO_GEN_SLEEP:
+    case IO_STDIN_READ:
+    case IO_STDOUT_WRITE:
+    case RESIZE:
+    case SIGNAL:
+    case WAIT:
+    case EXIT:
         return true;
-    return false;
+        break;
+    default:
+        return false;
+        break;
+    }
 }
 
 // -------------------- CHECK INTERRUPT -------------------- //
@@ -353,18 +373,17 @@ void check_interrupt(t_instruccion *instruccion)
     }
     else if (hay_interrupcion)
     {
-
+        // pthread_mutex_lock(&mutex_interrupt);
         motivo_desalojo motivo = string_interrupcion_to_enum_motivo(motivo_interrupcion);
+        free(motivo_interrupcion);
         hay_interrupcion = false;
-
+        // pthread_mutex_unlock(&mutex_interrupt);
         devolver_contexto(motivo, NULL);
         continua_ejecucion = false;
-
-        // TODO F: free(motivo); Cuando te libero? {Responsabilidad del kernel}
     }
     else
     {
-        continua_ejecucion = false; // solo para hacer un test
+        // continua_ejecucion = false; // solo para hacer un test
         return;
     }
 }
@@ -411,6 +430,20 @@ void jnz(char *nombre_registro, char *nro_instruccion)
     }
 }
 
+void wait(char *recurso)
+{
+    t_list *parametros = list_create();
+    list_add(parametros, recurso);
+    devolver_contexto(DESALOJO_WAIT, parametros);
+}
+
+void signal(char *recurso)
+{
+    t_list *parametros = list_create();
+    list_add(parametros, recurso);
+    devolver_contexto(DESALOJO_SIGNAL, parametros);
+}
+
 void io_gen_sleep(char *nombre, char *unidades)
 {
     t_list *param = list_create();
@@ -430,7 +463,6 @@ void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tam
     {
         list_add(param, string_itoa(*(int *)list_get(direcciones_fisicas, i)));
     }
-
     devolver_contexto(DESALOJO_IO, param);
 }
 
@@ -442,7 +474,6 @@ void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_t
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
         list_add(param, string_itoa(*(int *)list_get(direcciones_fisicas, i)));
-
     devolver_contexto(DESALOJO_IO, param);
 }
 
@@ -482,10 +513,9 @@ void mov_out(char *registro_datos, t_list *direcciones_fisicas)
         memcpy(valor_a_enviar, valor + desplazamiento, *bytes_a_escribir);
         enviar_escritura_espacio_usuario(contexto->PID, direccion, valor_a_enviar, bytes_a_escribir);
         if (recibir_operacion(conexion_cpu_memoria) == OK)
-            loggear_lectura_memoria(contexto->PID, *direccion, valor_a_enviar);
+            loggear_escritura_memoria(contexto->PID, *direccion, valor_a_enviar);
         else
             log_info(logger_propio, "Conflicto en mov_out"); // TODO E:
-
         desplazamiento += *bytes_a_escribir;
     }
 }

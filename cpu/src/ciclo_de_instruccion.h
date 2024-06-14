@@ -31,7 +31,7 @@ typedef struct
 
 extern t_TLB *tlb;
 
-// extern pthread_mutex_t mutex_interrupt;
+extern pthread_mutex_t mutex_interrupt;
 
 // -------------------- CICLO DE INSTRUCCION -------------------- //
 
@@ -66,6 +66,8 @@ void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_
 void set(char *nombre_registro, char *valor);
 void sum(char *nombre_destino, char *nombre_origen);
 void sub(char *nombre_destino, char *nombre_origen);
+void wait(char *recurso);
+void signal(char *recurso);
 void jnz(char *nombre_registro, char *nro_instruccion);
 void io_gen_sleep(char *nombre, char *unidades);
 void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);
