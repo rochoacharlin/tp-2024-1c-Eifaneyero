@@ -1,12 +1,17 @@
 #include "manejo_interfaces.h"
 
 t_list *interfaces; // falta inicializarlo en algun lado
+pthread_mutex_t mutex_interfaces;
+char *operaciones_stdout[] = {"IO_STDOUT_WRITE"};
+char *operaciones_stdin[] = {"IO_STDIN_READ"};
+char *operaciones_generic[] = {"IO_GENERIC_SLEEP"};
+char *operaciones_fs[] = {"IO_FS_CREATE", "IO_FS_DELETE", "IO_FS_TRUNCATE", "IO_FS_WRITE", "IO_FS_READ"};
 
 // NO OLVIDARSE DE LOGGEAR AL MOMENTO QUE UN PROCESO PASA DE EXEC A BLOCKED
 
 void *ejecutar_espera_interfaces(void) // ESTO SE RELACIONA CON LA FUNCION DE CONEXIONES "SERVIDOR()"
 {
-    // inicializar_interfaces(interfaces);
+    inicializar_interfaces();
     while (1)
     {
         int fd_cliente = esperar_cliente(logger_propio, servidor_kernel_fd);
@@ -16,16 +21,27 @@ void *ejecutar_espera_interfaces(void) // ESTO SE RELACIONA CON LA FUNCION DE CO
     }
 }
 
+void inicializar_interfaces()
+{
+    interfaces = list_create();
+    pthread_mutex_init(&mutex_interfaces, NULL);
+}
+
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
 {
-    t_io_list *interfaz = malloc(sizeof(t_io_list));
+    t_io_list *interfaz = malloc_or_die(sizeof(t_io_list), "No se pudo reservar memeoria para interfaz");
     interfaz->fd = fd;
+    interfaz->nombre = malloc(strlen(nombre) + 1);
+    interfaz->tipo = malloc(strlen(tipo) + 1);
     strcpy(interfaz->nombre, nombre);
     strcpy(interfaz->tipo, tipo);
     interfaz->procesos_bloqueados = list_create();
     pthread_mutex_init(&(interfaz->cola_bloqueados), NULL);
     sem_init(&(interfaz->procesos_en_cola), 0, 0);
+
+    pthread_mutex_lock(&mutex_interfaces);
     list_add(interfaces, (void *)interfaz);
+    pthread_mutex_lock(&mutex_interfaces);
 
     // creo hilo para atender cada interfaz se conecta
     // atender_io(interfaz);
@@ -43,7 +59,7 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
 
     char *tipo_de_operacion = (char *)list_get(parametros, 0);
 
-    t_io_list *io; // buscar_interfaz(nombre_interfaz); // Verifico que se conecto
+    t_io_list *io = buscar_interfaz(nombre_interfaz); // Verifico que se conecto
 
     if (io != NULL)
     {
@@ -80,21 +96,37 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
     enviar_pcb_a_EXIT(pcb, INVALID_INTERFACE);
 }
 
+t_io_list *buscar_interfaz(char *nombre_io)
+{
+    t_io_list *io = NULL;
+    int tamanio = list_size(interfaces);
+    for (int i = 0; i < tamanio; i++)
+    {
+
+        io = (t_io_list *)list_get(interfaces, 0);
+        if (strcmp(io->nombre, nombre_io) == 0)
+        {
+            return io;
+        }
+    }
+    return NULL;
+}
+
 bool puede_realizar_operacion(t_io_list *io, char *operacion)
 {
-    if (strcmp(io->tipo, "IO_STDOUT") == 0)
+    if (strcmp(io->tipo, "STDOUT") == 0)
     {
         return strcmp(operaciones_stdout[0], operacion) == 0;
     }
-    else if (strcmp(io->tipo, "IO_STDIN") == 0)
+    else if (strcmp(io->tipo, "STDIN") == 0)
     {
         return strcmp(operaciones_stdin[0], operacion) == 0;
     }
-    else if (strcmp(io->tipo, "IO_GENERIC") == 0)
+    else if (strcmp(io->tipo, "GENERIC") == 0)
     {
         return strcmp(operaciones_generic[0], operacion) == 0;
     }
-    else if (strcmp(io->tipo, "IO_FS") == 0)
+    else if (strcmp(io->tipo, "DIALFS") == 0)
     {
         for (int i = 0; i < 5; i++)
         {
@@ -120,29 +152,26 @@ void *atender_interfaz(void *interfaz)
         sem_wait(&io->procesos_en_cola);
 
         pthread_mutex_lock(&io->cola_bloqueados);
-        t_proceso_bloqueado *proceso = list_remove(io->procesos_bloqueados, 0);
+        t_proceso_bloqueado *proceso = (t_proceso_bloqueado *)list_remove(io->procesos_bloqueados, 0);
         char *op_a_realizar = (char *)list_remove(proceso->parametros, 0);
         int op_interfaz = string_to_enum_io(op_a_realizar);
         t_paquete *p_interfaz = crear_paquete(op_interfaz);
-        agregar_a_paquete(p_interfaz, (void *)proceso->pcb->PID, sizeof(int));
+        uint32_t *pid = &proceso->pcb->PID;
+        agregar_a_paquete(p_interfaz, (void *)pid, sizeof(uint32_t));
         agregar_parametros_a_paquete(p_interfaz, proceso->parametros);
-        int estado_a_enviar; // enviar_paquete_interfaz(p_interfaz, io->fd);
+        int estado_al_enviar = enviar_paquete_interfaz(p_interfaz, io->fd);
 
-        if (estado_a_enviar != -1)
+        if (estado_al_enviar != -1)
         {
             int respuesta;
             recv(io->fd, &respuesta, sizeof(int), MSG_WAITALL); // recibe resultado de realizar interfaz
             if (respuesta == OK)
             {
-                // podria ser redundante tener dos lista de bloqueados
-                // ver que hacer
 
-                /*
                 pthread_mutex_lock(&mutex_lista_BLOCKED);
                 int indice = buscar_indice_pcb(proceso->pcb->PID);
-                list_remove(pcbs_en_BLOCKED,indice);
+                list_remove(pcbs_en_BLOCKED, indice);
                 pthread_mutex_lock(&mutex_lista_BLOCKED);
-                */
 
                 // agrego a ready el pcb;
 
@@ -158,15 +187,47 @@ void *atender_interfaz(void *interfaz)
         }
         else
         {
+
             enviar_pcb_a_EXIT(proceso->pcb, INVALID_INTERFACE);
             eliminar_proceso(proceso);
-            liberar_procesos_io(io->procesos_bloqueados);
             eliminar_paquete(p_interfaz);
+            break;
         }
 
+        free(op_a_realizar);
         eliminar_proceso(proceso);
         eliminar_paquete(p_interfaz);
     }
+
+    liberar_interfaz(io);
+    return NULL;
+}
+
+int buscar_indice_pcb(uint32_t pid)
+{
+    int tamanio = list_size(pcbs_en_BLOCKED);
+    int indice = -1;
+    for (int i = 0; i < tamanio; i++)
+    {
+        t_pcb *pcb = (t_pcb *)list_get(pcbs_en_BLOCKED, i);
+        if (pid == pcb->PID)
+        {
+            indice = i;
+        }
+    }
+
+    return indice;
+}
+
+void liberar_interfaz(t_io_list *io)
+{
+
+    free(io->nombre);
+    free(io->tipo);
+    liberar_procesos_io(io->procesos_bloqueados);
+    pthread_mutex_destroy(&io->cola_bloqueados);
+    sem_destroy(&io->procesos_en_cola);
+    free(io);
 }
 
 void liberar_procesos_io(t_list *procesos_io)
@@ -175,7 +236,7 @@ void liberar_procesos_io(t_list *procesos_io)
     for (int i = 0; i <= size; i++)
     {
         t_proceso_bloqueado *proceso = list_remove(procesos_io, i);
-        // enviar_proceso_a_EXIT(proceso->pcb, INVALID_INTERFACE); con que motivo desalojas al proceso aca???
+        enviar_pcb_a_EXIT(proceso->pcb, INVALID_INTERFACE);
         eliminar_proceso(proceso);
     }
 }
@@ -186,7 +247,7 @@ void eliminar_proceso(t_proceso_bloqueado *proceso)
     free(proceso);
 }
 
-t_id_io string_to_enum_io(char *str)
+int string_to_enum_io(char *str)
 {
 
     if (strcmp(str, "IO_GEN_SLEEP") == 0)
@@ -206,5 +267,7 @@ t_id_io string_to_enum_io(char *str)
     if (strcmp(str, "IO_FS_READ") == 0)
         return IO_FS_READ;
     // Este caso no lo considero por que no podrian enviar otros que no sean los anteriores
-    // return -1;
+    return INVALID_INSTRUCTION;
 }
+
+// sn

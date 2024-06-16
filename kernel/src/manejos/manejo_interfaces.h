@@ -13,11 +13,12 @@ extern int fd_servidor;
 extern t_list *interfaces;
 extern int conexion_kernel_cpu_dispatch;
 extern int servidor_kernel_fd;
+extern pthread_mutex_t mutex_interfaces;
 
-static char *operaciones_stdout[] = {"IO_STDOUT_WRITE"};
-static char *operaciones_stdin[] = {"IO_STDIN_READ"};
-static char *operaciones_generic[] = {"IO_GENERIC_SLEEP"};
-static char *operaciones_fs[] = {"IO_FS_CREATE", "IO_FS_DELETE", "IO_FS_TRUNCATE", "IO_FS_WRITE", "IO_FS_READ"};
+extern char *operaciones_stdout[];
+extern char *operaciones_stdin[];
+extern char *operaciones_generic[];
+extern char *operaciones_fs[];
 typedef struct
 {
     int fd;
@@ -45,19 +46,22 @@ typedef enum
     IO_FS_DELETE,
     IO_FS_TRUNCATE,
     IO_FS_WRITE,
-    IO_FS_READ
+    IO_FS_READ,
+    INVALID_INSTRUCTION = -1,
 } t_id_io;
 
 bool puede_realizar_operacion(t_io_list *io, char *operacion);
 void *ejecutar_espera_interfaces(void);
+void inicializar_interfaces();
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd);
 t_io_list *buscar_interfaz(char *interfaz);
 t_contexto *esperar_contexto(t_pcb *pcb); // hay que buscarle un mejor nombre a esto
 void manejador_interfaz(t_pcb *pcb, t_list *parametros);
-void *ejecutar_io_generica(void);
 void *atender_interfaz(void *interfaz);
 void liberar_procesos_io(t_list *procesos_io);
 void eliminar_proceso(t_proceso_bloqueado *proceso);
-t_id_io string_to_enum_io(char *str);
+int string_to_enum_io(char *str);
+void liberar_interfaz(t_io_list *io);
+int buscar_indice_pcb(uint32_t pid);
 
 #endif
