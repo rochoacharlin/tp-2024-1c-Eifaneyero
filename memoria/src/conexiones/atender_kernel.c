@@ -4,10 +4,11 @@ int socket_kernel;
 
 void atender_kernel(int *socket_cliente)
 {
-    socket_kernel = *socket_cliente;
-    while (1)
+    socket_kernel = socket_cliente;
+    int op_code = 0;
+    while (op_code != -1)
     {
-        int op_code = recibir_operacion(socket_kernel);
+        op_code = recibir_operacion(socket_kernel);
         retardo_de_peticion();
         switch (op_code)
         {
@@ -18,6 +19,9 @@ void atender_kernel(int *socket_cliente)
         case FINALIZAR_PROCESO_KERNEL:
             atender_finalizar_proceso();
             break;
+
+        case -1:
+            log_info(logger_propio, "Conexión con kernel cerrada.");
 
         default:
             log_info(logger_propio, "Codigo de operacion incorrecto en atender_kernel");

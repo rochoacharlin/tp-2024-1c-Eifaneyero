@@ -2,9 +2,10 @@
 
 void atender_io(int *socket_cliente)
 {
-    while (1)
+    int op_code = 0;
+    while (op_code != -1)
     {
-        int op_code = recibir_operacion(*socket_cliente);
+        op_code = recibir_operacion(socket_cliente);
         retardo_de_peticion();
         switch (op_code)
         {
@@ -16,6 +17,9 @@ void atender_io(int *socket_cliente)
         case ACCESO_ESPACIO_USUARIO_LECTURA:
             atender_lectura_espacio_usuario(*socket_cliente);
             break;
+
+        case -1:
+            log_info(logger_propio, "Conexión con IO cerrada.");
 
         default:
             log_info(logger_propio, "Codigo de operacion incorrecto en atender_io");

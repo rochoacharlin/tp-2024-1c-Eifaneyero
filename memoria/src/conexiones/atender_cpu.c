@@ -6,10 +6,10 @@ void atender_cpu(int *socket_cliente)
 {
     socket_cpu = *socket_cliente;
     enviar_tamanio_de_pagina();
-
-    while (1)
+    int op_code = 0;
+    while (op_code != -1)
     {
-        int op_code = recibir_operacion(socket_cpu);
+        op_code = recibir_operacion(socket_cpu);
         retardo_de_peticion();
         switch (op_code)
         {
@@ -32,6 +32,9 @@ void atender_cpu(int *socket_cliente)
         case RESIZE_PROCESO:
             atender_resize();
             break;
+
+        case -1:
+            log_info(logger_propio, "Conexión con CPU cerrada.");
 
         default:
             log_info(logger_propio, "Codigo de operacion incorrecto en atender_cpu");
