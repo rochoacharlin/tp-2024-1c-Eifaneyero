@@ -40,7 +40,7 @@ void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
     if (pthread_create(&hilo_interfaz, NULL, (void *)atender_interfaz, (void *)interfaz) != 0)
         log_error(logger_propio, "Error creando el hilo para una interfaz");
 
-    pthread_detach(hilo_interfaz); // quizas deberia ser un pthread_join
+    pthread_detach(hilo_interfaz); // VERIFICAR: por que no es un pthread join?
 }
 
 void manejador_interfaz(t_pcb *pcb, t_list *parametros)
@@ -146,8 +146,7 @@ void atender_interfaz(void *interfaz)
 
                 encolar_pcb_ready_segun_algoritmo(proceso->pcb, proceso->ms_en_ejecucion);
             }
-            // se podria hacer algo más si el resultado no es ok ???
-            // se deberia considerar
+            // VERIFICAR: se podria hacer algo más si el resultado no es ok ???
         }
         else
         {
@@ -260,7 +259,8 @@ void liberar_procesos_io(t_list *procesos_io)
     for (int i = 0; i <= size; i++)
     {
         t_proceso_bloqueado *proceso = list_remove(procesos_io, i);
-        // enviar_pcb_a_EXIT(proceso->pcb, INVALID_INTERFACE); no creo que sea necesario esto
+        // VERIFICAR: es necesario enviar los procesos a exit al liberar una interfaz? en que lugar de la consigna dice eso?
+        // enviar_pcb_a_EXIT(proceso->pcb, INVALID_INTERFACE);
         eliminar_proceso_bloqueado(proceso);
     }
 }
