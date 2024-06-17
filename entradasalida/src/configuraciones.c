@@ -3,8 +3,6 @@
 void loggear_operacion(int PID, char *operacion)
 {
     log_info(logger_obligatorio, "PID: <%d> - Operacion: <%s>", PID, operacion);
-
-    // TODO
 }
 
 void loggear_dialfs_crear_archivo(int PID, char *nombre)
