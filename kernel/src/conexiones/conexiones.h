@@ -9,13 +9,14 @@
 #include <utils/comunicacion/comunicacion.h>
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
+#include "manejos/manejo_interfaces.h"
 
 extern int conexion_kernel_cpu_dispatch;
 extern int conexion_kernel_cpu_interrupt;
 extern int conexion_kernel_memoria;
 extern int servidor_kernel_fd;
 
-int servidor(void);
+void servidor(void);
 void conexion_dispatch_con_CPU(void);
 void conexion_interrupt_con_CPU(void);
 void conexion_memoria(void);

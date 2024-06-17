@@ -46,6 +46,7 @@ extern int conexion_kernel_cpu_dispatch;
 extern int conexion_kernel_cpu_interrupt;
 extern int conexion_kernel_memoria;
 extern char *algoritmo;
+extern int ms_en_ejecucion;
 
 typedef enum
 {

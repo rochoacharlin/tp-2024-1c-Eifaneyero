@@ -1,4 +1,3 @@
-#include "configuraciones.h"
 #include "consola/consola.h"
 #include <utils/funcionalidades_basicas.h>
 #include <utils/comunicacion/comunicacion.h>
@@ -24,7 +23,7 @@ int main(int argc, char *argv[])
     config = iniciar_config(logger_propio, "kernel.config");
 
     if (pthread_create(&hilo_servidor, NULL, (void *)servidor, NULL))
-        log_error(logger_propio, "Error creando el hilo servidor");
+        log_error(logger_propio, "Error creando el hilo servidor para recibir las interfaces.");
     conexion_dispatch_con_CPU();
     conexion_interrupt_con_CPU();
     conexion_memoria();
@@ -33,9 +32,9 @@ int main(int argc, char *argv[])
     inicializar_semaforos_planificacion();
 
     if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
-        log_error(logger_propio, "Error creando el hilo del planificador de largo plazo");
+        log_error(logger_propio, "Error creando el hilo del planificador de largo plazo.");
     if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
-        log_error(logger_propio, "Error creando el hilo del planificador de corto plazo");
+        log_error(logger_propio, "Error creando el hilo del planificador de corto plazo.");
 
     consola_interactiva();
 
@@ -102,9 +101,8 @@ void chicken_test()
 
 void io_test()
 {
-    int io_fd = servidor();
-    recibir_operacion(io_fd);
-    t_list *datos_io = recibir_paquete(io_fd);
+    recibir_operacion(servidor_kernel_fd);
+    t_list *datos_io = recibir_paquete(servidor_kernel_fd);
     log_info(logger_propio, "Nombre de IO: %s", (char *)list_get(datos_io, 0));
     log_info(logger_propio, "Tipo de IO: %s", (char *)list_get(datos_io, 1));
 
@@ -112,14 +110,14 @@ void io_test()
     t_paquete *paquete = crear_paquete(11); // caso no feliz
     agregar_a_paquete_string(paquete, string_itoa(12));
     agregar_a_paquete_string(paquete, string_itoa(3));
-    enviar_paquete(paquete, io_fd);
+    enviar_paquete(paquete, servidor_kernel_fd);
     eliminar_paquete(paquete);
     log_info(logger_propio, "IO, descansa por 3 unidades");
 
-    int resultado_io = recibir_operacion(io_fd);
+    int resultado_io = recibir_operacion(servidor_kernel_fd);
     log_info(logger_propio, "Resultado de IO: %d", resultado_io);
 
-    close(io_fd);
+    close(servidor_kernel_fd);
 }
 
 void recursos_test()

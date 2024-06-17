@@ -27,14 +27,13 @@ typedef struct
     t_list *procesos_bloqueados;
     pthread_mutex_t cola_bloqueados;
     sem_t procesos_en_cola;
-
 } t_io_list;
 
 typedef struct
 {
     t_pcb *pcb;
     t_list *parametros;
-
+    int ms_en_ejecucion;
 } t_proceso_bloqueado;
 
 typedef enum
@@ -46,22 +45,26 @@ typedef enum
     IO_FS_DELETE,
     IO_FS_TRUNCATE,
     IO_FS_WRITE,
-    IO_FS_READ,
-    INVALID_INSTRUCTION = -1,
+    IO_FS_READ
 } t_id_io;
 
-bool puede_realizar_operacion(t_io_list *io, char *operacion);
-void *ejecutar_espera_interfaces(void);
+// funciones para el manejo de interfaces
+void ejecutar_espera_interfaces(void);
 void inicializar_interfaces();
+bool puede_realizar_operacion(t_io_list *io, char *operacion);
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd);
-t_io_list *buscar_interfaz(char *interfaz);
-t_contexto *esperar_contexto(t_pcb *pcb); // hay que buscarle un mejor nombre a esto
 void manejador_interfaz(t_pcb *pcb, t_list *parametros);
-void *atender_interfaz(void *interfaz);
-void liberar_procesos_io(t_list *procesos_io);
-void eliminar_proceso(t_proceso_bloqueado *proceso);
+void atender_interfaz(void *interfaz);
 int string_to_enum_io(char *str);
+
+// funciones de manejo de t_proceso_bloqueado
+void eliminar_proceso_bloqueado(t_proceso_bloqueado *proceso);
+t_proceso_bloqueado *crear_proceso_bloqueado(t_pcb *pcb, t_list *parametros, int tiempo_ejecucion);
+
+// funciones de manejo de t_io_list
+t_io_list *crear_interfaz(char *nombre, char *tipo, int fd);
+t_io_list *buscar_interfaz(char *nombre_io);
 void liberar_interfaz(t_io_list *io);
-int buscar_indice_pcb(uint32_t pid);
+void liberar_procesos_io(t_list *procesos_io);
 
 #endif
