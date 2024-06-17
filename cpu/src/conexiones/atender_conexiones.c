@@ -61,6 +61,8 @@ char *recibir_interrupcion() // TODO F: Chequear.
 
 void atender_dispatch()
 {
+    iniciar_servidor_dispatch();
+
     log_info(logger_propio, "CPU escuchando puerto dispatch");
 
     while (1)
@@ -84,6 +86,8 @@ void atender_dispatch()
 
 void atender_interrupt()
 {
+    iniciar_servidor_interrupt();
+
     log_info(logger_propio, "CPU escuchando puerto interrupt");
     while (1)
     {
@@ -97,8 +101,6 @@ void atender_interrupt()
 
 void iniciar_conexiones()
 {
-    iniciar_servidor_dispatch();
-    iniciar_servidor_interrupt();
     iniciar_conexion_memoria();
 
     pthread_create(&th_dispatch, NULL, (void *)atender_dispatch, NULL);
