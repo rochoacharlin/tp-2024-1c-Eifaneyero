@@ -15,10 +15,6 @@ extern int conexion_kernel_cpu_dispatch;
 extern int servidor_kernel_fd;
 extern pthread_mutex_t mutex_interfaces;
 
-extern char *operaciones_stdout[];
-extern char *operaciones_stdin[];
-extern char *operaciones_generic[];
-extern char *operaciones_fs[];
 typedef struct
 {
     int fd;
