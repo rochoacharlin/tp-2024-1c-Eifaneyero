@@ -8,6 +8,7 @@
 #include <utils/comunicacion/comunicacion.h>
 #include <commons/string.h>
 #include <utils/estructuras_compartidas/instrucciones_cpu.h>
+#include "conexiones/conexiones.h"
 
 #define obtener_tipo_interfaz() config_get_string_value(config, "TIPO_INTERFAZ")
 #define obtener_tiempo_unidad_trabajo() config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO")
@@ -31,8 +32,8 @@ void loggear_dialfs_crear_archivo(int PID, char *nombre);
 void loggear_dialfs_eliminar_archivo(int PID, char *nombre);
 void loggear_dialfs_truncar_archivo(int PID, char *nombre, int tamanio);
 void loggear_dialfs_leer_archivo(int PID, char *nombre, int tamanio, int puntero);
-void loggear_dailfs_escribir_archivo(int PID, char *nombre, int tamanio, int puntero);
-void loggear_dailfs_inicio_compactacion(int PID);
-void loggear_dailfs_fin_compactacion(int PID);
+void loggear_dialfs_escribir_archivo(int PID, char *nombre, int tamanio, int puntero);
+void loggear_dialfs_inicio_compactacion(int PID);
+void loggear_dialfs_fin_compactacion(int PID);
 
 #endif

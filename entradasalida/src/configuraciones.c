@@ -27,17 +27,17 @@ void loggear_dialfs_leer_archivo(int PID, char *nombre, int tamanio, int puntero
     // TODO
 }
 
-void loggear_dailfs_escribir_archivo(int PID, char *nombre, int tamanio, int puntero)
+void loggear_dialfs_escribir_archivo(int PID, char *nombre, int tamanio, int puntero)
 {
     // TODO
 }
 
-void loggear_dailfs_inicio_compactacion(int PID)
+void loggear_dialfs_inicio_compactacion(int PID)
 {
     // TODO
 }
 
-void loggear_dailfs_fin_compactacion(int PID)
+void loggear_dialfs_fin_compactacion(int PID)
 {
     // TODO
 }
