@@ -2,9 +2,9 @@
 
 int socket_kernel;
 
-void atender_kernel(int socket_cliente)
+void atender_kernel(int *socket_cliente)
 {
-    socket_kernel = socket_cliente;
+    socket_kernel = *socket_cliente;
     while (1)
     {
         int op_code = recibir_operacion(socket_kernel);
@@ -49,13 +49,13 @@ void crear_estructuras_administrativas(uint32_t PID, char *path)
     agregar_instrucciones_al_indice(indice_instrucciones, PID, path);
     free(path);
     agregar_proceso_al_indice(PID);
-    sem_t *sem_instrucciones = NULL;
-    if (sem_init(sem_instrucciones, 0, 0) != 0)
+    sem_t sem_instrucciones;
+    if (sem_init(&sem_instrucciones, 0, 0) != 0)
     {
         log_info(logger_propio, "Error en semaforos, choque inminente");
         exit(1);
     }
-    dictionary_put(sem_instrucciones_listas, string_itoa(PID), sem_instrucciones);
+    dictionary_put(sem_instrucciones_listas, string_itoa(PID), &sem_instrucciones);
 }
 
 void atender_finalizar_proceso(void)

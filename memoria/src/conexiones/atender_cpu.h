@@ -5,7 +5,7 @@
 #include "configuraciones.h"
 #include "gestion_memoria.h"
 
-void atender_cpu(int socket_cliente);
+void atender_cpu(int *socket_cliente);
 
 void enviar_tamanio_de_pagina();
 

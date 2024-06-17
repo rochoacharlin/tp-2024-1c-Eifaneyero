@@ -18,9 +18,9 @@ int main(int argc, char *argv[])
 
     config = iniciar_config(logger_propio, "memoria.config");
 
-    // inicializar_memoria();
-    // iniciar_conexiones();
-    test_resize();
+    inicializar_memoria();
+    iniciar_conexiones();
+    // test_resize();
     // testeaba cosas de bitarray
     // int cantidad_marcos = (obtener_tam_memoria() + obtener_tam_pagina() - 1) / obtener_tam_pagina();
     // size_t bytes_necesarios = (cantidad_marcos + 8 - 1) / 8;

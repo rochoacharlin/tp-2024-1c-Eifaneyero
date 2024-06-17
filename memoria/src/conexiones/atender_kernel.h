@@ -5,7 +5,7 @@
 #include "configuraciones.h"
 #include "gestion_memoria.h"
 
-void atender_kernel(int socket_cliente);
+void atender_kernel(int *socket_cliente);
 
 void crear_estructuras_administrativas(uint32_t PID, char *path);
 void recibir_creacion_proceso(uint32_t *PID, char **ptr_path);

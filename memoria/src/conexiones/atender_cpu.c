@@ -2,9 +2,9 @@
 
 int socket_cpu;
 
-void atender_cpu(int socket_cliente)
+void atender_cpu(int *socket_cliente)
 {
-    socket_cpu = socket_cliente;
+    socket_cpu = *socket_cliente;
     enviar_tamanio_de_pagina();
 
     while (1)

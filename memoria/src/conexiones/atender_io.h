@@ -5,6 +5,6 @@
 #include "configuraciones.h"
 #include "gestion_memoria.h"
 
-void atender_io(int socket_cliente);
+void atender_io(int *socket_cliente);
 
 #endif
