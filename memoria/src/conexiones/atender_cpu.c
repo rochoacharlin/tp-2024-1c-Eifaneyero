@@ -64,9 +64,6 @@ void atender_solicitud_instruccion(void)
 {
     uint32_t PID, PC;
     recibir_solicitud_instruccion(&PID, &PC);
-
-    log_info(logger_propio, "Semáforo cruzado en verde tras recibir solicitud de instrucción");
-
     char *instruccion = obtener_instruccion_de_indice(PID, PC);
     enviar_instruccion_a_cpu(instruccion);
 }
