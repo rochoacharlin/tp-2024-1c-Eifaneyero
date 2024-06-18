@@ -17,13 +17,13 @@ void ejecutar_script(char *path)
         while (!feof(archivo))
         {
             fgets(comando, sizeof(comando), archivo);
-            char *token = strtok(comando, " ");
 
             // Eliminar el carácter de nueva línea si está presente
             size_t longitud = strlen(comando);
             if (longitud > 0 && comando[longitud - 1] == '\n')
                 comando[longitud - 1] = '\0';
 
+            char *token = strtok(comando, " ");
             buscar_y_ejecutar_comando(token);
         }
 
