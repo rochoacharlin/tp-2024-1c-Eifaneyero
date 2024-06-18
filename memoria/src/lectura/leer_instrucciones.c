@@ -2,13 +2,18 @@
 
 t_list *subir_instrucciones(char *path)
 {
-    char *path_absoluto = obtener_path_instrucciones();
-    string_append(&path_absoluto, path);
+    char *path_instrucciones = obtener_path_instrucciones();
+
+    size_t tam = strlen(path_instrucciones) + strlen(path) + 1;
+    char *path_absoluto = malloc(tam);
+    strcpy(path_absoluto, path_instrucciones);
+    strcat(path_absoluto, path);
+
     FILE *archivo = fopen(path_absoluto, "r");
     if (archivo == NULL)
     {
-        // loggear algo
-        return NULL;
+        log_error(logger_propio, "No se pudo encontrar el archivo de instrucciones.");
+        abort();
     }
 
     t_list *instrucciones = list_create();
@@ -17,8 +22,10 @@ t_list *subir_instrucciones(char *path)
     while ((instruccion = leer_instruccion(archivo)) != NULL)
     {
         list_add(instrucciones, instruccion);
+        log_info(logger_propio, "Instruccion leida: %s", instruccion);
     }
 
+    free(path_absoluto);
     fclose(archivo);
     return instrucciones;
 }
