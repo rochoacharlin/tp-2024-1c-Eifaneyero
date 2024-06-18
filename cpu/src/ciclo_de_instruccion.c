@@ -60,7 +60,10 @@ char *recibir_instruccion_string()
 {
     if (recibir_operacion(conexion_cpu_memoria) == INSTRUCCION)
     {
-        char *instruccion_string = recibir_string(conexion_cpu_memoria);
+        t_list *paquete_instruccion = recibir_paquete(conexion_cpu_memoria);
+        char *instruccion_string = string_duplicate(list_get(paquete_instruccion, 0));
+        list_destroy_and_destroy_elements(paquete_instruccion, free);
+
         log_info(logger_propio, "String recibido de memoria: %s", instruccion_string);
         return instruccion_string;
     }
