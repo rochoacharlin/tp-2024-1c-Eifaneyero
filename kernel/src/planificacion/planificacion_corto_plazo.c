@@ -262,9 +262,9 @@ t_list *obtener_parametros_de_paquete_desalojo(t_list *paquete)
 {
     t_list *parametros = list_create();
 
-    for (int i = 12; i > list_size(paquete); i++)
+    for (int i = 12; i < list_size(paquete); i++)
     {
-        list_add(parametros, list_get(paquete, i));
+        list_add(parametros, string_duplicate(list_get(paquete, i)));
     }
 
     list_destroy_and_destroy_elements(paquete, free);
