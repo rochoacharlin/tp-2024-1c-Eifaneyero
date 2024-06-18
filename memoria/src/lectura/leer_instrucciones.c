@@ -2,7 +2,9 @@
 
 t_list *subir_instrucciones(char *path)
 {
-    FILE *archivo = fopen(path, "r");
+    char *path_absoluto = obtener_path_instrucciones();
+    string_append(&path_absoluto, path);
+    FILE *archivo = fopen(path_absoluto, "r");
     if (archivo == NULL)
     {
         // loggear algo

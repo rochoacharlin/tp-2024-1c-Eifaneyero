@@ -65,13 +65,10 @@ void atender_solicitud_instruccion(void)
     uint32_t PID, PC;
     recibir_solicitud_instruccion(&PID, &PC);
 
-    sem_wait(obtener_sem_instrucciones(PID)); // Blocked hasta que las instrucciones del proceso se hayan cargado.
     log_info(logger_propio, "Semáforo cruzado en verde tras recibir solicitud de instrucción");
 
     char *instruccion = obtener_instruccion_de_indice(PID, PC);
     enviar_instruccion_a_cpu(instruccion);
-
-    sem_post(obtener_sem_instrucciones(PID)); // Libero. Ya no hay que esperar la carga de intrucciones.
 }
 
 void recibir_solicitud_instruccion(uint32_t *PID, uint32_t *PC)
@@ -84,6 +81,7 @@ void recibir_solicitud_instruccion(uint32_t *PID, uint32_t *PC)
 
 char *obtener_instruccion_de_indice(uint32_t PID, uint32_t PC)
 {
+    log_info(logger_propio, "la cpu quiere leer una instrucción");
     t_list *instrucciones = (t_list *)dictionary_get(indice_instrucciones, string_itoa(PID));
     char *instruccion = list_get(instrucciones, PC);
     return instruccion;

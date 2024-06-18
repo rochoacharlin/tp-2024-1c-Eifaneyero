@@ -6,7 +6,6 @@ t_dictionary *indice_instrucciones;
 t_bitarray *marcos_libres;
 
 pthread_mutex_t mutex_memoria;
-t_dictionary *sem_instrucciones_listas;
 
 void inicializar_memoria(void)
 {
@@ -21,11 +20,6 @@ void inicializar_memoria(void)
 void retardo_de_peticion()
 {
     usleep(obtener_retardo_respuesta() * 1000);
-}
-
-sem_t *obtener_sem_instrucciones(uint32_t PID)
-{
-    return dictionary_get(sem_instrucciones_listas, string_itoa(PID));
 }
 
 void atender_escritura_espacio_usuario(int sockete)

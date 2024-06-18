@@ -5,7 +5,7 @@ void atender_io(int *socket_cliente)
     int op_code = 0;
     while (op_code != -1)
     {
-        op_code = recibir_operacion(socket_cliente);
+        op_code = recibir_operacion(*socket_cliente);
         retardo_de_peticion();
         switch (op_code)
         {
