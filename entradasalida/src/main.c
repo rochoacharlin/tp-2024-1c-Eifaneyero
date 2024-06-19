@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
     setear_config(argv[2]);
 
-    // conectar con kernel y memoria
+    // conectar con kernel y memoria (en caso de que corresponda)
     conexion_con_memoria();
     conexion_con_kernel(nombre);
 
