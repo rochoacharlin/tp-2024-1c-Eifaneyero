@@ -82,7 +82,7 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
     loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
 
     int tiempo_restante = pcb->quantum - tiempo_en_ejecucion;
-    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "FIFO") == 0 || (strcmp(algoritmo, "VRR") == 0 && tiempo_restante <= 0))
+    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0 || (strcmp(algoritmo, "VRR") == 0 && tiempo_restante <= 0))
     {
         ingresar_pcb_a_READY(pcb);
     }
@@ -206,8 +206,8 @@ void ejecutar_segun_FIFO(t_contexto *contexto)
 void ejecutar_segun_RR(t_contexto *contexto)
 {
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
-
-    usleep(obtener_quantum());
+    useconds_t tiempo_de_espera_ms = obtener_quantum() * 1000;
+    usleep(tiempo_de_espera_ms);
     if (!hubo_desalojo)
     {
         enviar_interrupcion("FIN_QUANTUM");
