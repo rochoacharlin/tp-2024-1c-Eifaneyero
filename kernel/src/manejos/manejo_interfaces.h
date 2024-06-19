@@ -51,7 +51,6 @@ bool puede_realizar_operacion(t_io_list *io, char *operacion);
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd);
 void manejador_interfaz(t_pcb *pcb, t_list *parametros);
 void atender_interfaz(void *interfaz);
-int string_to_enum_io(char *str);
 
 // funciones de manejo de t_proceso_bloqueado
 void eliminar_proceso_bloqueado(t_proceso_bloqueado *proceso);

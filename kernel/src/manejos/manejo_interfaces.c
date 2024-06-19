@@ -2,10 +2,10 @@
 
 t_list *interfaces;
 pthread_mutex_t mutex_interfaces;
-char *operaciones_stdout[] = {"IO_STDOUT_WRITE"};
-char *operaciones_stdin[] = {"IO_STDIN_READ"};
-char *operaciones_generic[] = {"IO_GENERIC_SLEEP"};
-char *operaciones_fs[] = {"IO_FS_CREATE", "IO_FS_DELETE", "IO_FS_TRUNCATE", "IO_FS_WRITE", "IO_FS_READ"};
+int operaciones_stdout[1] = {IO_STDOUT_WRITE};
+int operaciones_stdin[1] = {IO_STDIN_READ};
+int operaciones_generic[1] = {IO_GEN_SLEEP};
+int operaciones_fs[5] = {IO_FS_CREATE, IO_FS_DELETE, IO_FS_TRUNCATE, IO_FS_WRITE, IO_FS_READ};
 
 void ejecutar_espera_interfaces(void)
 {
@@ -85,11 +85,13 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
         }
         else
         {
+            log_info(logger_propio, "La interfaz %s no puede realizar la operacion %s.", nombre_interfaz, tipo_de_operacion);
             enviar_pcb_a_EXIT(pcb, INVALID_INTERFACE);
         }
     }
     else
     {
+        log_info(logger_propio, "La interfaz %s no existe.", nombre_interfaz);
         enviar_pcb_a_EXIT(pcb, INVALID_INTERFACE);
     }
 }
@@ -98,21 +100,21 @@ bool puede_realizar_operacion(t_io_list *io, char *operacion)
 {
     if (strcmp(io->tipo, "STDOUT") == 0)
     {
-        return strcmp(operaciones_stdout[0], operacion) == 0;
+        return operaciones_stdout[0] == atoi(operacion);
     }
     else if (strcmp(io->tipo, "STDIN") == 0)
     {
-        return strcmp(operaciones_stdin[0], operacion) == 0;
+        return operaciones_stdin[0] == atoi(operacion);
     }
-    else if (strcmp(io->tipo, "GENERIC") == 0)
+    else if (strcmp(io->tipo, "GENERICA") == 0)
     {
-        return strcmp(operaciones_generic[0], operacion) == 0;
+        return operaciones_generic[0] == atoi(operacion);
     }
     else if (strcmp(io->tipo, "DIALFS") == 0)
     {
         for (int i = 0; i < 5; i++)
         {
-            if (strcmp(operaciones_fs[i], operacion) == 0)
+            if (operaciones_fs[i] == atoi(operacion))
             {
                 return true;
             }
@@ -139,7 +141,7 @@ void atender_interfaz(void *interfaz)
 
         // creamos el paquete y lo mandamos a la interfaz
         char *op_a_realizar = (char *)list_remove(proceso->parametros, 0);
-        int op_interfaz = string_to_enum_io(op_a_realizar);
+        int op_interfaz = atoi(op_a_realizar);
         t_paquete *p_interfaz = crear_paquete(op_interfaz);
         uint32_t *pid = &proceso->pcb->PID;
         agregar_a_paquete(p_interfaz, (void *)pid, sizeof(uint32_t));
@@ -176,31 +178,6 @@ void atender_interfaz(void *interfaz)
     }
 
     liberar_interfaz(io);
-}
-
-int string_to_enum_io(char *str)
-{
-    if (strcmp(str, "IO_GEN_SLEEP") == 0)
-        return IO_GEN_SLEEP;
-    else if (strcmp(str, "IO_STDIN_READ") == 0)
-        return IO_STDIN_READ;
-    else if (strcmp(str, "IO_STDOUT_WRITE") == 0)
-        return IO_STDOUT_WRITE;
-    else if (strcmp(str, "IO_FS_CREATE") == 0)
-        return IO_FS_CREATE;
-    else if (strcmp(str, "IO_FS_DELETE") == 0)
-        return IO_FS_DELETE;
-    else if (strcmp(str, "IO_FS_TRUNCATE") == 0)
-        return IO_FS_TRUNCATE;
-    else if (strcmp(str, "IO_FS_WRITE") == 0)
-        return IO_FS_WRITE;
-    else if (strcmp(str, "IO_FS_READ") == 0)
-        return IO_FS_READ;
-    else
-    {
-        log_error(logger_propio, "Instruccion invalida al atender una interfaz.");
-        abort();
-    }
 }
 
 // funciones de manejo de t_proceso_bloqueado
