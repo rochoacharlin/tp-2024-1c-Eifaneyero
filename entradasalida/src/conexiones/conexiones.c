@@ -32,6 +32,7 @@ void recibir_peticiones_del_kernel(void)
     {
         cod_op = recibir_operacion(conexion_kernel);
         parametros = recibir_paquete(conexion_kernel);
+        log_info(logger_propio, "Se recibio la operacion %d del Proceso %d", cod_op, *(uint32_t *)list_get(parametros, 0));
         respuesta = atender(cod_op, parametros);
         enviar_cod_op(respuesta, conexion_kernel);
     }
