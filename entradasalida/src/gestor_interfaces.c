@@ -158,7 +158,7 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
 void setear_config(char *archivo_config_io)
 {
     char *config_ruta = string_new();
-    string_append(&config_ruta, "configuraciones/");
+    strcpy(config_ruta, "configuraciones/");
     string_append(&config_ruta, archivo_config_io);
     config = iniciar_config(logger_propio, config_ruta);
     free(config_ruta);
