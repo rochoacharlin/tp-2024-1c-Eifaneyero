@@ -70,6 +70,7 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             // logs minimos y obligatorios
+            pcb->estado = BLOCKED;
             loggear_cambio_de_estado(pcb->PID, EXEC, BLOCKED);
             loggear_motivo_de_bloqueo(pcb->PID, nombre_interfaz);
 
@@ -154,7 +155,7 @@ void atender_interfaz(void *interfaz)
             {
                 pthread_mutex_lock(&mutex_lista_BLOCKED);
                 list_remove_element(pcbs_en_BLOCKED, proceso->pcb);
-                pthread_mutex_lock(&mutex_lista_BLOCKED);
+                pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
                 encolar_pcb_ready_segun_algoritmo(proceso->pcb, proceso->ms_en_ejecucion);
             }
