@@ -13,11 +13,20 @@ void ejecutar_espera_interfaces(void)
     while (1)
     {
         int fd_cliente = esperar_cliente(logger_propio, servidor_kernel_fd);
-        if (recibir_operacion(fd_cliente) == CONEXION_INTERFAZ_KERNEL)
+        int operacion = recibir_operacion(fd_cliente);
+
+        switch (operacion)
         {
+        case CONEXION_INTERFAZ_KERNEL:
             t_list *interfaz = recibir_paquete(fd_cliente);
-            agregar_a_lista_io_global((char *)list_get(interfaz, 0), (char *)list_get(interfaz, 1), fd_cliente);
-            log_info(logger_propio, "Se ha conectado la interfaz: %s", (char *)list_get(interfaz, 0));
+            char *nombre = (char *)list_get(interfaz, 0);
+            char *tipo = (char *)list_get(interfaz, 1);
+            agregar_a_lista_io_global(nombre, tipo, fd_cliente);
+            log_info(logger_propio, "Se ha conectado la interfaz %s del tipo %s", nombre, tipo);
+            break;
+        default:
+            log_info(logger_propio, "Recibi una operacion no valida de la interfaz.");
+            break;
         }
     }
 }
@@ -34,7 +43,7 @@ void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
 
     pthread_mutex_lock(&mutex_interfaces);
     list_add(interfaces, (void *)interfaz);
-    pthread_mutex_lock(&mutex_interfaces);
+    pthread_mutex_unlock(&mutex_interfaces);
 
     // creo hilo para atender cada interfaz se conecta
     pthread_t hilo_interfaz;
