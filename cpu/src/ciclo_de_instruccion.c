@@ -53,6 +53,14 @@ char *fetch()
     solicitar_lectura_de_instruccion(contexto->PID, obtener_valor_registro(contexto->registros_cpu, "PC"));
     char *instruccion_string = recibir_instruccion_string();
     loggear_fetch_instrucccion(contexto->PID, obtener_valor_registro(contexto->registros_cpu, "PC"));
+
+    // actualizo PC
+    uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
+    valor++;
+    char *valor_string = string_itoa(valor);
+    set("PC", valor_string);
+    free(valor_string);
+
     return instruccion_string;
 }
 
@@ -333,15 +341,6 @@ void execute(t_instruccion *instruccion)
 
     default:
         break;
-    }
-
-    // Incremento PC, al menos que ejecute SET PC XXX o JNZ 0 INSTRUCCION)
-    if ((!(instruccion->id == SET && !strcmp(instruccion->param1, "PC")) && !(instruccion->id == JNZ && instruccion->param1 != 0)))
-    {
-        uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
-        valor++;
-        char *valor_string = string_itoa(valor);
-        set("PC", valor_string);
     }
 }
 
