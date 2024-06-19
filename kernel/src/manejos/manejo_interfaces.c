@@ -17,6 +17,7 @@ void ejecutar_espera_interfaces(void)
         {
             t_list *interfaz = recibir_paquete(fd_cliente);
             agregar_a_lista_io_global((char *)list_get(interfaz, 0), (char *)list_get(interfaz, 1), fd_cliente);
+            log_info(logger_propio, "Se ha conectado la interfaz: %s", (char *)list_get(interfaz, 0));
         }
     }
 }
