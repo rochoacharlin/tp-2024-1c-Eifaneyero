@@ -60,8 +60,8 @@ void wait_recurso(char *recurso, t_pcb *pcb)
             list_add(pcb->recursos_asignados, recurso);
 
             // devolvemos la ejecucion al pcb
-            procesar_pcb_segun_algoritmo(pcb);
-            esperar_contexto_y_actualizar_pcb(pcb);
+            procesar_pcb_segun_algoritmo(pcb, NULL);
+            esperar_contexto_y_actualizar_pcb(pcb, NULL);
         }
     }
     else
@@ -95,8 +95,8 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
         list_remove_by_condition(pcb->recursos_asignados, condicion_liberar_recurso);
 
         // devolvemos la ejecucion al pcb
-        procesar_pcb_segun_algoritmo(pcb);
-        esperar_contexto_y_actualizar_pcb(pcb);
+        procesar_pcb_segun_algoritmo(pcb, NULL);
+        esperar_contexto_y_actualizar_pcb(pcb, NULL);
     }
     else
     {

@@ -3,9 +3,11 @@
 int ms_en_ejecucion = 0;
 t_temporal *temp;
 bool hubo_desalojo = false;
+pthread_mutex_t mutex_hubo_desalojo;
 
 void planificar_a_corto_plazo_segun_algoritmo(void)
 {
+    pthread_mutex_init(&mutex_hubo_desalojo, NULL);
     if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0)
     {
         planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO_o_RR);
@@ -36,9 +38,13 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         // log minimo y obligatorio
         loggear_cambio_de_estado(pcb_en_EXEC->PID, anterior, pcb_en_EXEC->estado);
 
+        pthread_mutex_lock(&mutex_hubo_desalojo);
         hubo_desalojo = false;
-        procesar_pcb_segun_algoritmo(pcb_en_EXEC);
-        esperar_contexto_y_actualizar_pcb(pcb_en_EXEC);
+        pthread_mutex_unlock(&mutex_hubo_desalojo);
+
+        pthread_t hilo_quantum;
+        procesar_pcb_segun_algoritmo(pcb_en_EXEC, &hilo_quantum);
+        esperar_contexto_y_actualizar_pcb(pcb_en_EXEC, &hilo_quantum);
 
         sem_post(&planificacion_corto_plazo_liberada);
     }
@@ -108,11 +114,18 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
     }
 }
 
-void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
+void esperar_contexto_y_actualizar_pcb(t_pcb *pcb, pthread_t *hilo_quantum)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
 
+    pthread_mutex_lock(&mutex_hubo_desalojo);
     hubo_desalojo = true;
+    pthread_mutex_unlock(&mutex_hubo_desalojo);
+    if (strcmp(algoritmo, "RR") == 0)
+    {
+        pthread_cancel(*hilo_quantum);
+    }
+
     if (strcmp(algoritmo, "VRR") == 0)
     {
         temporal_stop(temp);
@@ -122,6 +135,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
 
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
+
     actualizar_pcb(pcb, contexto);
 
     sem_wait(&desalojo_liberado);
@@ -146,6 +160,7 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
         break;
 
     case DESALOJO_FIN_QUANTUM:
+        loggear_fin_de_quantum(contexto->PID);
         encolar_pcb_ready_segun_algoritmo(pcb, ms_en_ejecucion);
         break;
 
@@ -165,10 +180,9 @@ void esperar_contexto_y_actualizar_pcb(t_pcb *pcb)
     sem_post(&desalojo_liberado);
 }
 
-void procesar_pcb_segun_algoritmo(t_pcb *pcb)
+void procesar_pcb_segun_algoritmo(t_pcb *pcb, pthread_t *hilo_quantum)
 {
     t_contexto *contexto = crear_contexto(pcb);
-    pthread_t hilo_quantum;
 
     if (strcmp(algoritmo, "FIFO") == 0)
     {
@@ -176,20 +190,20 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb)
     }
     else if (strcmp(algoritmo, "RR") == 0)
     {
-        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_RR, (void *)contexto))
+        if (pthread_create(hilo_quantum, NULL, (void *)ejecutar_segun_RR, (void *)contexto))
             log_error(logger_propio, "Error creando el hilo para el quantum en RR");
 
-        pthread_join(hilo_quantum, NULL);
+        pthread_detach(*hilo_quantum);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
         t_args *args = malloc(sizeof(t_args));
         args->contexto = contexto;
         args->pcb = pcb;
-        if (pthread_create(&hilo_quantum, NULL, (void *)ejecutar_segun_VRR, (void *)args))
+        if (pthread_create(hilo_quantum, NULL, (void *)ejecutar_segun_VRR, (void *)args))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
 
-        pthread_join(hilo_quantum, NULL);
+        pthread_detach(*hilo_quantum);
     }
     else
     {
@@ -208,11 +222,8 @@ void ejecutar_segun_RR(t_contexto *contexto)
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     useconds_t tiempo_de_espera_ms = obtener_quantum() * 1000;
     usleep(tiempo_de_espera_ms);
-    if (!hubo_desalojo)
-    {
-        enviar_interrupcion("FIN_QUANTUM");
-        loggear_fin_de_quantum(contexto->PID);
-    }
+
+    enviar_interrupcion("FIN_QUANTUM");
 }
 
 void ejecutar_segun_VRR(t_contexto *contexto, t_pcb *pcb)
@@ -222,10 +233,16 @@ void ejecutar_segun_VRR(t_contexto *contexto, t_pcb *pcb)
 
     pcb->desencolado_de_aux_ready ? usleep(obtener_quantum() - ms_en_ejecucion) : usleep(obtener_quantum());
 
+    pthread_mutex_lock(&mutex_hubo_desalojo);
     if (!hubo_desalojo)
     {
+        pthread_mutex_unlock(&mutex_hubo_desalojo);
         enviar_interrupcion("FIN_QUANTUM");
         loggear_fin_de_quantum(contexto->PID);
+    }
+    else
+    {
+        pthread_mutex_unlock(&mutex_hubo_desalojo);
     }
 }
 

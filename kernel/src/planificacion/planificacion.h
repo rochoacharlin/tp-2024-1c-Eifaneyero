@@ -82,13 +82,13 @@ void planificar_a_corto_plazo_segun_algoritmo(void);
 void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
 t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
 t_pcb *proximo_a_ejecutar_segun_VRR(void);
-void esperar_contexto_y_actualizar_pcb(t_pcb *pcb);
+void esperar_contexto_y_actualizar_pcb(t_pcb *pcb, pthread_t *hilo_quantum);
 void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion);
 t_contexto *obtener_contexto_de_paquete_desalojo(t_list *paquete);
 t_list *obtener_parametros_de_paquete_desalojo(t_list *paquete);
 
 // relacionado con la CPU
-void procesar_pcb_segun_algoritmo(t_pcb *pcb);
+void procesar_pcb_segun_algoritmo(t_pcb *pcb, pthread_t *hilo_quantum);
 void ejecutar_segun_FIFO(t_contexto *contexto);
 void ejecutar_segun_RR(t_contexto *contexto);
 void ejecutar_segun_VRR(t_contexto *contexto, t_pcb *pcb);
