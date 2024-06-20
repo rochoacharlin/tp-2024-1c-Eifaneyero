@@ -44,7 +44,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
 
         pthread_t hilo_quantum;
         procesar_pcb_segun_algoritmo(pcb_en_EXEC, &hilo_quantum);
-        esperar_contexto_y_actualizar_pcb(pcb_en_EXEC, &hilo_quantum);
+        esperar_contexto_y_manejar_desalojo(pcb_en_EXEC, &hilo_quantum);
 
         sem_post(&planificacion_corto_plazo_liberada);
     }
@@ -114,7 +114,7 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
     }
 }
 
-void esperar_contexto_y_actualizar_pcb(t_pcb *pcb, pthread_t *hilo_quantum)
+void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
 

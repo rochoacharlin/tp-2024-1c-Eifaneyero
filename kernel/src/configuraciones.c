@@ -25,7 +25,7 @@ void loggear_motivo_de_bloqueo(int PID, char *interfaz_o_recurso)
 
 void loggear_fin_de_quantum(int PID)
 {
-    log_info(logger_obligatorio, "PID : <%d> - Desalojado por fin de Quantum", PID);
+    log_info(logger_obligatorio, "PID: <%d> - Desalojado por fin de Quantum", PID);
 }
 
 void loggear_ingreso_a_READY(char *lista_PIDS)

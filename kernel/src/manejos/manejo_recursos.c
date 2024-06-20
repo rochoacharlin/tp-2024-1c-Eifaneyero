@@ -61,7 +61,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
 
             // devolvemos la ejecucion al pcb
             procesar_pcb_segun_algoritmo(pcb, NULL);
-            esperar_contexto_y_actualizar_pcb(pcb, NULL);
+            esperar_contexto_y_manejar_desalojo(pcb, NULL);
         }
     }
     else
@@ -96,7 +96,7 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
 
         // devolvemos la ejecucion al pcb
         procesar_pcb_segun_algoritmo(pcb, NULL);
-        esperar_contexto_y_actualizar_pcb(pcb, NULL);
+        esperar_contexto_y_manejar_desalojo(pcb, NULL);
     }
     else
     {

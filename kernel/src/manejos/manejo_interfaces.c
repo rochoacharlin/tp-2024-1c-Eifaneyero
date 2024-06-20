@@ -50,7 +50,7 @@ void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
     if (pthread_create(&hilo_interfaz, NULL, (void *)atender_interfaz, (void *)interfaz) != 0)
         log_error(logger_propio, "Error creando el hilo para una interfaz");
 
-    pthread_detach(hilo_interfaz); // VERIFICAR: por que no es un pthread join?
+    pthread_detach(hilo_interfaz);
 }
 
 void manejador_interfaz(t_pcb *pcb, t_list *parametros)
