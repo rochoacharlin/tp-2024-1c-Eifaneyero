@@ -44,13 +44,11 @@ void iniciar_conexion_memoria(void)
     }
 }
 
-char *recibir_interrupcion() // TODO F: Chequear.
+char *recibir_interrupcion() // TODO F:
 {
     if (recibir_operacion(conexion_cpu_kernel_interrupt) == INTERRUPCION)
     {
-        t_list *paquete_interrupcion = recibir_paquete(conexion_cpu_kernel_interrupt);
-        char *interrupcion = string_duplicate(list_get(paquete_interrupcion, 0));
-        list_destroy_and_destroy_elements(paquete_interrupcion, free);
+        char *interrupcion = recibir_string(conexion_cpu_kernel_interrupt);
         log_info(logger_propio, "recibir_interrupcion(): motivo interrupcion: %s", interrupcion);
         return interrupcion;
     }
