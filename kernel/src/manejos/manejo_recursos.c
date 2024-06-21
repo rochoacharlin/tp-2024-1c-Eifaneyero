@@ -70,7 +70,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
     }
 }
 
-void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
+void signal_recurso(char *recurso, t_pcb *pcb)
 {
     bool condicion_liberar_recurso(void *elemento)
     {
@@ -90,7 +90,7 @@ void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada)
             list_remove_element(pcbs_en_BLOCKED, pcb);
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
-            encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear, rafaga_cpu_ejecutada);
+            encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
         }
         list_remove_by_condition(pcb->recursos_asignados, condicion_liberar_recurso);
 

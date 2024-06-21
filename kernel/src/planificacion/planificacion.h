@@ -46,7 +46,6 @@ extern int conexion_kernel_cpu_dispatch;
 extern int conexion_kernel_cpu_interrupt;
 extern int conexion_kernel_memoria;
 extern char *algoritmo;
-extern int ms_en_ejecucion;
 
 typedef enum
 {
@@ -83,7 +82,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
 t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
 t_pcb *proximo_a_ejecutar_segun_VRR(void);
 void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum);
-void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion);
+void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb);
 t_contexto *obtener_contexto_de_paquete_desalojo(t_list *paquete);
 t_list *obtener_parametros_de_paquete_desalojo(t_list *paquete);
 

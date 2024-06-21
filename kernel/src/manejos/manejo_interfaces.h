@@ -29,7 +29,6 @@ typedef struct
 {
     t_pcb *pcb;
     t_list *parametros;
-    int ms_en_ejecucion;
 } t_proceso_bloqueado;
 
 typedef enum
@@ -54,7 +53,7 @@ void atender_interfaz(void *interfaz);
 
 // funciones de manejo de t_proceso_bloqueado
 void eliminar_proceso_bloqueado(t_proceso_bloqueado *proceso);
-t_proceso_bloqueado *crear_proceso_bloqueado(t_pcb *pcb, t_list *parametros, int tiempo_ejecucion);
+t_proceso_bloqueado *crear_proceso_bloqueado(t_pcb *pcb, t_list *parametros);
 
 // funciones de manejo de t_io_list
 t_io_list *crear_interfaz(char *nombre, char *tipo, int fd);

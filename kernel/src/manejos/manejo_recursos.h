@@ -15,7 +15,7 @@ extern char **nombres_recursos;
 void crear_colas_de_bloqueo(void);
 void destruir_lista_string(char **lista_string);
 void wait_recurso(char *recurso, t_pcb *pcb);
-void signal_recurso(char *recurso, t_pcb *pcb, int rafaga_cpu_ejecutada);
+void signal_recurso(char *recurso, t_pcb *pcb);
 bool existe_recurso(char *recurso);
 int posicion_recurso(char *recurso);
 int cantidad_recursos(void);

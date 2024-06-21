@@ -6,7 +6,7 @@ t_pcb *crear_pcb()
 {
     t_pcb *pcb = malloc(sizeof(t_pcb));
     pcb->PID = procesos_creados++; // le asigno un PID y luego lo incremento
-    pcb->quantum = obtener_quantum();
+    pcb->quantum_restante_ms = 0;
     pcb->registros_cpu = crear_registros_cpu();
     pcb->estado = NEW;
     pcb->recursos_asignados = list_create();
@@ -57,10 +57,11 @@ t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, uint32_t PID)
     return NULL;
 }
 
-void actualizar_pcb(t_pcb *pcb, t_contexto *contexto)
+void actualizar_pcb(t_pcb *pcb, t_contexto *contexto, int64_t ms_en_ejecucion)
 {
     destruir_registros_cpu(pcb->registros_cpu);
     pcb->registros_cpu = copiar_registros_cpu(contexto->registros_cpu);
+    pcb->quantum_restante_ms = pcb->quantum_restante_ms - ms_en_ejecucion < 0 ? 0 : pcb->quantum_restante_ms - ms_en_ejecucion;
 }
 
 t_contexto *crear_contexto(t_pcb *pcb)

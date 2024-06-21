@@ -62,25 +62,27 @@ t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void)
 t_pcb *proximo_a_ejecutar_segun_VRR(void)
 {
     t_pcb *pcb;
+    pthread_mutex_lock(&mutex_cola_aux_READY);
     if (!list_is_empty(pcbs_en_aux_READY))
     {
-        pthread_mutex_lock(&mutex_cola_aux_READY);
         pcb = desencolar_pcb(pcbs_en_aux_READY);
         pthread_mutex_unlock(&mutex_cola_aux_READY);
         pcb->desencolado_de_aux_ready = true;
     }
     else
     {
+        pthread_mutex_unlock(&mutex_cola_aux_READY);
         pthread_mutex_lock(&mutex_cola_READY);
         pcb = desencolar_pcb(pcbs_en_READY);
         pthread_mutex_unlock(&mutex_cola_READY);
         pcb->desencolado_de_aux_ready = false;
+        pcb->quantum_restante_ms = obtener_quantum() * 1000;
     }
 
     return pcb;
 }
 
-void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
+void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb)
 {
     estado anterior = pcb->estado;
     pcb->estado = READY;
@@ -88,12 +90,11 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb, int tiempo_en_ejecucion)
     // log minimo y obligatorio
     loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
 
-    int tiempo_restante = pcb->quantum - tiempo_en_ejecucion;
-    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0 || (strcmp(algoritmo, "VRR") == 0 && tiempo_restante <= 0))
+    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0 || (strcmp(algoritmo, "VRR") == 0 && pcb->quantum_restante_ms <= 0))
     {
         ingresar_pcb_a_READY(pcb);
     }
-    else if (strcmp(algoritmo, "VRR") == 0 && tiempo_restante > 0)
+    else if (strcmp(algoritmo, "VRR") == 0 && pcb->quantum_restante_ms > 0)
     {
         pthread_mutex_lock(&mutex_cola_aux_READY);
         encolar_pcb(pcbs_en_aux_READY, pcb);
@@ -132,12 +133,13 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         temporal_stop(temp);
         ms_en_ejecucion = temporal_gettime(temp);
         temporal_destroy(temp);
+        pthread_cancel(*hilo_quantum);
     }
 
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
 
-    actualizar_pcb(pcb, contexto);
+    actualizar_pcb(pcb, contexto, ms_en_ejecucion);
 
     sem_wait(&desalojo_liberado);
 
@@ -162,7 +164,7 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
 
     case DESALOJO_FIN_QUANTUM:
         loggear_fin_de_quantum(contexto->PID);
-        encolar_pcb_ready_segun_algoritmo(pcb, ms_en_ejecucion);
+        encolar_pcb_ready_segun_algoritmo(pcb);
         break;
 
     case DESALOJO_WAIT:
@@ -170,7 +172,7 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         break;
 
     case DESALOJO_SIGNAL:
-        signal_recurso((char *)list_get(paquete, 12), pcb, ms_en_ejecucion);
+        signal_recurso((char *)list_get(paquete, 12), pcb);
         break;
 
     default:
@@ -223,8 +225,15 @@ void ejecutar_segun_RR(t_contexto *contexto)
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     useconds_t tiempo_de_espera_ms = obtener_quantum() * 1000;
     usleep(tiempo_de_espera_ms);
-
-    enviar_interrupcion("FIN_QUANTUM");
+    if (!hubo_desalojo)
+    {
+        pthread_mutex_unlock(&mutex_hubo_desalojo);
+        enviar_interrupcion("FIN_QUANTUM");
+    }
+    else
+    {
+        pthread_mutex_unlock(&mutex_hubo_desalojo);
+    }
 }
 
 void ejecutar_segun_VRR(t_args *args)
@@ -234,7 +243,8 @@ void ejecutar_segun_VRR(t_args *args)
 
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     temp = temporal_create();
-    pcb->desencolado_de_aux_ready ? usleep(obtener_quantum() * 1000 - ms_en_ejecucion) : usleep(obtener_quantum() * 1000);
+    usleep(pcb->quantum_restante_ms);
+    // pcb->desencolado_de_aux_ready ? usleep(pcb->quantum_restante_ms) : usleep(obtener_quantum() * 1000);
 
     pthread_mutex_lock(&mutex_hubo_desalojo);
     if (!hubo_desalojo)

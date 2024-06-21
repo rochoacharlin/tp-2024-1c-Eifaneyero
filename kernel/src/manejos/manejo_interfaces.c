@@ -75,7 +75,7 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
             loggear_motivo_de_bloqueo(pcb->PID, nombre_interfaz);
 
             // creo la estructura para guardar el pcb y los parametros
-            t_proceso_bloqueado *proceso_bloqueado = crear_proceso_bloqueado(pcb, parametros, ms_en_ejecucion);
+            t_proceso_bloqueado *proceso_bloqueado = crear_proceso_bloqueado(pcb, parametros);
 
             // agrego a la lista de bloqueados de la io
             pthread_mutex_lock(&io->cola_bloqueados);
@@ -157,7 +157,7 @@ void atender_interfaz(void *interfaz)
                 list_remove_element(pcbs_en_BLOCKED, proceso->pcb);
                 pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
-                encolar_pcb_ready_segun_algoritmo(proceso->pcb, proceso->ms_en_ejecucion);
+                encolar_pcb_ready_segun_algoritmo(proceso->pcb);
             }
             // VERIFICAR: se podria hacer algo más si el resultado no es ok ???
         }
@@ -189,12 +189,11 @@ void eliminar_proceso_bloqueado(t_proceso_bloqueado *proceso)
     free(proceso);
 }
 
-t_proceso_bloqueado *crear_proceso_bloqueado(t_pcb *pcb, t_list *parametros, int tiempo_ejecucion)
+t_proceso_bloqueado *crear_proceso_bloqueado(t_pcb *pcb, t_list *parametros)
 {
     t_proceso_bloqueado *proceso_bloqueado = malloc_or_die(sizeof(t_proceso_bloqueado), "No se pudo asignar memoria a proceso_bloqueado");
     proceso_bloqueado->parametros = parametros;
     proceso_bloqueado->pcb = pcb;
-    proceso_bloqueado->ms_en_ejecucion = tiempo_ejecucion;
 
     return proceso_bloqueado;
 }

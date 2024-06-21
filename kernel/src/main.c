@@ -148,7 +148,7 @@ void recursos_test()
         log_info(logger_propio, "   - %s", (char *)list_get(pcb->recursos_asignados, i));
     }
 
-    signal_recurso("RB", pcb, 6);
+    signal_recurso("RB", pcb);
 
     log_info(logger_propio, "PID: %d", (int)pcb->PID);
     log_info(logger_propio, "Estado: %s", estados[pcb->estado]);

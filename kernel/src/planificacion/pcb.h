@@ -23,7 +23,7 @@ typedef enum estado
 typedef struct
 {
     uint32_t PID;
-    int quantum;
+    int64_t quantum_restante_ms;
     t_dictionary *registros_cpu;
     estado estado;
     t_list *recursos_asignados;
@@ -43,7 +43,7 @@ void agregar_PID_a_lista_PIDS(void *pcb);
 t_pcb *buscar_pcb_por_PID(t_list *lista_pcbs, uint32_t PID);
 
 // Actualizar PCB a partir de contexto de ejecución recibido de CPU
-void actualizar_pcb(t_pcb *pcb, t_contexto *contexto);
+void actualizar_pcb(t_pcb *pcb, t_contexto *contexto, int64_t ms_en_ejecucion);
 
 // Crear contexto de ejecucion a partir de PCB, para enviar a CPU
 t_contexto *crear_contexto(t_pcb *pcb);
