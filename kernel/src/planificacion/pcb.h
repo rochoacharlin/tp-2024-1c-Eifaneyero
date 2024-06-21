@@ -23,7 +23,7 @@ typedef enum estado
 typedef struct
 {
     uint32_t PID;
-    int64_t quantum_restante_ms;
+    int64_t quantum;
     t_dictionary *registros_cpu;
     estado estado;
     t_list *recursos_asignados;
