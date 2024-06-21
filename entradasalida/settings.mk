@@ -9,7 +9,7 @@ CDEBUG=-g -Wall -DDEBUG -fdiagnostics-color=always
 CRELEASE=-O3 -Wall -DNDEBUG -fcommon
 
 # Arguments when executing with start, memcheck or helgrind
-ARGS=
+ARGS=SLP1 SLP1.config
 
 # Valgrind flags
 MEMCHECK_FLAGS=--track-origins=yes
