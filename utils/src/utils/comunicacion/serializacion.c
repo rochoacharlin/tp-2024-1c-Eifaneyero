@@ -137,11 +137,12 @@ void *recibir_buffer(int socket, int *size) //
     return buffer;
 }
 
-char *recibir_string(int socket) // ?
+char *recibir_string(int socket)
 {
-    int size;
-    char *buffer = recibir_buffer(socket, &size);
-    return buffer;
+    t_list *paquete_con_string = recibir_paquete(socket);
+    char *string = string_duplicate(list_get(paquete_con_string, 0));
+    list_destroy_and_destroy_elements(paquete_con_string, free);
+    return string;
 }
 
 t_list *recibir_paquete(int socket)
