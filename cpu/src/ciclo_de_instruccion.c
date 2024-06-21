@@ -11,17 +11,7 @@ t_TLB *tlb; // TODO esta tlb se debe crear en otro lado (a pesar de que se usar�
 
 void destruir_instruccion(t_instruccion *instruccion)
 {
-    if (instruccion->param1 != NULL)
-        free(instruccion->param1);
-    if (instruccion->param2 != NULL)
-        free(instruccion->param2);
-    if (instruccion->param3 != NULL)
-        free(instruccion->param3);
-    if (instruccion->param4 != NULL)
-        free(instruccion->param4);
-    if (instruccion->param5 != NULL)
-        free(instruccion->param5);
-
+    list_destroy_and_destroy_elements(instruccion->parametros, free);
     list_destroy_and_destroy_elements(instruccion->direcciones_fisicas, free);
     free(instruccion);
 }
@@ -77,47 +67,68 @@ char *recibir_instruccion_string()
     return "EXIT";
 }
 
-t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
+t_instruccion *convertir_string_a_instruccion_beta(char *instruccion_string)
 {
     t_instruccion *instruccion = malloc_or_die(sizeof(t_instruccion), "Error al asignar memoria para la instrucción");
-
-    inicializar_instruccion(instruccion);
-
     char **instruccion_array = string_split(instruccion_string, " ");
-    char *instruccion_array_fixed[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
-    for (int i = 0; i < 6 && instruccion_array[i] != NULL; i++)
+    instruccion->parametros = list_create();
+    instruccion->direcciones_fisicas = list_create();
+
+    instruccion->id = string_id_to_enum_id(instruccion_array[0]);
+
+    int i = 1;
+    while (instruccion_array[i] != NULL)
     {
-        instruccion_array_fixed[i] = instruccion_array[i];
+        list_add(instruccion->parametros, string_duplicate(instruccion_array[i]));
+        i++;
     }
 
-    instruccion->id = string_id_to_enum_id(instruccion_array_fixed[0]);
-    if (instruccion_array_fixed[1] != NULL)
-        instruccion->param1 = string_duplicate(instruccion_array_fixed[1]);
-    if (instruccion_array_fixed[2] != NULL)
-        instruccion->param2 = string_duplicate(instruccion_array_fixed[2]);
-    if (instruccion_array_fixed[3] != NULL)
-        instruccion->param3 = string_duplicate(instruccion_array_fixed[3]);
-    if (instruccion_array_fixed[4] != NULL)
-        instruccion->param4 = string_duplicate(instruccion_array_fixed[4]);
-    if (instruccion_array_fixed[5] != NULL)
-        instruccion->param5 = string_duplicate(instruccion_array_fixed[5]);
-
+    for (i = 0; instruccion_array[i] != NULL; i++)
+    {
+        free(instruccion_array[i]);
+    }
     free(instruccion_array);
+
     return instruccion;
 }
 
-t_instruccion *inicializar_instruccion(t_instruccion *instruccion)
-{
-    instruccion->id = EXIT;
-    instruccion->param1 = NULL;
-    instruccion->param2 = NULL;
-    instruccion->param3 = NULL;
-    instruccion->param4 = NULL;
-    instruccion->param5 = NULL;
-    instruccion->direcciones_fisicas = list_create();
-    return instruccion;
-}
+// t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
+// {
+//     t_instruccion *instruccion = malloc_or_die(sizeof(t_instruccion), "Error al asignar memoria para la instrucción");
+//     inicializar_instruccion(instruccion);
+//     char **instruccion_array = string_split(instruccion_string, " ");
+//     char *instruccion_array_fixed[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+//     for (int i = 0; i < 6 && instruccion_array[i] != NULL; i++)
+//     {
+//         instruccion_array_fixed[i] = instruccion_array[i];
+//     }
+//     instruccion->id = string_id_to_enum_id(instruccion_array_fixed[0]);
+//     if (instruccion_array_fixed[1] != NULL)
+//         (char*)list_get(instruccion->parametros,0) = string_duplicate(instruccion_array_fixed[1]);
+//     if (instruccion_array_fixed[2] != NULL)
+//         (char*)list_get(instruccion->parametros,1) = string_duplicate(instruccion_array_fixed[2]);
+//     if (instruccion_array_fixed[3] != NULL)
+//         (char*)list_get(instruccion->parametros,2) = string_duplicate(instruccion_array_fixed[3]);
+//     if (instruccion_array_fixed[4] != NULL)
+//         (char*)list_get(instruccion->parametros,3) = string_duplicate(instruccion_array_fixed[4]);
+//     if (instruccion_array_fixed[5] != NULL)
+//         (char*)list_get(instruccion->parametros,4) = string_duplicate(instruccion_array_fixed[5]);
+//     free(instruccion_array);
+//     return instruccion;
+// }
+
+// t_instruccion *inicializar_instruccion(t_instruccion *instruccion)
+// {
+//     instruccion->id = EXIT;
+//     (char*)list_get(instruccion->parametros,0) = NULL;
+//     (char*)list_get(instruccion->parametros,1) = NULL;
+//     (char*)list_get(instruccion->parametros,2) = NULL;
+//     (char*)list_get(instruccion->parametros,3) = NULL;
+//     (char*)list_get(instruccion->parametros,4) = NULL;
+//     instruccion->direcciones_fisicas = list_create();
+//     return instruccion;
+// }
 
 t_id string_id_to_enum_id(char *id_string)
 {
@@ -169,7 +180,7 @@ t_id string_id_to_enum_id(char *id_string)
 t_instruccion *decode(char *instruccion_leida)
 {
     t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-    instruccion = convertir_string_a_instruccion(instruccion_leida);
+    instruccion = convertir_string_a_instruccion_beta(instruccion_leida);
 
     // traducir direcciones lógicas si corresponde
     uint32_t direccion_logica = 0;
@@ -179,26 +190,26 @@ t_instruccion *decode(char *instruccion_leida)
     {
     case IO_STDIN_READ:
     case IO_STDOUT_WRITE:
-        direccion_logica = obtener_valor_registro(contexto->registros_cpu, instruccion->param2);
-        tamanio_a_operar = obtener_valor_registro(contexto->registros_cpu, instruccion->param3);
+        direccion_logica = obtener_valor_registro(contexto->registros_cpu, (char *)list_get(instruccion->parametros, 1));
+        tamanio_a_operar = obtener_valor_registro(contexto->registros_cpu, (char *)list_get(instruccion->parametros, 2));
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
         break;
 
     case MOV_IN:
-        direccion_logica = obtener_valor_registro(contexto->registros_cpu, instruccion->param2);
-        tamanio_a_operar = tamanio_de_registro(instruccion->param1);
+        direccion_logica = obtener_valor_registro(contexto->registros_cpu, (char *)list_get(instruccion->parametros, 1));
+        tamanio_a_operar = tamanio_de_registro((char *)list_get(instruccion->parametros, 0));
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
         break;
 
     case MOV_OUT:
-        direccion_logica = obtener_valor_registro(contexto->registros_cpu, instruccion->param1);
-        tamanio_a_operar = tamanio_de_registro(instruccion->param2);
+        direccion_logica = obtener_valor_registro(contexto->registros_cpu, (char *)list_get(instruccion->parametros, 0));
+        tamanio_a_operar = tamanio_de_registro((char *)list_get(instruccion->parametros, 1));
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
         break;
 
     case COPY_STRING:
         direccion_logica = obtener_valor_registro(contexto->registros_cpu, "SI");
-        tamanio_a_operar = atoi(instruccion->param1);
+        tamanio_a_operar = atoi((char *)list_get(instruccion->parametros, 0));
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
         direccion_logica = obtener_valor_registro(contexto->registros_cpu, "DI");
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
@@ -268,68 +279,68 @@ void execute(t_instruccion *instruccion)
     switch (instruccion->id)
     {
     case SET:
-        set(instruccion->param1, instruccion->param2);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SET - <%s %s>", contexto->PID, instruccion->param1, instruccion->param2);
+        set((char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SET - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
     case SUM:
-        sum(instruccion->param1, instruccion->param2);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SUM - <%s %s>", contexto->PID, instruccion->param1, instruccion->param2);
+        sum((char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SUM - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
     case SUB:
-        sub(instruccion->param1, instruccion->param2);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SUB - <%s %s>", contexto->PID, instruccion->param1, instruccion->param2);
+        sub((char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SUB - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
     case JNZ:
-        jnz(instruccion->param1, instruccion->param2);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: JNZ - <%s %s>", contexto->PID, instruccion->param1, instruccion->param2);
+        jnz((char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: JNZ - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
     case IO_GEN_SLEEP:
-        io_gen_sleep(instruccion->param1, instruccion->param2);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_GEN_SLEEP - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
+        io_gen_sleep((char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_GEN_SLEEP - <%s %s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
     case IO_STDIN_READ:
-        io_stdin_read(instruccion->param1, instruccion->direcciones_fisicas, instruccion->param3);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_STDIN_READ - <%s %s %s> ", contexto->PID, instruccion->param1, instruccion->param2, instruccion->param3);
+        io_stdin_read((char *)list_get(instruccion->parametros, 0), instruccion->direcciones_fisicas, (char *)list_get(instruccion->parametros, 2));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_STDIN_READ - <%s %s %s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1), (char *)list_get(instruccion->parametros, 2));
         break;
 
     case IO_STDOUT_WRITE:
-        io_stdout_write(instruccion->param1, instruccion->direcciones_fisicas, instruccion->param3);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_STDOUT_WRITE - <%s %s %s> ", contexto->PID, instruccion->param1, instruccion->param2, instruccion->param3);
+        io_stdout_write((char *)list_get(instruccion->parametros, 0), instruccion->direcciones_fisicas, (char *)list_get(instruccion->parametros, 2));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_STDOUT_WRITE - <%s %s %s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1), (char *)list_get(instruccion->parametros, 2));
         break;
 
     case MOV_IN:
-        mov_in(instruccion->param1, instruccion->direcciones_fisicas);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_IN - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
+        mov_in((char *)list_get(instruccion->parametros, 0), instruccion->direcciones_fisicas);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_IN - <%s %s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
     case MOV_OUT:
-        mov_out(instruccion->param2, instruccion->direcciones_fisicas);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_OUT - <%s %s> ", contexto->PID, instruccion->param1, instruccion->param2);
+        mov_out((char *)list_get(instruccion->parametros, 1), instruccion->direcciones_fisicas);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: MOV_OUT - <%s %s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
     case RESIZE:
-        resize(atoi(instruccion->param1));
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: RESIZE - <%s> ", contexto->PID, instruccion->param1);
+        resize(atoi((char *)list_get(instruccion->parametros, 0)));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: RESIZE - <%s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0));
         break;
 
     case COPY_STRING:
-        copy_string(atoi(instruccion->param1), instruccion->direcciones_fisicas);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: COPY_STRING - <%s> ", contexto->PID, instruccion->param1);
+        copy_string(atoi((char *)list_get(instruccion->parametros, 0)), instruccion->direcciones_fisicas);
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: COPY_STRING - <%s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0));
         break;
 
     case WAIT:
-        wait(instruccion->param1);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: WAIT - <%s> ", contexto->PID, instruccion->param1);
+        wait((char *)list_get(instruccion->parametros, 0));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: WAIT - <%s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0));
         break;
 
     case SIGNAL:
-        signal(instruccion->param1);
-        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SIGNAL - <%s> ", contexto->PID, instruccion->param1);
+        signal((char *)list_get(instruccion->parametros, 0));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SIGNAL - <%s> ", contexto->PID, (char *)list_get(instruccion->parametros, 0));
         break;
 
     case EXIT:

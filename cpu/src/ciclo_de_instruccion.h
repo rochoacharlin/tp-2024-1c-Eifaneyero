@@ -18,14 +18,21 @@
 #include "interface_cpu.h"
 #include "mmu/mmu.h"
 
+// typedef struct
+// {
+//     t_id id;
+//     char *param1;
+//     char *param2;
+//     char *param3;
+//     char *param4;
+//     char *param5;
+//     t_list *direcciones_fisicas;
+// } t_instruccion;
+
 typedef struct
 {
     t_id id;
-    char *param1;
-    char *param2;
-    char *param3;
-    char *param4;
-    char *param5;
+    t_list *parametros;
     t_list *direcciones_fisicas;
 } t_instruccion;
 
@@ -44,8 +51,9 @@ void check_interrupt(t_instruccion *instruccion);
 // ---------- FETCH ---------- //
 
 char *recibir_instruccion_string();
-t_instruccion *convertir_string_a_instruccion(char *instruccion_string);
-t_instruccion *inicializar_instruccion(t_instruccion *instruccion);
+t_instruccion *convertir_string_a_instruccion_beta(char *instruccion_string);
+// t_instruccion *convertir_string_a_instruccion(char *instruccion_string);
+// t_instruccion *inicializar_instruccion(t_instruccion *instruccion);
 t_id string_id_to_enum_id(char *id_string);
 void destruir_instruccion(t_instruccion *instruccion);
 
