@@ -76,7 +76,7 @@ t_pcb *proximo_a_ejecutar_segun_VRR(void)
         pcb = desencolar_pcb(pcbs_en_READY);
         pthread_mutex_unlock(&mutex_cola_READY);
         pcb->desencolado_de_aux_ready = false;
-        pcb->quantum_restante_ms = obtener_quantum() * 1000;
+        pcb->quantum = obtener_quantum();
     }
 
     return pcb;
@@ -90,11 +90,11 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb)
     // log minimo y obligatorio
     loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
 
-    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0 || (strcmp(algoritmo, "VRR") == 0 && pcb->quantum_restante_ms <= 0))
+    if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0 || (strcmp(algoritmo, "VRR") == 0 && pcb->quantum <= 0))
     {
         ingresar_pcb_a_READY(pcb);
     }
-    else if (strcmp(algoritmo, "VRR") == 0 && pcb->quantum_restante_ms > 0)
+    else if (strcmp(algoritmo, "VRR") == 0 && pcb->quantum > 0)
     {
         pthread_mutex_lock(&mutex_cola_aux_READY);
         encolar_pcb(pcbs_en_aux_READY, pcb);
@@ -105,8 +105,12 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb)
         // log minimo y obligatorio
         lista_PIDS = string_new();
         mostrar_PIDS(pcbs_en_READY);
+        loggear_ingreso_a_READY(lista_PIDS, false);
+        free(lista_PIDS);
+
+        lista_PIDS = string_new();
         mostrar_PIDS(pcbs_en_aux_READY);
-        loggear_ingreso_a_READY(lista_PIDS);
+        loggear_ingreso_a_READY(lista_PIDS, true);
         free(lista_PIDS);
     }
     else
@@ -135,7 +139,6 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         temporal_destroy(temp);
         pthread_cancel(*hilo_quantum);
     }
-
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
 
@@ -243,8 +246,8 @@ void ejecutar_segun_VRR(t_args *args)
 
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     temp = temporal_create();
-    usleep(pcb->quantum_restante_ms);
-    // pcb->desencolado_de_aux_ready ? usleep(pcb->quantum_restante_ms) : usleep(obtener_quantum() * 1000);
+    usleep(pcb->quantum * 1000);
+    // pcb->desencolado_de_aux_ready ? usleep(pcb->quantum) : usleep(obtener_quantum() * 1000);
 
     pthread_mutex_lock(&mutex_hubo_desalojo);
     if (!hubo_desalojo)

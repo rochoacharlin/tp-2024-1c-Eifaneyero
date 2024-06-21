@@ -72,7 +72,7 @@ void ingresar_pcb_a_READY(t_pcb *pcb)
     // log minimo y obligatorio
     lista_PIDS = string_new();
     mostrar_PIDS(pcbs_en_READY);
-    loggear_ingreso_a_READY(lista_PIDS);
+    loggear_ingreso_a_READY(lista_PIDS, false);
     free(lista_PIDS);
 }
 

@@ -28,7 +28,7 @@ void loggear_fin_de_quantum(int PID)
     log_info(logger_obligatorio, "PID: <%d> - Desalojado por fin de Quantum", PID);
 }
 
-void loggear_ingreso_a_READY(char *lista_PIDS)
+void loggear_ingreso_a_READY(char *lista_PIDS, bool cola_prioritaria)
 {
-    log_info(logger_obligatorio, "Cola Ready / Ready Prioridad: [%s]", lista_PIDS);
+    log_info(logger_obligatorio, "Cola Ready %s: [%s]", cola_prioritaria ? "Prioridad" : "", lista_PIDS);
 }
