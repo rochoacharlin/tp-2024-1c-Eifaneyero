@@ -24,7 +24,7 @@ pthread_mutex_t mutex_pcb_EXEC;
 pthread_mutex_t mutex_lista_memoria;
 pthread_mutex_t mutex_lista_EXIT;
 
-int32_t procesos_creados = 0;
+int32_t procesos_creados = 1;
 char *algoritmo;
 
 void planificar_a_largo_plazo(void)
