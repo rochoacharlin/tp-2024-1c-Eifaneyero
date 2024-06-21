@@ -145,6 +145,14 @@ char *recibir_string(int socket)
     return string;
 }
 
+uint32_t *recibir_uint32_t(int socket)
+{
+    t_list *paquete_con_uint32_t = recibir_paquete(socket);
+    uint32_t *entero = (uint32_t *)list_get(paquete_con_uint32_t, 0);
+    list_destroy_and_destroy_elements(paquete_con_uint32_t, free);
+    return entero;
+}
+
 t_list *recibir_paquete(int socket)
 {
     int size;
