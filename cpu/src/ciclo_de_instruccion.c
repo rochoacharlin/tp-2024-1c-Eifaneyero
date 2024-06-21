@@ -232,8 +232,8 @@ void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_
         direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
         bytes_disponibles_en_marco = tamanio_pagina - desplazamiento;
         bytes_a_operar = tamanio_a_operar > bytes_disponibles_en_marco ? bytes_disponibles_en_marco : tamanio_a_operar;
-        list_add(instruccion->direcciones_fisicas, &direccion_fisica);
-        list_add(instruccion->direcciones_fisicas, &bytes_a_operar);
+        list_add(instruccion->direcciones_fisicas, memcpy(malloc(sizeof(uint32_t)), &direccion_fisica, sizeof(uint32_t)));
+        list_add(instruccion->direcciones_fisicas, memcpy(malloc(sizeof(int)), &bytes_a_operar, sizeof(int)));
 
         if (bytes_disponibles_en_marco < tamanio_a_operar)
         {
@@ -246,8 +246,8 @@ void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_
             {
                 direccion_fisica = calcular_direccion_fisica(tlb, contexto->PID, direccion_logica);
                 bytes_a_operar = tamanio_a_operar > tamanio_pagina ? tamanio_pagina : tamanio_a_operar;
-                list_add(instruccion->direcciones_fisicas, &direccion_fisica);
-                list_add(instruccion->direcciones_fisicas, &bytes_a_operar);
+                list_add(instruccion->direcciones_fisicas, memcpy(malloc(sizeof(uint32_t)), &direccion_fisica, sizeof(uint32_t)));
+                list_add(instruccion->direcciones_fisicas, memcpy(malloc(sizeof(int)), &bytes_a_operar, sizeof(int)));
                 direccion_logica += tamanio_pagina;
                 tamanio_a_operar -= tamanio_pagina;
             }
