@@ -19,7 +19,20 @@ int main(int argc, char *argv[])
     config = iniciar_config(logger_propio, "memoria.config");
 
     inicializar_memoria();
-    iniciar_conexiones();
+    int marco = obtener_marco_libre();
+    log_info(logger_propio, "%d", marco);
+    marcar_como_ocupado(marco);
+    marco = obtener_marco_libre();
+    log_info(logger_propio, "%d", marco);
+    marcar_como_ocupado(marco);
+    marco = obtener_marco_libre();
+    log_info(logger_propio, "%d", marco);
+    marcar_como_ocupado(marco);
+    marco = obtener_marco_libre();
+    log_info(logger_propio, "%d", marco);
+
+    // inicializar_memoria();
+    // iniciar_conexiones();
     // test_resize();
     // testeaba cosas de bitarray
     // int cantidad_marcos = (obtener_tam_memoria() + obtener_tam_pagina() - 1) / obtener_tam_pagina();
