@@ -234,14 +234,13 @@ void ejecutar_segun_VRR(t_args *args)
 
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     temp = temporal_create();
-    pcb->desencolado_de_aux_ready ? usleep(obtener_quantum() - ms_en_ejecucion) : usleep(obtener_quantum());
+    pcb->desencolado_de_aux_ready ? usleep(obtener_quantum() * 1000 - ms_en_ejecucion) : usleep(obtener_quantum() * 1000);
 
     pthread_mutex_lock(&mutex_hubo_desalojo);
     if (!hubo_desalojo)
     {
         pthread_mutex_unlock(&mutex_hubo_desalojo);
         enviar_interrupcion("FIN_QUANTUM");
-        loggear_fin_de_quantum(contexto->PID);
     }
     else
     {
