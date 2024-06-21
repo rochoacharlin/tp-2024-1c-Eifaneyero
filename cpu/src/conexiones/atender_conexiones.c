@@ -7,6 +7,8 @@ int conexion_cpu_kernel_interrupt;
 pthread_t th_dispatch;
 pthread_t th_interrupt;
 
+t_TLB *tlb;
+
 void iniciar_servidor_dispatch(void)
 {
     int server_fd = iniciar_servidor(logger_propio, obtener_puerto_escucha_dispatch());
@@ -65,6 +67,7 @@ void atender_dispatch()
 
     log_info(logger_propio, "CPU escuchando puerto dispatch");
 
+    tlb = crear_TLB();
     while (1)
     {
         int opCode = recibir_operacion(conexion_cpu_kernel_dispatch);

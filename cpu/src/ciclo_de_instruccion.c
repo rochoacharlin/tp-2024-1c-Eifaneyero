@@ -7,8 +7,6 @@ bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
 t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto?
 
-t_TLB *tlb; // TODO esta tlb se debe crear en otro lado (a pesar de que se usará en este archivo)
-
 void destruir_instruccion(t_instruccion *instruccion)
 {
     list_destroy_and_destroy_elements(instruccion->parametros, free);
@@ -360,7 +358,6 @@ bool instruccion_bloqueante(t_id id_instruccion)
     case IO_GEN_SLEEP:
     case IO_STDIN_READ:
     case IO_STDOUT_WRITE:
-    case RESIZE:
     case SIGNAL:
     case WAIT:
     case EXIT:
@@ -545,6 +542,7 @@ void resize(uint32_t tamanio)
     if (respuesta == OUT_OF_MEMORY)
     {
         devolver_contexto(DESALOJO_OUT_OF_MEMORY, NULL);
+        continua_ejecucion = false;
     }
 }
 

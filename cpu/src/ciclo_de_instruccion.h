@@ -37,7 +37,6 @@ typedef struct
 } t_instruccion;
 
 extern t_TLB *tlb;
-
 extern pthread_mutex_t mutex_interrupt;
 
 // -------------------- CICLO DE INSTRUCCION -------------------- //
