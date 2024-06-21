@@ -17,7 +17,7 @@ void inicializar_memoria(void);
 void retardo_de_peticion();
 
 void escribir_espacio_usuario(uint32_t direccion, void *valor, uint32_t tamanio);
-void recibir_escritura_espacio_usuario(int sockete, uint32_t *PID, uint32_t *direccion_fisica, void *valor_a_escribir, uint32_t *tamanio);
+void recibir_escritura_espacio_usuario(int sockete, uint32_t *PID, uint32_t *direccion_fisica, void **valor_a_escribir, uint32_t *tamanio);
 void atender_escritura_espacio_usuario(int sockete);
 
 void enviar_valor_leido(int sockete, void *valor_leido, uint32_t tamanio_valor);

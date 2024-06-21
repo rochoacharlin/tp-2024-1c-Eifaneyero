@@ -26,7 +26,7 @@ void atender_escritura_espacio_usuario(int sockete)
 {
     uint32_t PID, direccion_fisica, tamanio;
     void *valor_a_escribir = NULL;
-    recibir_escritura_espacio_usuario(sockete, &PID, &direccion_fisica, valor_a_escribir, &tamanio);
+    recibir_escritura_espacio_usuario(sockete, &PID, &direccion_fisica, &valor_a_escribir, &tamanio);
     escribir_espacio_usuario(direccion_fisica, valor_a_escribir, tamanio);
     enviar_cod_op(OK, sockete);
     loggear_escritura_espacio_de_usuario(PID, direccion_fisica, tamanio);
@@ -34,15 +34,15 @@ void atender_escritura_espacio_usuario(int sockete)
 }
 
 void recibir_escritura_espacio_usuario(int sockete, uint32_t *PID, uint32_t *direccion_fisica,
-                                       void *valor_a_escribir, uint32_t *tamanio)
+                                       void **valor_a_escribir, uint32_t *tamanio)
 {
     t_list *paquete_escritura_espacio = recibir_paquete(sockete);
     *PID = *(uint32_t *)list_get(paquete_escritura_espacio, 0);
     *direccion_fisica = *(uint32_t *)list_get(paquete_escritura_espacio, 1);
     void *valor_temp = list_get(paquete_escritura_espacio, 2);
     *tamanio = *(uint32_t *)list_get(paquete_escritura_espacio, 3);
-    valor_a_escribir = malloc(*tamanio);
-    memcpy(valor_a_escribir, valor_temp, *tamanio);
+    *valor_a_escribir = malloc_or_die(*tamanio);
+    memcpy(*valor_a_escribir, valor_temp, *tamanio);
     list_destroy_and_destroy_elements(paquete_escritura_espacio, free);
 }
 
