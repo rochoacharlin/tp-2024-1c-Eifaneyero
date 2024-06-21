@@ -43,6 +43,7 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         pthread_mutex_unlock(&mutex_hubo_desalojo);
 
         pthread_t hilo_quantum;
+
         procesar_pcb_segun_algoritmo(pcb_en_EXEC, &hilo_quantum);
         esperar_contexto_y_manejar_desalojo(pcb_en_EXEC, &hilo_quantum);
 
@@ -226,11 +227,13 @@ void ejecutar_segun_RR(t_contexto *contexto)
     enviar_interrupcion("FIN_QUANTUM");
 }
 
-void ejecutar_segun_VRR(t_contexto *contexto, t_pcb *pcb)
+void ejecutar_segun_VRR(t_args *args)
 {
+    t_contexto *contexto = args->contexto;
+    t_pcb *pcb = args->pcb;
+
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     temp = temporal_create();
-
     pcb->desencolado_de_aux_ready ? usleep(obtener_quantum() - ms_en_ejecucion) : usleep(obtener_quantum());
 
     pthread_mutex_lock(&mutex_hubo_desalojo);
