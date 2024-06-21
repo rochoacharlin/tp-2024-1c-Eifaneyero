@@ -78,7 +78,6 @@ void recibir_solicitud_instruccion(uint32_t *PID, uint32_t *PC)
 
 char *obtener_instruccion_de_indice(uint32_t PID, uint32_t PC)
 {
-    log_info(logger_propio, "la cpu quiere leer una instrucción");
     t_list *instrucciones = (t_list *)dictionary_get(indice_instrucciones, string_itoa(PID));
     char *instruccion = list_get(instrucciones, PC);
     return instruccion;

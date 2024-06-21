@@ -22,7 +22,6 @@ t_list *subir_instrucciones(char *path)
     while ((instruccion = leer_instruccion(archivo)) != NULL)
     {
         list_add(instrucciones, instruccion);
-        log_info(logger_propio, "Instruccion leida: %s", instruccion);
     }
 
     free(path_absoluto);

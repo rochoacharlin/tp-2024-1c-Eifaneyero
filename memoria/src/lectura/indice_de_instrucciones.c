@@ -18,9 +18,7 @@ void destruir_indice_de_instrucciones(t_dictionary *indice_de_instrucciones)
 
 void agregar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID, char *path)
 {
-    log_info(logger_propio, "apunto de cargar instrucciones");
     t_list *instrucciones_de_proceso = subir_instrucciones(path); // sube las instrucciones a la estructura de memoria
-    log_info(logger_propio, "instrucciones cargadas");
     dictionary_put(indice_de_instrucciones, string_itoa(PID), instrucciones_de_proceso);
 }
 
