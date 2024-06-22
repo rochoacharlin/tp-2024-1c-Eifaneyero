@@ -59,6 +59,7 @@ void atender_lectura_espacio_usuario(int sockete)
     recibir_lectura_espacio_usuario(sockete, &PID, &direccion_fisica, &tamanio_a_leer);
     void *valor_leido = leer_espacio_usuario(direccion_fisica, tamanio_a_leer);
     enviar_valor_leido(sockete, valor_leido, tamanio_a_leer);
+    free(valor_leido);
     loggear_lectura_espacio_de_usuario(PID, direccion_fisica, tamanio_a_leer);
 }
 
