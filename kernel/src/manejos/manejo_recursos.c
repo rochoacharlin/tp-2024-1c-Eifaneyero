@@ -59,9 +59,11 @@ void wait_recurso(char *recurso, t_pcb *pcb)
         {
             list_add(pcb->recursos_asignados, recurso);
 
+            pthread_t hilo_quantum;
+
             // devolvemos la ejecucion al pcb
-            procesar_pcb_segun_algoritmo(pcb, NULL);
-            esperar_contexto_y_manejar_desalojo(pcb, NULL);
+            procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
+            esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
         }
     }
     else
@@ -94,9 +96,11 @@ void signal_recurso(char *recurso, t_pcb *pcb)
         }
         list_remove_by_condition(pcb->recursos_asignados, condicion_liberar_recurso);
 
+        pthread_t hilo_quantum;
+
         // devolvemos la ejecucion al pcb
-        procesar_pcb_segun_algoritmo(pcb, NULL);
-        esperar_contexto_y_manejar_desalojo(pcb, NULL);
+        procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
+        esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
     }
     else
     {
