@@ -26,12 +26,22 @@ void loggear_obtener_marco(uint32_t PID, int numero_pagina, int numero_marco)
     log_info(logger_obligatorio, "PID: <%d> - OBTENER MARCO - Página: <%d> - Marco: <%d>", PID, numero_pagina, numero_marco);
 }
 
-void loggear_lectura_memoria(uint32_t PID, uint32_t direccion_fisica, char *valor)
+void loggear_lectura_memoria_num(uint32_t PID, uint32_t direccion_fisica, uint32_t valor)
+{
+    log_info(logger_obligatorio, "PID: <%d> - Acción: <LEER> - Dirección Física: <%d> - Valor: <%d>", PID, direccion_fisica, valor);
+}
+
+void loggear_lectura_memoria_char(uint32_t PID, uint32_t direccion_fisica, char *valor)
 {
     log_info(logger_obligatorio, "PID: <%d> - Acción: <LEER> - Dirección Física: <%d> - Valor: <%s>", PID, direccion_fisica, valor);
 }
 
-void loggear_escritura_memoria(uint32_t PID, uint32_t direccion_fisica, char *valor)
+void loggear_escritura_memoria_num(uint32_t PID, uint32_t direccion_fisica, uint32_t valor)
+{
+    log_info(logger_obligatorio, "PID: <%d> - Acción: <ESCRIBIR> - Dirección Física: <%d> - Valor: <%d>", PID, direccion_fisica, valor);
+}
+
+void loggear_escritura_memoria_char(uint32_t PID, uint32_t direccion_fisica, char *valor)
 {
     log_info(logger_obligatorio, "PID: <%d> - Acción: <ESCRIBIR> - Dirección Física: <%d> - Valor: <%s>", PID, direccion_fisica, valor);
 }

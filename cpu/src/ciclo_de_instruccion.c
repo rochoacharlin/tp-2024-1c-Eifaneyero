@@ -487,44 +487,70 @@ void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_t
 
 void mov_in(char *registro_datos_destino, t_list *direcciones_fisicas)
 {
+    uint32_t valor_parcial_leido, *direccion_fisica, *bytes_a_leer;
+    void *valor_total = malloc(tamanio_de_registro(registro_datos_destino));
+    uint8_t desplazamiento = 0;
 
     for (int i = 0; i < list_size(direcciones_fisicas); i += 2)
     {
-        uint32_t *direccion_fisica = (uint32_t *)list_get(direcciones_fisicas, i);
-        uint32_t *bytes_a_leer = (uint32_t *)list_get(direcciones_fisicas, i + 1);
+        direccion_fisica = (uint32_t *)list_get(direcciones_fisicas, i);
+        bytes_a_leer = (uint32_t *)list_get(direcciones_fisicas, i + 1);
         enviar_lectura_espacio_usuario(contexto->PID, direccion_fisica, bytes_a_leer);
 
         if (recibir_operacion(conexion_cpu_memoria) == OK)
         {
+            valor_parcial_leido = 0;
             t_list *paquete_valor = recibir_paquete(conexion_cpu_memoria);
-            char *valor = (char *)list_get(paquete_valor, 0);
-            loggear_lectura_memoria(contexto->PID, *direccion_fisica, valor);
-            set(registro_datos_destino, valor);
+            memcpy(valor_total + desplazamiento, list_get(paquete_valor, 0), *bytes_a_leer);
+            memcpy(&valor_parcial_leido, list_get(paquete_valor, 0), *bytes_a_leer);
+            loggear_lectura_memoria_num(contexto->PID, *direccion_fisica, valor_parcial_leido);
             list_destroy_and_destroy_elements(paquete_valor, free);
         }
         else
         {
             log_info(logger_propio, "Conflicto en mov_in"); // TODO E:
         }
+
+        desplazamiento += *bytes_a_leer;
     }
+
+    if (tamanio_de_registro(registro_datos_destino) == 1)
+        set(registro_datos_destino, string_itoa(*(uint8_t *)valor_total));
+    else
+    {
+        set(registro_datos_destino, string_itoa(*(uint32_t *)valor_total));
+    }
+
+    free(valor_total);
 }
 
 void mov_out(char *registro_datos, t_list *direcciones_fisicas)
 {
     void *valor = dictionary_get(contexto->registros_cpu, registro_datos);
+    uint32_t valor_reconstruido, *direccion, *bytes_a_escribir;
     int desplazamiento = 0;
+    void *valor_a_enviar;
+
     for (int i = 0; i < list_size(direcciones_fisicas); i += 2)
     {
-        uint32_t *direccion = list_get(direcciones_fisicas, i);
-        uint32_t *bytes_a_escribir = (uint32_t *)list_get(direcciones_fisicas, i + 1);
-        void *valor_a_enviar = malloc(*bytes_a_escribir);
+        direccion = list_get(direcciones_fisicas, i);
+        bytes_a_escribir = (uint32_t *)list_get(direcciones_fisicas, i + 1);
+        valor_a_enviar = malloc(*bytes_a_escribir);
         memcpy(valor_a_enviar, valor + desplazamiento, *bytes_a_escribir);
         enviar_escritura_espacio_usuario(contexto->PID, direccion, valor_a_enviar, bytes_a_escribir);
+
         if (recibir_operacion(conexion_cpu_memoria) == OK)
-            loggear_escritura_memoria(contexto->PID, *direccion, valor_a_enviar);
+        {
+            valor_reconstruido = 0;
+            memcpy(&valor_reconstruido, valor_a_enviar, *bytes_a_escribir);
+            loggear_escritura_memoria_num(contexto->PID, *direccion, valor_reconstruido);
+        }
         else
             log_info(logger_propio, "Conflicto en mov_out"); // TODO E:
+
         desplazamiento += *bytes_a_escribir;
+
+        free(valor_a_enviar);
     }
 }
 
@@ -568,7 +594,7 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
             t_list *string_leido = recibir_paquete(conexion_cpu_memoria);
             char *valor_leido = (char *)list_get(string_leido, 0);
             string_append(&valores_leidos, valor_leido);
-            loggear_lectura_memoria(contexto->PID, *(int32_t *)direccion, valor_leido);
+            loggear_lectura_memoria_char(contexto->PID, *(int32_t *)direccion, valor_leido);
         }
         else
         {
@@ -594,7 +620,7 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
 
         if (recibir_operacion(conexion_cpu_memoria) == OK)
         {
-            loggear_escritura_memoria(contexto->PID, *(uint32_t *)direccion, a_enviar);
+            loggear_escritura_memoria_char(contexto->PID, *(uint32_t *)direccion, a_enviar);
         }
         else
         {

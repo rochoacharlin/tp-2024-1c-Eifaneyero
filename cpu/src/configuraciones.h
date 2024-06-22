@@ -23,7 +23,9 @@ void loggear_fetch_instrucccion(uint32_t PID, uint32_t PC);
 void loggear_tlb_hit(uint32_t PID, int numero_pagina);
 void loggear_tlb_miss(uint32_t PID, int numero_pagina);
 void loggear_obtener_marco(uint32_t PID, int numero_pagina, int numero_marco);
-void loggear_lectura_memoria(uint32_t PID, uint32_t direccion_fisica, char *valor);
-void loggear_escritura_memoria(uint32_t PID, uint32_t direccion_fisica, char *valor);
+void loggear_lectura_memoria_num(uint32_t PID, uint32_t direccion_fisica, uint32_t valor);
+void loggear_lectura_memoria_char(uint32_t PID, uint32_t direccion_fisica, char *valor);
+void loggear_escritura_memoria_num(uint32_t PID, uint32_t direccion_fisica, uint32_t valor);
+void loggear_escritura_memoria_char(uint32_t PID, uint32_t direccion_fisica, char *valor);
 
 #endif
