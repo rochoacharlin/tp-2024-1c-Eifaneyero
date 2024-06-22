@@ -131,7 +131,6 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
     {
         pthread_cancel(*hilo_quantum);
     }
-
     if (strcmp(algoritmo, "VRR") == 0)
     {
         temporal_stop(temp);
@@ -139,9 +138,9 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         temporal_destroy(temp);
         pthread_cancel(*hilo_quantum);
     }
+
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
-
     actualizar_pcb(pcb, contexto, ms_en_ejecucion);
 
     sem_wait(&desalojo_liberado);
@@ -183,7 +182,8 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         break;
     }
 
-    sem_post(&desalojo_liberado);
+    if (motivo_desalojo != DESALOJO_WAIT && motivo_desalojo != DESALOJO_SIGNAL)
+        sem_post(&desalojo_liberado);
 }
 
 void procesar_pcb_segun_algoritmo(t_pcb *pcb, pthread_t *hilo_quantum)
@@ -209,6 +209,7 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb, pthread_t *hilo_quantum)
         if (pthread_create(hilo_quantum, NULL, (void *)ejecutar_segun_VRR, (void *)args))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
 
+        free(args);
         pthread_detach(*hilo_quantum);
     }
     else

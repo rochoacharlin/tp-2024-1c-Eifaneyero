@@ -63,12 +63,14 @@ void wait_recurso(char *recurso, t_pcb *pcb)
 
             // devolvemos la ejecucion al pcb
             procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
+            sem_post(&desalojo_liberado);
             esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
         }
     }
     else
     {
         enviar_pcb_a_EXIT(pcb, INVALID_RESOURCE);
+        sem_post(&desalojo_liberado);
     }
 }
 
@@ -100,11 +102,13 @@ void signal_recurso(char *recurso, t_pcb *pcb)
 
         // devolvemos la ejecucion al pcb
         procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
+        sem_post(&desalojo_liberado);
         esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
     }
     else
     {
         enviar_pcb_a_EXIT(pcb, INVALID_RESOURCE);
+        sem_post(&desalojo_liberado);
     }
 }
 
