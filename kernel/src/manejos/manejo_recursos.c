@@ -26,10 +26,20 @@ void crear_colas_de_bloqueo(void)
 
 void liberar_recursos(t_pcb *pcb)
 {
+    // elimino los recursos dentro del pcb
     for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
     {
         char *recurso = list_get(pcb->recursos_asignados, i);
+
+        // aumento la cantidad de instancias de ese recurso
         instancias_recursos[posicion_recurso(recurso)]++;
+    }
+
+    // elimino el pcb de las colas de recursos
+    for (int i = 0; i < list_size(colas_de_recursos); i++)
+    {
+        t_list *cola = list_get(colas_de_recursos, i);
+        list_remove_element(cola, pcb);
     }
 }
 
