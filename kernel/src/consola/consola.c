@@ -26,8 +26,6 @@ void consola_interactiva(void)
     }
 
     free(leido);
-    destruir_semaforos_planificacion();
-    destruir_listas_planificacion();
 }
 
 void buscar_y_ejecutar_comando(char *token)

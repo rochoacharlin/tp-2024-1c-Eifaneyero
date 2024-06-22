@@ -11,8 +11,6 @@ t_config *config;
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
 pthread_t hilo_servidor;
-void chicken_test();
-void io_test();
 
 int main(int argc, char *argv[])
 {
@@ -38,6 +36,9 @@ int main(int argc, char *argv[])
 
     consola_interactiva();
 
+    destruir_semaforos_planificacion();
+    destruir_listas_planificacion();
+
     close(conexion_kernel_cpu_dispatch);
     close(conexion_kernel_cpu_interrupt);
     close(conexion_kernel_memoria);
@@ -46,116 +47,4 @@ int main(int argc, char *argv[])
     config_destroy(config);
 
     return 0;
-}
-
-void chicken_test()
-{
-    conexion_dispatch_con_CPU();
-    t_contexto *myLittleContext = iniciar_contexto();
-    myLittleContext->PID = 2;
-
-    u_int32_t num = 2;
-    u_int32_t *p = &num;
-    dictionary_put(myLittleContext->registros_cpu, "PC", p);
-
-    enviar_contexto(conexion_kernel_cpu_dispatch, myLittleContext);
-
-    int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
-    if (motivo_desalojo == DESALOJO_EXIT_SUCCESS)
-    {
-        t_contexto *myBigContext = recibir_contexto(conexion_kernel_cpu_dispatch);
-        log_info(logger_propio, "PID: %d", myBigContext->PID);
-        log_info(logger_propio, "PC: %d", obtener_valor_registro(myBigContext->registros_cpu, "PC"));
-        log_info(logger_propio, "EBX: %d", obtener_valor_registro(myBigContext->registros_cpu, "EBX"));
-        log_info(logger_propio, "AX: %d", obtener_valor_registro(myBigContext->registros_cpu, "AX"));
-        destruir_contexto(myBigContext);
-    }
-    else if (motivo_desalojo == DESALOJO_IO)
-    { // no hago el recibir contexto porque me deja los parámetros extra afuera... TODO lograr eso en una función o varias
-        t_contexto *contexto = iniciar_contexto();
-
-        // Orden en lista: AX, EAX, BX, EBX, CX, ECX, DX, EDX, PC, SI, DI
-        t_list *registros_contexto = recibir_paquete(conexion_kernel_cpu_dispatch);
-
-        memcpy(&(contexto->PID), (uint32_t *)list_get(registros_contexto, 0), sizeof(uint32_t));
-        dictionary_put(contexto->registros_cpu, "AX", (uint8_t *)list_get(registros_contexto, 1));
-        dictionary_put(contexto->registros_cpu, "EAX", (uint32_t *)list_get(registros_contexto, 2));
-        dictionary_put(contexto->registros_cpu, "BX", (uint8_t *)list_get(registros_contexto, 3));
-        dictionary_put(contexto->registros_cpu, "EBX", (uint32_t *)list_get(registros_contexto, 4));
-        dictionary_put(contexto->registros_cpu, "CX", (uint8_t *)list_get(registros_contexto, 5));
-        dictionary_put(contexto->registros_cpu, "ECX", (uint32_t *)list_get(registros_contexto, 6));
-        dictionary_put(contexto->registros_cpu, "DX", (uint8_t *)list_get(registros_contexto, 7));
-        dictionary_put(contexto->registros_cpu, "EDX", (uint32_t *)list_get(registros_contexto, 8));
-        dictionary_put(contexto->registros_cpu, "PC", (uint32_t *)list_get(registros_contexto, 9));
-        dictionary_put(contexto->registros_cpu, "SI", (uint32_t *)list_get(registros_contexto, 10));
-        dictionary_put(contexto->registros_cpu, "DI", (uint32_t *)list_get(registros_contexto, 11));
-
-        log_info(logger_propio, "PID: %d", contexto->PID);
-        log_info(logger_propio, "instruccion: %s", (char *)list_get(registros_contexto, 12)); // da 10 y está bien eso
-        log_info(logger_propio, "nombre: %s", (char *)list_get(registros_contexto, 13));
-        log_info(logger_propio, "tiempo: %s", (char *)list_get(registros_contexto, 14));
-
-        list_destroy_and_destroy_elements(registros_contexto, free);
-    }
-}
-
-void io_test()
-{
-    recibir_operacion(servidor_kernel_fd);
-    t_list *datos_io = recibir_paquete(servidor_kernel_fd);
-    log_info(logger_propio, "Nombre de IO: %s", (char *)list_get(datos_io, 0));
-    log_info(logger_propio, "Tipo de IO: %s", (char *)list_get(datos_io, 1));
-
-    // t_paquete *paquete = crear_paquete(10); // caso feliz
-    t_paquete *paquete = crear_paquete(11); // caso no feliz
-    agregar_a_paquete_string(paquete, string_itoa(12));
-    agregar_a_paquete_string(paquete, string_itoa(3));
-    enviar_paquete(paquete, servidor_kernel_fd);
-    eliminar_paquete(paquete);
-    log_info(logger_propio, "IO, descansa por 3 unidades");
-
-    int resultado_io = recibir_operacion(servidor_kernel_fd);
-    log_info(logger_propio, "Resultado de IO: %d", resultado_io);
-
-    close(servidor_kernel_fd);
-}
-
-void recursos_test()
-{
-    crear_colas_de_bloqueo();
-    t_pcb *pcb = crear_pcb();
-    pcb->estado = EXEC;
-    wait_recurso("RB", pcb);
-    wait_recurso("RB", pcb);
-
-    log_info(logger_propio, "PID: %d", (int)pcb->PID);
-    log_info(logger_propio, "Estado: %s", estados[pcb->estado]);
-    log_info(logger_propio, "Recursos: ");
-
-    for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
-    {
-        log_info(logger_propio, "   - %s", (char *)list_get(pcb->recursos_asignados, i));
-    }
-
-    wait_recurso("RB", pcb);
-
-    log_info(logger_propio, "PID: %d", (int)pcb->PID);
-    log_info(logger_propio, "Estado: %s", estados[pcb->estado]);
-    log_info(logger_propio, "Recursos: ");
-
-    for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
-    {
-        log_info(logger_propio, "   - %s", (char *)list_get(pcb->recursos_asignados, i));
-    }
-
-    signal_recurso("RB", pcb);
-
-    log_info(logger_propio, "PID: %d", (int)pcb->PID);
-    log_info(logger_propio, "Estado: %s", estados[pcb->estado]);
-    log_info(logger_propio, "Recursos: ");
-
-    for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
-    {
-        log_info(logger_propio, "   - %s", (char *)list_get(pcb->recursos_asignados, i));
-    }
 }
