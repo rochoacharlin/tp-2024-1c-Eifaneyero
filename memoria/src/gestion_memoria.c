@@ -41,7 +41,7 @@ void recibir_escritura_espacio_usuario(int sockete, uint32_t *PID, uint32_t *dir
     *direccion_fisica = *(uint32_t *)list_get(paquete_escritura_espacio, 1);
     void *valor_temp = list_get(paquete_escritura_espacio, 2);
     *tamanio = *(uint32_t *)list_get(paquete_escritura_espacio, 3);
-    *valor_a_escribir = malloc_or_die(*tamanio);
+    *valor_a_escribir = malloc_or_die(*tamanio, "No se pudo reservar tamaño para el valor a escribir");
     memcpy(*valor_a_escribir, valor_temp, *tamanio);
     list_destroy_and_destroy_elements(paquete_escritura_espacio, free);
 }
