@@ -58,8 +58,8 @@ void atender_finalizar_proceso(void)
 {
     uint32_t PID;
     recibir_pid(&PID);
-    liberar_estructuras_administrativas(PID);
     liberar_marcos_proceso(PID);
+    liberar_estructuras_administrativas(PID);
     enviar_cod_op(OK, socket_kernel);
 }
 
