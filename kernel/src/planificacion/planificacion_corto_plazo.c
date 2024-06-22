@@ -161,7 +161,7 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         break;
 
     case DESALOJO_OUT_OF_MEMORY:
-        enviar_pcb_a_EXIT(pcb, OUT_OF_MEMORY);
+        enviar_pcb_a_EXIT(pcb, FINALIZACION_OUT_OF_MEMORY);
         break;
 
     case DESALOJO_FIN_QUANTUM:

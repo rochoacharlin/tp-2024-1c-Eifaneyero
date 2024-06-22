@@ -27,6 +27,13 @@ pthread_mutex_t mutex_lista_EXIT;
 int32_t procesos_creados = 1;
 char *algoritmo;
 
+char *motivos[] = {
+    [SUCCESS] = "SUCCESS",
+    [INVALID_RESOURCE] = "INVALID_RESOURCE",
+    [INVALID_INTERFACE] = "INVALID_INTERFACE",
+    [FINALIZACION_OUT_OF_MEMORY] = "OUT_OF_MEMORY",
+    [INTERRUPTED_BY_USER] = "INTERRUPTED_BY_USER"};
+
 void planificar_a_largo_plazo(void)
 {
     while (1)
