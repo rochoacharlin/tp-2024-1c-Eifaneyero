@@ -60,8 +60,6 @@ void atender_lectura_espacio_usuario(int sockete)
     void *valor_leido = leer_espacio_usuario(direccion_fisica, tamanio_a_leer);
     enviar_valor_leido(sockete, valor_leido, tamanio_a_leer);
     loggear_lectura_espacio_de_usuario(PID, direccion_fisica, tamanio_a_leer);
-    // VERIFICAR: Esto soluciona problemas en la prueba de Memoria y TLB, pero es correcto comentarlo?
-    // free(valor_leido);
 }
 
 void recibir_lectura_espacio_usuario(int sockete, uint32_t *PID, uint32_t *direccion_fisica, uint32_t *tamanio_a_leer)
@@ -77,7 +75,7 @@ void *leer_espacio_usuario(uint32_t direccion, uint32_t tamanio_a_leer)
 {
     void *valor = malloc(tamanio_a_leer);
     pthread_mutex_lock(&mutex_memoria);
-    memcpy(&valor, espacio_usuario + direccion, tamanio_a_leer);
+    memcpy(valor, espacio_usuario + direccion, tamanio_a_leer);
     pthread_mutex_unlock(&mutex_memoria);
     return valor;
 }
