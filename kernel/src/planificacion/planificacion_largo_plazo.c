@@ -131,6 +131,7 @@ void inicializar_semaforos_planificacion(void)
     sem_init(&planificacion_largo_plazo_liberada, 0, 1);
     sem_init(&planificacion_corto_plazo_liberada, 0, 1);
     sem_init(&desalojo_liberado, 0, 1);
+    sem_init(&instancia_liberada, 0, 0);
 }
 
 void destruir_semaforos_planificacion(void)

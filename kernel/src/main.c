@@ -11,6 +11,7 @@ t_config *config;
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
 pthread_t hilo_servidor;
+pthread_t hilo_recursos_liberados;
 
 int main(int argc, char *argv[])
 {
@@ -28,6 +29,9 @@ int main(int argc, char *argv[])
 
     inicializar_listas_planificacion();
     inicializar_semaforos_planificacion();
+
+    if (pthread_create(&hilo_recursos_liberados, NULL, (void *)manejar_recursos_liberados, NULL))
+        log_error(logger_propio, "Error creando el hilo de recursos liberados.");
 
     if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
         log_error(logger_propio, "Error creando el hilo del planificador de largo plazo.");

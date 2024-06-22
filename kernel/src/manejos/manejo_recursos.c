@@ -3,6 +3,7 @@
 int *instancias_recursos;
 t_list *colas_de_recursos;
 char **nombres_recursos;
+sem_t instancia_liberada; // FALTA INICIALIZARLO
 
 void crear_colas_de_bloqueo(void)
 {
@@ -33,6 +34,7 @@ void liberar_recursos(t_pcb *pcb)
 
         // aumento la cantidad de instancias de ese recurso
         instancias_recursos[posicion_recurso(recurso)]++;
+        sem_post(&instancia_liberada);
     }
 
     // elimino el pcb de las colas de recursos
@@ -43,12 +45,34 @@ void liberar_recursos(t_pcb *pcb)
     }
 }
 
+void manejar_recursos_liberados(void)
+{
+    while (1)
+    {
+        sem_wait(&instancia_liberada);
+        for (int i = 0; i < cantidad_recursos(); i++)
+        {
+            t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, i);
+            if (instancias_recursos[i] > 0 && list_size(cola_bloqueo_recurso) > 0)
+            {
+                t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
+
+                pthread_mutex_lock(&mutex_lista_BLOCKED);
+                list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
+                pthread_mutex_unlock(&mutex_lista_BLOCKED);
+
+                encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
+            }
+        }
+    }
+}
+
 void wait_recurso(char *recurso, t_pcb *pcb)
 {
     if (existe_recurso(recurso))
     {
-        int cantidad_instancias_recurso = --instancias_recursos[posicion_recurso(recurso)];
-        if (cantidad_instancias_recurso < 0)
+        int cantidad_instancias_recurso = instancias_recursos[posicion_recurso(recurso)];
+        if (--cantidad_instancias_recurso < 0)
         {
             pcb->estado = BLOCKED;
             pcb_en_EXEC = NULL;
@@ -68,6 +92,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
         }
         else
         {
+            instancias_recursos[posicion_recurso(recurso)]--;
             list_add(pcb->recursos_asignados, recurso);
 
             pthread_t hilo_quantum;
@@ -102,7 +127,7 @@ void signal_recurso(char *recurso, t_pcb *pcb)
             t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
 
             pthread_mutex_lock(&mutex_lista_BLOCKED);
-            list_remove_element(pcbs_en_BLOCKED, pcb);
+            list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
