@@ -54,6 +54,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
             // se queda bloqueado en la lista correspondiente al recurso
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
             list_add(cola_bloqueo_recurso, pcb);
+            sem_post(&desalojo_liberado);
         }
         else
         {
@@ -95,6 +96,7 @@ void signal_recurso(char *recurso, t_pcb *pcb)
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
+            sem_post(&desalojo_liberado);
         }
         list_remove_by_condition(pcb->recursos_asignados, condicion_liberar_recurso);
 
