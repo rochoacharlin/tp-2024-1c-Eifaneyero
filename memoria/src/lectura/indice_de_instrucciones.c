@@ -19,12 +19,12 @@ void destruir_indice_de_instrucciones(t_dictionary *indice_de_instrucciones)
 void agregar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID, char *path)
 {
     t_list *instrucciones_de_proceso = subir_instrucciones(path); // sube las instrucciones a la estructura de memoria
-    dictionary_put(indice_de_instrucciones, string_itoa(PID), instrucciones_de_proceso);
+    dictionary_put_with_int_key(indice_de_instrucciones, PID, instrucciones_de_proceso);
 }
 
 void quitar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID)
 {
-    t_list *instrucciones_de_proceso = dictionary_remove(indice_de_instrucciones, string_itoa(PID));
+    t_list *instrucciones_de_proceso = dictionary_remove_with_int_key(indice_de_instrucciones, PID);
     if (instrucciones_de_proceso != NULL)
     {
         list_destroy_and_destroy_elements(instrucciones_de_proceso, free);

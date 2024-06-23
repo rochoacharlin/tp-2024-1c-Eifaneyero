@@ -24,7 +24,7 @@ void agregar_proceso_al_indice(uint32_t PID)
     loggear_creacion_destruccion_tabla_de_paginas(PID, 0);
 
     t_list *tabla_de_paginas = list_create();
-    dictionary_put(indice_tablas, string_itoa(PID), tabla_de_paginas);
+    dictionary_put_with_int_key(indice_tablas, PID, tabla_de_paginas);
 }
 
 void quitar_proceso_del_indice(uint32_t PID)
@@ -32,13 +32,13 @@ void quitar_proceso_del_indice(uint32_t PID)
     int tp_size = list_size(obtener_tp_de_proceso(PID));
     loggear_creacion_destruccion_tabla_de_paginas(PID, tp_size);
 
-    int *tabla_de_paginas = dictionary_remove(indice_tablas, string_itoa(PID));
+    int *tabla_de_paginas = dictionary_remove_with_int_key(indice_tablas, PID);
     destruir_tabla_de_paginas(tabla_de_paginas);
 }
 
 t_list *obtener_tp_de_proceso(uint32_t PID)
 {
-    return (t_list *)dictionary_get(indice_tablas, string_itoa(PID));
+    return dictionary_get_with_int_key(indice_tablas, PID);
 }
 
 // TABLA DE PÁGINAS -------------------------------
@@ -55,7 +55,7 @@ void quitar_ultima_pagina(t_list *tp)
 {
     int indice = list_size(tp) - 1;
     marcar_como_libre(obtener_marco(tp, indice));
-    list_remove(tp, indice);
+    free(list_remove(tp, indice));
 }
 
 int obtener_marco(t_list *tp, int pagina)
