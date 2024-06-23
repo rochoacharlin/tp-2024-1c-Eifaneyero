@@ -55,7 +55,7 @@ void quitar_ultima_pagina(t_list *tp)
 {
     int indice = list_size(tp) - 1;
     marcar_como_libre(obtener_marco(tp, indice));
-    free(list_remove(tp, indice));
+    list_remove_and_destroy_element(tp, indice, free);
 }
 
 int obtener_marco(t_list *tp, int pagina)
