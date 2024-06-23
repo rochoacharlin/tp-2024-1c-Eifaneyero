@@ -39,3 +39,26 @@ void *malloc_or_die(size_t tamanio, const char *mensaje)
     }
     return direccion_memoria;
 }
+
+void *dictionary_get_with_int_key(t_dictionary *dictionary, int key)
+{
+    char *char_key = string_itoa(key);
+    void *value = dictionary_get(dictionary, char_key);
+    free(char_key);
+    return value;
+}
+
+void dictionary_put_with_int_key(t_dictionary *dictionary, int key, void *element)
+{
+    char *char_key = string_itoa(key);
+    dictionary_put(dictionary, char_key, element);
+    free(char_key);
+}
+
+void *dictionary_remove_with_int_key(t_dictionary *dictionary, int key)
+{
+    char *char_key = string_itoa(key);
+    void *value = dictionary_remove(dictionary, char_key);
+    free(char_key);
+    return value;
+}
