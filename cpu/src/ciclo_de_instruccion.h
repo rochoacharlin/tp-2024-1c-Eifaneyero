@@ -70,12 +70,12 @@ void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_
 
 // -------------------- INSTRUCCIONES -------------------- //
 
-void set(char *nombre_registro, char *valor);
+void set(char *nombre_registro, uint32_t valor);
 void sum(char *nombre_destino, char *nombre_origen);
 void sub(char *nombre_destino, char *nombre_origen);
 void wait(char *recurso);
 void signal(char *recurso);
-void jnz(char *nombre_registro, char *nro_instruccion);
+void jnz(char *nombre_registro, uint32_t nro_instruccion);
 void io_gen_sleep(char *nombre, char *unidades);
 void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);
 void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio);

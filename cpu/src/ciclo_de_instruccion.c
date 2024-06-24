@@ -45,9 +45,7 @@ char *fetch()
     // actualizo PC
     uint32_t valor = obtener_valor_registro(contexto->registros_cpu, "PC");
     valor++;
-    char *valor_string = string_itoa(valor);
-    set("PC", valor_string);
-    free(valor_string);
+    set("PC", valor);
 
     return instruccion_string;
 }
@@ -177,8 +175,7 @@ t_id string_id_to_enum_id(char *id_string)
 // -------------------- DECODE -------------------- //
 t_instruccion *decode(char *instruccion_leida)
 {
-    t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-    instruccion = convertir_string_a_instruccion_beta(instruccion_leida);
+    t_instruccion *instruccion = convertir_string_a_instruccion_beta(instruccion_leida);
 
     // traducir direcciones lógicas si corresponde
     uint32_t direccion_logica = 0;
@@ -277,7 +274,7 @@ void execute(t_instruccion *instruccion)
     switch (instruccion->id)
     {
     case SET:
-        set((char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
+        set(list_get(instruccion->parametros, 0), atoi(list_get(instruccion->parametros, 1)));
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: SET - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
@@ -292,7 +289,7 @@ void execute(t_instruccion *instruccion)
         break;
 
     case JNZ:
-        jnz((char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
+        jnz(list_get(instruccion->parametros, 0), atoi(list_get(instruccion->parametros, 1)));
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: JNZ - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
@@ -398,18 +395,17 @@ void check_interrupt(t_instruccion *instruccion)
 
 // -------------------- INSTRUCCIONES -------------------- //
 
-void set(char *nombre_registro, char *valor)
+void set(char *nombre_registro, uint32_t valor)
 {
-    uint32_t valor_num = atoi(valor);
     if (strlen(nombre_registro) == 3 || !strcmp(nombre_registro, "SI") || !strcmp(nombre_registro, "DI") || !strcmp(nombre_registro, "PC")) // caso registros de 4 bytes
     {
         uint32_t *registro = dictionary_get(contexto->registros_cpu, nombre_registro);
-        *registro = valor_num;
+        *registro = valor;
     }
     else if (strlen(nombre_registro) == 2) // caso registros de 1 bytes
     {
         uint8_t *registro = dictionary_get(contexto->registros_cpu, nombre_registro);
-        *registro = (uint8_t)valor_num;
+        *registro = (uint8_t)valor;
     }
 }
 
@@ -418,7 +414,7 @@ void sum(char *nombre_destino, char *nombre_origen)
     uint32_t val_destino = obtener_valor_registro(contexto->registros_cpu, nombre_destino);
     uint32_t val_origen = obtener_valor_registro(contexto->registros_cpu, nombre_origen);
     val_destino += val_origen;
-    set(nombre_destino, string_itoa(val_destino));
+    set(nombre_destino, val_destino);
 }
 
 void sub(char *nombre_destino, char *nombre_origen)
@@ -426,13 +422,13 @@ void sub(char *nombre_destino, char *nombre_origen)
     uint32_t val_destino = obtener_valor_registro(contexto->registros_cpu, nombre_destino);
     uint32_t val_origen = obtener_valor_registro(contexto->registros_cpu, nombre_origen);
     val_destino -= val_origen;
-    set(nombre_destino, string_itoa(val_destino));
+    set(nombre_destino, val_destino);
 }
 
-void jnz(char *nombre_registro, char *nro_instruccion)
+void jnz(char *nombre_registro, uint32_t nro_instruccion)
 {
-    uint32_t val = obtener_valor_registro(contexto->registros_cpu, nombre_registro);
-    if (val != 0)
+    uint32_t val_registro = obtener_valor_registro(contexto->registros_cpu, nombre_registro);
+    if (val_registro != 0)
     {
         set("PC", nro_instruccion);
     }
@@ -515,10 +511,10 @@ void mov_in(char *registro_datos_destino, t_list *direcciones_fisicas)
     }
 
     if (tamanio_de_registro(registro_datos_destino) == 1)
-        set(registro_datos_destino, string_itoa(*(uint8_t *)valor_total));
+        set(registro_datos_destino, *(uint8_t *)valor_total);
     else
     {
-        set(registro_datos_destino, string_itoa(*(uint32_t *)valor_total));
+        set(registro_datos_destino, *(uint32_t *)valor_total);
     }
 
     free(valor_total);
