@@ -142,6 +142,7 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
     actualizar_pcb(pcb, contexto, ms_en_ejecucion);
+    destruir_contexto(contexto);
 
     sem_wait(&desalojo_liberado);
 
@@ -165,7 +166,7 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         break;
 
     case DESALOJO_FIN_QUANTUM:
-        loggear_fin_de_quantum(contexto->PID);
+        loggear_fin_de_quantum(pcb->PID);
         encolar_pcb_ready_segun_algoritmo(pcb);
         break;
 
@@ -181,6 +182,8 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         log_error(logger_propio, "Motivo de desalojo incorrecto.");
         break;
     }
+
+    list_destroy_and_destroy_elements(paquete, free);
 
     if (motivo_desalojo != DESALOJO_WAIT && motivo_desalojo != DESALOJO_SIGNAL)
         sem_post(&desalojo_liberado);
@@ -273,7 +276,8 @@ void enviar_interrupcion(char *motivo)
 
 t_contexto *obtener_contexto_de_paquete_desalojo(t_list *paquete)
 {
-    t_contexto *contexto = iniciar_contexto();
+    t_contexto *contexto = malloc(sizeof(t_contexto));
+    contexto->registros_cpu = dictionary_create();
 
     memcpy(&(contexto->PID), (uint32_t *)list_get(paquete, 0), sizeof(uint32_t));
     dictionary_put(contexto->registros_cpu, "AX", memcpy(malloc(sizeof(uint8_t)), list_get(paquete, 1), sizeof(uint8_t)));
@@ -299,8 +303,6 @@ t_list *obtener_parametros_de_paquete_desalojo(t_list *paquete)
     {
         list_add(parametros, string_duplicate(list_get(paquete, i)));
     }
-
-    list_destroy_and_destroy_elements(paquete, free);
 
     return parametros;
 }

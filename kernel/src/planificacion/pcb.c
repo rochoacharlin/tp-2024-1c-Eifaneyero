@@ -66,7 +66,7 @@ void actualizar_pcb(t_pcb *pcb, t_contexto *contexto, int64_t ms_en_ejecucion)
 
 t_contexto *crear_contexto(t_pcb *pcb)
 {
-    t_contexto *contexto = iniciar_contexto();
+    t_contexto *contexto = malloc(sizeof(t_contexto));
     contexto->PID = pcb->PID;
     contexto->registros_cpu = copiar_registros_cpu(pcb->registros_cpu);
     return contexto;
