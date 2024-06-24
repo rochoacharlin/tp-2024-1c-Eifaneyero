@@ -49,6 +49,7 @@ void enviar_contexto(int socket, t_contexto *contexto)
     agregar_a_paquete_contexto(paquete, contexto);
     enviar_paquete(paquete, socket);
     eliminar_paquete(paquete);
+    destruir_contexto(contexto);
 }
 
 motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion)
@@ -66,7 +67,8 @@ motivo_desalojo string_interrupcion_to_enum_motivo(char *interrupcion)
 
 t_contexto *recibir_contexto(int socket) // SIN opCode
 {
-    t_contexto *contexto = iniciar_contexto();
+    t_contexto *contexto = malloc(sizeof(t_contexto));
+    contexto->registros_cpu = dictionary_create();
 
     // Orden en lista: AX, EAX, BX, EBX, CX, ECX, DX, EDX, PC, SI, DI
     t_list *registros_contexto = recibir_paquete(socket);

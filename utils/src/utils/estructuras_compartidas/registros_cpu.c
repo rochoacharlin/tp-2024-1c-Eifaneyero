@@ -54,7 +54,7 @@ t_dictionary *copiar_registros_cpu(t_dictionary *a_copiar) // TODO:Liberar a a_c
     dictionary_put(copia, "AX", memcpy(malloc(sizeof(uint8_t)), dictionary_get(a_copiar, "AX"), sizeof(uint8_t)));
     dictionary_put(copia, "EAX", memcpy(malloc(sizeof(uint32_t)), dictionary_get(a_copiar, "EAX"), sizeof(uint32_t)));
     dictionary_put(copia, "BX", memcpy(malloc(sizeof(uint8_t)), dictionary_get(a_copiar, "BX"), sizeof(uint8_t)));
-    dictionary_put(copia, "EBX", memcpy(malloc(sizeof(uint8_t)), dictionary_get(a_copiar, "EBX"), sizeof(uint32_t)));
+    dictionary_put(copia, "EBX", memcpy(malloc(sizeof(uint32_t)), dictionary_get(a_copiar, "EBX"), sizeof(uint32_t)));
     dictionary_put(copia, "CX", memcpy(malloc(sizeof(uint8_t)), dictionary_get(a_copiar, "CX"), sizeof(uint8_t)));
     dictionary_put(copia, "ECX", memcpy(malloc(sizeof(uint32_t)), dictionary_get(a_copiar, "ECX"), sizeof(uint32_t)));
     dictionary_put(copia, "DX", memcpy(malloc(sizeof(uint8_t)), dictionary_get(a_copiar, "DX"), sizeof(uint8_t)));
