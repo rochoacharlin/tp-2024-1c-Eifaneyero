@@ -1,6 +1,6 @@
 #include "ciclo_de_instruccion.h"
 
-// pthread_mutex_t mutex_interrupt;
+pthread_mutex_t mutex_interrupt;
 char *motivo_interrupcion;
 bool continua_ejecucion = true;
 bool hay_interrupcion = false;
@@ -377,21 +377,23 @@ void check_interrupt(t_instruccion *instruccion)
     }
     else if (hay_interrupcion)
     {
-        // pthread_mutex_lock(&mutex_interrupt);
+        pthread_mutex_lock(&mutex_interrupt);
         motivo_desalojo motivo = string_interrupcion_to_enum_motivo(motivo_interrupcion);
         free(motivo_interrupcion);
         motivo_interrupcion = NULL;
         hay_interrupcion = false;
-        // pthread_mutex_unlock(&mutex_interrupt);
+        pthread_mutex_unlock(&mutex_interrupt);
         devolver_contexto(motivo, NULL);
         continua_ejecucion = false;
     }
 
+    pthread_mutex_lock(&mutex_interrupt);
     if (motivo_interrupcion != NULL)
     {
         free(motivo_interrupcion);
         motivo_interrupcion = NULL;
     }
+    pthread_mutex_unlock(&mutex_interrupt);
 }
 
 // -------------------- INSTRUCCIONES -------------------- //

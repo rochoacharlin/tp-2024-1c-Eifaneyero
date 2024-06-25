@@ -94,17 +94,25 @@ void atender_interrupt()
     log_info(logger_propio, "CPU escuchando puerto interrupt");
     while (1)
     {
+        pthread_mutex_lock(&mutex_interrupt);
         while (!hay_interrupcion)
         {
-            motivo_interrupcion = recibir_interrupcion();
+            pthread_mutex_unlock(&mutex_interrupt);
+            char *motivo = recibir_interrupcion();
+
+            pthread_mutex_lock(&mutex_interrupt);
+            motivo_interrupcion = motivo;
             hay_interrupcion = true;
         }
+        pthread_mutex_unlock(&mutex_interrupt);
     }
 }
 
 void iniciar_conexiones()
 {
     iniciar_conexion_memoria();
+
+    pthread_mutex_init(&mutex_interrupt, NULL);
 
     pthread_create(&th_dispatch, NULL, (void *)atender_dispatch, NULL);
     pthread_create(&th_interrupt, NULL, (void *)atender_interrupt, NULL);
