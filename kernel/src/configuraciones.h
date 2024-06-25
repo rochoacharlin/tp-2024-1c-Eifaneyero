@@ -15,6 +15,7 @@
 #define obtener_recursos() config_get_array_value(config, "RECURSOS")
 #define obtener_instancias_recursos() config_get_array_value(config, "INSTANCIAS_RECURSOS")
 #define obtener_grado_multiprogramacion() config_get_int_value(config, "GRADO_MULTIPROGRAMACION")
+#define obtener_path_kernel() config_get_string_value(config, "PATH_KERNEL")
 
 extern t_log *logger_obligatorio;
 extern t_log *logger_propio;

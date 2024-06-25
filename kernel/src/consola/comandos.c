@@ -6,7 +6,7 @@ void ejecutar_script(char *path_relativo)
 
     if (path_relativo != NULL)
     {
-        char *path_kernel = "/home/utnso/tp-2024-1c-Eifaneyero/kernel";
+        char *path_kernel = obtener_path_kernel();
         size_t tam = strlen(path_kernel) + strlen(path_relativo) + 1;
         char *path_absoluto = malloc_or_die(tam, "No se pudo reservar espacio para la ruta absoluta");
         strcpy(path_absoluto, path_kernel);
