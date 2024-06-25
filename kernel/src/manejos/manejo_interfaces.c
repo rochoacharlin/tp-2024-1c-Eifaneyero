@@ -23,6 +23,7 @@ void ejecutar_espera_interfaces(void)
             char *tipo = (char *)list_get(interfaz, 1);
             agregar_a_lista_io_global(nombre, tipo, fd_cliente);
             log_info(logger_propio, "Se ha conectado la interfaz %s del tipo %s", nombre, tipo);
+            list_destroy_and_destroy_elements(interfaz, free);
             break;
         default:
             log_info(logger_propio, "Recibi una operacion no valida de la interfaz.");
@@ -223,7 +224,7 @@ t_io_list *buscar_interfaz(char *nombre_io)
     int tamanio = list_size(interfaces);
     for (int i = 0; i < tamanio; i++)
     {
-        io = (t_io_list *)list_get(interfaces, 0);
+        io = (t_io_list *)list_get(interfaces, i);
         if (strcmp(io->nombre, nombre_io) == 0)
         {
             return io;
