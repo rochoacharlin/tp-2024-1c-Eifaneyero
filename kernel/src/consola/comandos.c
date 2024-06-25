@@ -135,4 +135,11 @@ void listar_procesos_por_cada_estado(void)
     printf("EXEC: %s\n", pcb_en_EXEC != NULL ? string_itoa(pcb_en_EXEC->PID) : " ");
     listar_procesos_por_estado("BLOCKED", pcbs_en_BLOCKED);
     listar_procesos_por_estado("EXIT", pcbs_en_EXIT);
+
+    pthread_mutex_lock(&mutex_instancias_recursos);
+    for (int i = 0; i < cantidad_recursos(); i++)
+    {
+        log_info(logger_propio, "Instancias del recurso %s: %d", nombres_recursos[i], instancias_recursos[i]);
+    }
+    pthread_mutex_unlock(&mutex_instancias_recursos);
 }

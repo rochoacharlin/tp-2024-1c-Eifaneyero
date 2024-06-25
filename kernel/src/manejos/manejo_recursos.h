@@ -12,6 +12,8 @@ extern int *instancias_recursos;
 extern t_list *colas_de_recursos;
 extern char **nombres_recursos;
 extern sem_t instancia_liberada;
+extern pthread_mutex_t mutex_colas_de_recursos;
+extern pthread_mutex_t mutex_instancias_recursos;
 
 // funciones principales
 void crear_colas_de_bloqueo(void);

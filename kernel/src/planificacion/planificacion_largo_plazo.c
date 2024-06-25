@@ -151,6 +151,8 @@ void inicializar_semaforos_planificacion(void)
     pthread_mutex_init(&mutex_pcb_EXEC, NULL);
     pthread_mutex_init(&mutex_lista_memoria, NULL);
     pthread_mutex_init(&mutex_lista_EXIT, NULL);
+    pthread_mutex_init(&mutex_colas_de_recursos, NULL);
+    pthread_mutex_init(&mutex_instancias_recursos, NULL);
     sem_init(&hay_pcbs_NEW, 0, 0);
     sem_init(&hay_pcbs_READY, 0, 0);
     sem_init(&sem_grado_multiprogramacion, 0, obtener_grado_multiprogramacion());
@@ -169,12 +171,15 @@ void destruir_semaforos_planificacion(void)
     pthread_mutex_destroy(&mutex_pcb_EXEC);
     pthread_mutex_destroy(&mutex_lista_memoria);
     pthread_mutex_destroy(&mutex_lista_EXIT);
+    pthread_mutex_destroy(&mutex_colas_de_recursos);
+    pthread_mutex_destroy(&mutex_instancias_recursos);
     sem_close(&hay_pcbs_NEW);
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
     sem_close(&planificacion_largo_plazo_liberada);
     sem_close(&planificacion_corto_plazo_liberada);
     sem_close(&desalojo_liberado);
+    sem_close(&instancia_liberada);
 }
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
