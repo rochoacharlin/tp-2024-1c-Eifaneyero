@@ -21,7 +21,6 @@ void atender_segun_tipo_interfaz(void)
     {
         atender = atender_dialfs;
     }
-    free(tipo_interfaz);
 }
 
 uint32_t calcular_tiempo_de_espera(int unidades_de_trabajo)
