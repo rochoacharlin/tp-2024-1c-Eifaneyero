@@ -93,13 +93,13 @@ void ingresar_pcb_a_READY(t_pcb *pcb)
     encolar_pcb(pcbs_en_READY, pcb);
     pthread_mutex_unlock(&mutex_cola_READY);
 
-    sem_post(&hay_pcbs_READY);
-
     // log minimo y obligatorio
     lista_PIDS = string_new();
     mostrar_PIDS(pcbs_en_READY);
     loggear_ingreso_a_READY(lista_PIDS, false);
     free(lista_PIDS);
+
+    sem_post(&hay_pcbs_READY);
 }
 
 void ingresar_pcb_a_NEW(t_pcb *pcb)
