@@ -28,12 +28,16 @@ void recibir_peticiones_del_kernel(void)
     int cod_op;
     t_list *parametros;
 
-    while (1)
+    while ((cod_op = recibir_operacion(conexion_kernel)) != -1)
     {
-        cod_op = recibir_operacion(conexion_kernel);
         parametros = recibir_paquete(conexion_kernel);
+
         log_info(logger_propio, "Se recibio la operacion %d del Proceso %d", cod_op, *(uint32_t *)list_get(parametros, 0));
+
         respuesta = atender(cod_op, parametros);
         enviar_cod_op(respuesta, conexion_kernel);
+
+        list_destroy_and_destroy_elements(parametros, free);
     }
+    log_info(logger_propio, "Conexión cerrada con kernel");
 }

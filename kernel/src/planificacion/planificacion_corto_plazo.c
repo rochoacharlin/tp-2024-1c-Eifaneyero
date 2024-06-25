@@ -211,7 +211,6 @@ void procesar_pcb_segun_algoritmo(t_pcb *pcb, pthread_t *hilo_quantum)
         if (pthread_create(hilo_quantum, NULL, (void *)ejecutar_segun_VRR, (void *)args))
             log_error(logger_propio, "Error creando el hilo para el quantum en VRR");
 
-        free(args);
         pthread_detach(*hilo_quantum);
     }
     else
@@ -246,6 +245,7 @@ void ejecutar_segun_VRR(t_args *args)
 {
     t_contexto *contexto = args->contexto;
     t_pcb *pcb = args->pcb;
+    free(args);
 
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     temp = temporal_create();

@@ -68,7 +68,7 @@ void agregar_parametros_a_paquete(t_paquete *paquete, t_list *parametros)
     for (int i = 0; i < list_size(parametros); i++)
     {
         char *param = list_get(parametros, i);
-        agregar_a_paquete(paquete, (void *)param, sizeof(param));
+        agregar_a_paquete_string(paquete, param);
     }
 }
 

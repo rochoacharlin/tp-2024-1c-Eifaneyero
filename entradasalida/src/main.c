@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     log_destroy(logger_obligatorio);
     log_destroy(logger_propio);
     config_destroy(config);
+    free(nombre);
 
     return 0;
 }

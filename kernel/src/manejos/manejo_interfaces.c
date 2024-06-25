@@ -95,6 +95,8 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
         log_info(logger_propio, "La interfaz %s no existe.", nombre_interfaz);
         enviar_pcb_a_EXIT(pcb, INVALID_INTERFACE);
     }
+
+    free(nombre_interfaz);
 }
 
 bool puede_realizar_operacion(t_io_list *io, char *operacion)
