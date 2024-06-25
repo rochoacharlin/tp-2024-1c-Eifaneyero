@@ -374,22 +374,23 @@ void check_interrupt(t_instruccion *instruccion)
     {
         continua_ejecucion = false;
         hay_interrupcion = false;
-        return;
     }
     else if (hay_interrupcion)
     {
         // pthread_mutex_lock(&mutex_interrupt);
         motivo_desalojo motivo = string_interrupcion_to_enum_motivo(motivo_interrupcion);
         free(motivo_interrupcion);
+        motivo_interrupcion = NULL;
         hay_interrupcion = false;
         // pthread_mutex_unlock(&mutex_interrupt);
         devolver_contexto(motivo, NULL);
         continua_ejecucion = false;
     }
-    else
+
+    if (motivo_interrupcion != NULL)
     {
-        // continua_ejecucion = false; // solo para hacer un test
-        return;
+        free(motivo_interrupcion);
+        motivo_interrupcion = NULL;
     }
 }
 
@@ -437,30 +438,30 @@ void jnz(char *nombre_registro, uint32_t nro_instruccion)
 void wait(char *recurso)
 {
     t_list *parametros = list_create();
-    list_add(parametros, recurso);
+    list_add(parametros, string_duplicate(recurso));
     devolver_contexto(DESALOJO_WAIT, parametros);
 }
 
 void signal(char *recurso)
 {
     t_list *parametros = list_create();
-    list_add(parametros, recurso);
+    list_add(parametros, string_duplicate(recurso));
     devolver_contexto(DESALOJO_SIGNAL, parametros);
 }
 
 void io_gen_sleep(char *nombre, char *unidades)
 {
     t_list *param = list_create();
-    list_add(param, nombre);
+    list_add(param, string_duplicate(nombre));
     list_add(param, string_itoa(IO_GEN_SLEEP));
-    list_add(param, unidades);
+    list_add(param, string_duplicate(unidades));
     devolver_contexto(DESALOJO_IO, param);
 }
 
 void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio)
 {
     t_list *param = list_create();
-    list_add(param, nombre);
+    list_add(param, string_duplicate(nombre));
     list_add(param, string_itoa(IO_STDIN_READ));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
@@ -473,7 +474,7 @@ void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tam
 void io_stdout_write(char *nombre, t_list *direcciones_fisicas, char *registro_tamanio)
 {
     t_list *param = list_create();
-    list_add(param, nombre);
+    list_add(param, string_duplicate(nombre));
     list_add(param, string_itoa(IO_STDOUT_WRITE));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
@@ -646,8 +647,12 @@ void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param)
             agregar_a_paquete_string(paquete, (char *)list_get(param, i));
         }
     }
+
     enviar_paquete(paquete, conexion_cpu_kernel_dispatch);
     eliminar_paquete(paquete);
+
+    if (param != NULL)
+        list_destroy_and_destroy_elements(param, free);
 }
 
 void enviar_lectura_espacio_usuario(uint32_t PID, uint32_t *direccion, uint32_t *bytes_a_leer)
