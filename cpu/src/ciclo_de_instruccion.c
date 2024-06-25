@@ -589,11 +589,14 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
         enviar_lectura_espacio_usuario(contexto->PID, (uint32_t *)direccion, tamanio);
         if (recibir_operacion(conexion_cpu_memoria) == OK)
         {
-
             t_list *string_leido = recibir_paquete(conexion_cpu_memoria);
-            char *valor_leido = (char *)list_get(string_leido, 0);
+            char *valor_leido = malloc(sizeof(char) * (*tamanio) + 1); // capaz se podría mejorar para hacer esto una sola vez
+            valor_leido[sizeof(char) * (*tamanio)] = '\0';
+            memcpy(valor_leido, list_get(string_leido, 0), sizeof(char) * (*tamanio));
             string_append(&valores_leidos, valor_leido);
             loggear_lectura_memoria_char(contexto->PID, *(int32_t *)direccion, valor_leido);
+            list_destroy_and_destroy_elements(string_leido, free);
+            free(valor_leido);
         }
         else
         {
