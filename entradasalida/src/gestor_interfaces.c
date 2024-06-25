@@ -65,7 +65,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         scanf("%[^\n]s", lectura);
 
         int desplazamiento = 0;
-        char *texto_a_enviar;
+        char *texto_a_enviar = NULL;
         for (int i = 2; i < list_size(parametros); i += 2)
         {
             uint32_t direccion_fisica = atoi(list_get(parametros, i));
@@ -82,6 +82,12 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
             desplazamiento += bytes_a_operar;
             respuesta = recibir_operacion(conexion_memoria);
+            if (respuesta != OK)
+            {
+                log_info(logger_propio, "Se produjo un error al intentar escribir %s en la memoria", texto_a_enviar);
+                respuesta = OPERACION_INVALIDA;
+                break;
+            }
 
             eliminar_paquete(paquete);
             free(texto_a_enviar);
@@ -103,12 +109,14 @@ op_code atender_stdout(int cod_op, t_list *parametros)
     {
         uint32_t *PID = (uint32_t *)list_get(parametros, 0);
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
-        // int tam = atoi(list_get(parametros, 1));
-        char *valor_leido_completo = string_new();
-        log_info(logger_propio, "ee");
+        int cantidad_caracteres = atoi(list_get(parametros, 1));
+        int tam = sizeof(char) * cantidad_caracteres + 1;
+        char *valor_leido_completo = malloc(tam);
+        valor_leido_completo[tam - 1] = '\0';
+        int desplazamiento = 0;
+
         for (int i = 2; i < list_size(parametros); i += 2)
         {
-            log_info(logger_propio, "ee");
             uint32_t direccion_fisica = atoi(list_get(parametros, i));
             uint32_t bytes_a_operar = atoi(list_get(parametros, i + 1));
 
@@ -117,20 +125,27 @@ op_code atender_stdout(int cod_op, t_list *parametros)
             agregar_a_paquete_uint32(paquete, direccion_fisica);
             agregar_a_paquete_uint32(paquete, bytes_a_operar);
             enviar_paquete(paquete, conexion_memoria);
-            log_info(logger_propio, "ee");
+
             if (recibir_operacion(conexion_memoria) == OK)
             {
-                log_info(logger_propio, "ee");
+
                 t_list *paquete_recibido = recibir_paquete(conexion_memoria);
-                char *valor_leido = (char *)list_get(paquete_recibido, 0);
-                string_n_append(&valor_leido_completo, valor_leido, bytes_a_operar);
+                void *valor_leido = list_get(paquete_recibido, 0);
+                memcpy(valor_leido_completo + desplazamiento, valor_leido, sizeof(char) * bytes_a_operar);
                 list_destroy_and_destroy_elements(paquete_recibido, free);
+                desplazamiento += bytes_a_operar;
+            }
+            else
+            {
+                log_info(logger_propio, "Se produjo un error al intentar leer %d bytes en la df %d", bytes_a_operar, direccion_fisica);
+                respuesta = OPERACION_INVALIDA;
+                break;
             }
 
             eliminar_paquete(paquete);
         }
 
-        log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", valor_leido_completo);
+        log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", (char *)valor_leido_completo);
         free(valor_leido_completo);
     }
     else

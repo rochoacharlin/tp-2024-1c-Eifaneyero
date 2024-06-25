@@ -41,6 +41,7 @@ void atender_cpu(int *socket_cliente)
             break;
         }
     }
+    free(socket_cliente);
 }
 
 void enviar_tamanio_de_pagina()

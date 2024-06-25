@@ -26,4 +26,6 @@ void atender_io(int *socket_cliente)
             break;
         }
     }
+
+    free(socket_cliente);
 }
