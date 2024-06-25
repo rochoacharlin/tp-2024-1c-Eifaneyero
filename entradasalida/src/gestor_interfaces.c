@@ -103,35 +103,35 @@ op_code atender_stdout(int cod_op, t_list *parametros)
     {
         uint32_t *PID = (uint32_t *)list_get(parametros, 0);
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
-        int *tam = (int *)list_get(parametros, 1);
-        char valor_leido_completo[*tam];
-
-        for (int i = 1; i < list_size(parametros); i += 2)
+        // int tam = atoi(list_get(parametros, 1));
+        char *valor_leido_completo = string_new();
+        log_info(logger_propio, "ee");
+        for (int i = 2; i < list_size(parametros); i += 2)
         {
-            uint32_t *direccion_fisica = (uint32_t *)list_get(parametros, i);
-            uint32_t *bytes_a_operar = (uint32_t *)list_get(parametros, i + 1);
+            log_info(logger_propio, "ee");
+            uint32_t direccion_fisica = atoi(list_get(parametros, i));
+            uint32_t bytes_a_operar = atoi(list_get(parametros, i + 1));
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
             agregar_a_paquete_uint32(paquete, *PID);
-            agregar_a_paquete_uint32(paquete, *direccion_fisica);
-            agregar_a_paquete_uint32(paquete, *bytes_a_operar);
+            agregar_a_paquete_uint32(paquete, direccion_fisica);
+            agregar_a_paquete_uint32(paquete, bytes_a_operar);
             enviar_paquete(paquete, conexion_memoria);
-
+            log_info(logger_propio, "ee");
             if (recibir_operacion(conexion_memoria) == OK)
             {
+                log_info(logger_propio, "ee");
                 t_list *paquete_recibido = recibir_paquete(conexion_memoria);
                 char *valor_leido = (char *)list_get(paquete_recibido, 0);
-                strncat(valor_leido_completo, valor_leido, *bytes_a_operar);
+                string_n_append(&valor_leido_completo, valor_leido, bytes_a_operar);
                 list_destroy_and_destroy_elements(paquete_recibido, free);
             }
 
-            free(direccion_fisica);
-            free(bytes_a_operar);
             eliminar_paquete(paquete);
         }
 
         log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", valor_leido_completo);
-        free(tam);
+        free(valor_leido_completo);
     }
     else
     {
