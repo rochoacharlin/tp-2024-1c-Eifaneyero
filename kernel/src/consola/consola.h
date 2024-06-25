@@ -26,7 +26,7 @@ void ejecutar_script(char *path);
 void iniciar_proceso(char *path);
 void finalizar_proceso(char *PID);
 void detener_planificacion(void);
-void iniciar_planificacion(void);
+void reanudar_planificacion(void);
 void cambiar_grado_multiprogramacion(char *valor);
 void listar_procesos_por_cada_estado(void);
 

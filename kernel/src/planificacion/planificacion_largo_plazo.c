@@ -27,12 +27,31 @@ pthread_mutex_t mutex_lista_EXIT;
 int32_t procesos_creados = 1;
 char *algoritmo;
 
+pthread_t hilo_planificador_largo_plazo;
+pthread_t hilo_planificador_corto_plazo;
+pthread_t hilo_recursos_liberados;
+
 char *motivos[] = {
     [SUCCESS] = "SUCCESS",
     [INVALID_RESOURCE] = "INVALID_RESOURCE",
     [INVALID_INTERFACE] = "INVALID_INTERFACE",
     [FINALIZACION_OUT_OF_MEMORY] = "OUT_OF_MEMORY",
-    [INTERRUPTED_BY_USER] = "INTERRUPTED_BY_USER"};
+    [INTERRUPTED_BY_USER] = "INTERRUPTED_BY_USER",
+};
+
+void iniciar_planificacion(void)
+{
+    inicializar_listas_planificacion();
+    inicializar_semaforos_planificacion();
+
+    if (pthread_create(&hilo_recursos_liberados, NULL, (void *)manejar_recursos_liberados, NULL))
+        log_error(logger_propio, "Error creando el hilo de recursos liberados.");
+
+    if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
+        log_error(logger_propio, "Error creando el hilo del planificador de largo plazo.");
+    if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
+        log_error(logger_propio, "Error creando el hilo del planificador de corto plazo.");
+}
 
 void planificar_a_largo_plazo(void)
 {

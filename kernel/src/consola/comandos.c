@@ -92,7 +92,7 @@ void detener_planificacion(void)
     sem_post(&planificacion_pausada);
 }
 
-void iniciar_planificacion(void)
+void reanudar_planificacion(void)
 {
     sem_wait(&planificacion_pausada); // para asegurar que solo se libere la planificacion cuando este pausada.
     sem_post(&planificacion_largo_plazo_liberada);

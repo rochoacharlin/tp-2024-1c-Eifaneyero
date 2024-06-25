@@ -3,7 +3,7 @@
 int *instancias_recursos;
 t_list *colas_de_recursos;
 char **nombres_recursos;
-sem_t instancia_liberada; // FALTA INICIALIZARLO
+sem_t instancia_liberada;
 
 void crear_colas_de_bloqueo(void)
 {
@@ -62,6 +62,7 @@ void manejar_recursos_liberados(void)
                 pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
                 encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
+                // FALTA ACTUALIZAR LAS INSTANCIAS DE RECURSOS
             }
         }
     }

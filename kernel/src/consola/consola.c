@@ -5,7 +5,7 @@ t_comando comandos[] = {
     {"INICIAR_PROCESO", iniciar_proceso},
     {"FINALIZAR_PROCESO", finalizar_proceso},
     {"DETENER_PLANIFICACION", detener_planificacion},
-    {"INICIAR_PLANIFICACION", iniciar_planificacion},
+    {"INICIAR_PLANIFICACION", reanudar_planificacion},
     {"MULTIPROGRAMACION", cambiar_grado_multiprogramacion},
     {"PROCESO_ESTADO", listar_procesos_por_cada_estado},
 };

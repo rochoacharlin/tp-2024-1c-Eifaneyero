@@ -62,6 +62,9 @@ typedef struct
     t_pcb *pcb;
 } t_args; // argumentos para el hilo de VRR
 
+// para iniciar toda la planificacion, tanto a largo como a corto plazo
+void iniciar_planificacion(void);
+
 // largo plazo
 void planificar_a_largo_plazo(void);
 void ingresar_pcb_a_NEW(t_pcb *pcb);

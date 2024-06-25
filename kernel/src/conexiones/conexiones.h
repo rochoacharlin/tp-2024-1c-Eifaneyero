@@ -20,5 +20,6 @@ void servidor(void);
 void conexion_dispatch_con_CPU(void);
 void conexion_interrupt_con_CPU(void);
 void conexion_memoria(void);
+void iniciar_conexiones(void);
 
 #endif
