@@ -28,6 +28,7 @@ void atender_kernel(int *socket_cliente)
             break;
         }
     }
+    free(socket_cliente);
 }
 
 void atender_crear_proceso()

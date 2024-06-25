@@ -14,29 +14,31 @@ void iniciar_conexiones()
 
     while (1)
     {
-        int conexion_entrante = esperar_cliente(logger_propio, server_fd);
-        int codigo_de_operacion = recibir_operacion(conexion_entrante);
+        int *conexion_entrante = malloc(sizeof(int));
+        *conexion_entrante = esperar_cliente(logger_propio, server_fd);
+        int codigo_de_operacion = recibir_operacion(*conexion_entrante);
 
         switch (codigo_de_operacion)
         {
         case CONEXION_IO:
             log_info(logger_propio, "Se conectó una IO");
             pthread_t hilo_io;
-            pthread_create(&hilo_io, NULL, (void *)atender_io, &conexion_entrante);
-            pthread_join(hilo_io, NULL);
+
+            pthread_create(&hilo_io, NULL, (void *)atender_io, conexion_entrante);
+            pthread_detach(hilo_io);
             break;
 
         case CONEXION_KERNEL:
             log_info(logger_propio, "Se conectó el kernel");
             pthread_t hilo_kernel;
-            pthread_create(&hilo_kernel, NULL, (void *)atender_kernel, &conexion_entrante);
+            pthread_create(&hilo_kernel, NULL, (void *)atender_kernel, conexion_entrante);
             pthread_detach(hilo_kernel);
             break;
 
         case CONEXION_CPU:
             log_info(logger_propio, "Se conectó la CPU");
             pthread_t hilo_cpu;
-            pthread_create(&hilo_cpu, NULL, (void *)atender_cpu, &conexion_entrante);
+            pthread_create(&hilo_cpu, NULL, (void *)atender_cpu, conexion_entrante);
             pthread_detach(hilo_cpu);
             break;
 
