@@ -65,7 +65,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         scanf("%[^\n]s", lectura);
 
         int desplazamiento = 0;
-        char *texto_a_enviar;
+        char *texto_a_enviar = NULL;
         for (int i = 2; i < list_size(parametros); i += 2)
         {
             uint32_t direccion_fisica = atoi(list_get(parametros, i));
@@ -131,7 +131,7 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 
                 t_list *paquete_recibido = recibir_paquete(conexion_memoria);
                 void *valor_leido = list_get(paquete_recibido, 0);
-                memcpy(valor_leido_completo + desplazamiento, valor_leido, bytes_a_operar);
+                memcpy(valor_leido_completo + desplazamiento, valor_leido, sizeof(char) * bytes_a_operar);
                 list_destroy_and_destroy_elements(paquete_recibido, free);
                 desplazamiento += bytes_a_operar;
             }
