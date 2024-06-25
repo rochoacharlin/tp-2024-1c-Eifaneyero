@@ -43,7 +43,6 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         pthread_mutex_unlock(&mutex_hubo_desalojo);
 
         pthread_t hilo_quantum;
-
         procesar_pcb_segun_algoritmo(pcb_en_EXEC, &hilo_quantum);
         esperar_contexto_y_manejar_desalojo(pcb_en_EXEC, &hilo_quantum);
 

@@ -22,19 +22,33 @@ void crear_colas_de_bloqueo(void)
         list_add(colas_de_recursos, (void *)cola_bloqueo);
     }
 
+    for (int i = 0; i < cantidad_recursos(); i++)
+    {
+        log_info(logger_propio, "Instancias del recurso %s: %d", nombres_recursos[i], instancias_recursos[i]);
+    }
+
     destruir_lista_string(instancias_aux);
 }
 
 void liberar_recursos(t_pcb *pcb)
 {
+    t_list *recursos = pcb->recursos_asignados;
     // elimino los recursos dentro del pcb
-    for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
+    for (int i = 0; i < list_size(recursos); i++)
     {
-        char *recurso = list_get(pcb->recursos_asignados, i);
+        int *pos_recurso = (int *)list_get(recursos, i);
+        if (pos_recurso == NULL)
+        {
+            log_info(logger_propio, "No se pudo obtener el recurso asignado del pcb.");
+        }
+        else
+        {
+            log_info(logger_propio, "Posicion recurso %d", *pos_recurso);
 
-        // aumento la cantidad de instancias de ese recurso
-        instancias_recursos[posicion_recurso(recurso)]++;
-        sem_post(&instancia_liberada);
+            // aumento la cantidad de instancias de ese recurso
+            instancias_recursos[*pos_recurso]++;
+            sem_post(&instancia_liberada);
+        }
     }
 
     // elimino el pcb de las colas de recursos
@@ -52,6 +66,7 @@ void manejar_recursos_liberados(void)
         sem_wait(&instancia_liberada);
         for (int i = 0; i < cantidad_recursos(); i++)
         {
+            // AGREGAR MUTEX PARA LA COLAS DE RECURSOS
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, i);
             if (instancias_recursos[i] > 0 && list_size(cola_bloqueo_recurso) > 0)
             {
@@ -62,8 +77,11 @@ void manejar_recursos_liberados(void)
                 pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
                 encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
-                // FALTA ACTUALIZAR LAS INSTANCIAS DE RECURSOS
             }
+        }
+        for (int i = 0; i < cantidad_recursos(); i++)
+        {
+            log_info(logger_propio, "Instancias del recurso %s: %d", nombres_recursos[i], instancias_recursos[i]);
         }
     }
 }
@@ -72,7 +90,8 @@ void wait_recurso(char *recurso, t_pcb *pcb)
 {
     if (existe_recurso(recurso))
     {
-        int cantidad_instancias_recurso = instancias_recursos[posicion_recurso(recurso)];
+        int pos_recurso = posicion_recurso(recurso);
+        int cantidad_instancias_recurso = instancias_recursos[pos_recurso];
         if (--cantidad_instancias_recurso < 0)
         {
             pcb->estado = BLOCKED;
@@ -87,18 +106,20 @@ void wait_recurso(char *recurso, t_pcb *pcb)
             loggear_motivo_de_bloqueo(pcb->PID, recurso);
 
             // se queda bloqueado en la lista correspondiente al recurso
-            t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
+            t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, pos_recurso);
             list_add(cola_bloqueo_recurso, pcb);
             sem_post(&desalojo_liberado);
         }
         else
         {
-            instancias_recursos[posicion_recurso(recurso)]--;
-            list_add(pcb->recursos_asignados, recurso);
-
-            pthread_t hilo_quantum;
+            instancias_recursos[pos_recurso]--;
+            int *pos = malloc(sizeof(int));
+            *pos = pos_recurso;
+            list_add(pcb->recursos_asignados, pos);
+            log_info(logger_propio, "Le asigno el recurso %d al proceso %d", *pos, pcb->PID);
 
             // devolvemos la ejecucion al pcb
+            pthread_t hilo_quantum;
             procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
             sem_post(&desalojo_liberado);
             esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
@@ -120,8 +141,8 @@ void signal_recurso(char *recurso, t_pcb *pcb)
 
     if (existe_recurso(recurso))
     {
-        int cantidad_instancias_recurso = ++instancias_recursos[posicion_recurso(recurso)];
-        if (cantidad_instancias_recurso == 0) // REVISAR: es correcta la condicion?
+        int cantidad_instancias_recurso = instancias_recursos[posicion_recurso(recurso)]++;
+        if (cantidad_instancias_recurso == 0)
         {
             // desbloqueamos al primer proceso de la cola de bloqueados de ese recurso
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
@@ -136,9 +157,8 @@ void signal_recurso(char *recurso, t_pcb *pcb)
         }
         list_remove_by_condition(pcb->recursos_asignados, condicion_liberar_recurso);
 
-        pthread_t hilo_quantum;
-
         // devolvemos la ejecucion al pcb
+        pthread_t hilo_quantum;
         procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
         sem_post(&desalojo_liberado);
         esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
