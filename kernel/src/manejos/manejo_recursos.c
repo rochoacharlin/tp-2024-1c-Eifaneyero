@@ -3,7 +3,6 @@
 int *instancias_recursos;
 t_list *colas_de_recursos;
 char **nombres_recursos;
-sem_t instancia_liberada;
 pthread_mutex_t mutex_colas_de_recursos;
 pthread_mutex_t mutex_instancias_recursos;
 
@@ -31,6 +30,8 @@ void crear_colas_de_bloqueo(void)
 
 void liberar_recursos(t_pcb *pcb)
 {
+    eliminar_pcb_de_colas_de_recursos(pcb);
+
     // elimino los recursos dentro del pcb
     for (int i = 0; i < list_size(pcb->recursos_asignados); i++)
     {
@@ -43,46 +44,40 @@ void liberar_recursos(t_pcb *pcb)
         {
             // aumento la cantidad de instancias de ese recurso
             pthread_mutex_lock(&mutex_instancias_recursos);
-            int instancias = ++instancias_recursos[*pos_recurso];
+            instancias_recursos[*pos_recurso]++;
             pthread_mutex_unlock(&mutex_instancias_recursos);
-            log_info(logger_propio, "Sumo las instancias del recurso %d y quedaron en %d", *pos_recurso, instancias);
-            sem_post(&instancia_liberada);
-        }
-    }
 
-    // elimino el pcb de las colas de recursos
-    for (int i = 0; i < list_size(colas_de_recursos); i++)
-    {
-        t_list *cola = list_get(colas_de_recursos, i);
-        list_remove_element(cola, pcb);
+            desbloquear_pcb_si_corresponde(pcb, *pos_recurso);
+        }
     }
 }
 
-void manejar_recursos_liberados(void)
+void desbloquear_pcb_si_corresponde(t_pcb *pcb, int pos_recurso)
 {
-    while (1)
+    pthread_mutex_lock(&mutex_colas_de_recursos);
+    t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, pos_recurso);
+    if (instancias_recursos[pos_recurso] > 0 && list_size(cola_bloqueo_recurso) > 0)
     {
-        sem_wait(&instancia_liberada);
-        for (int i = 0; i < cantidad_recursos(); i++)
-        {
-            pthread_mutex_lock(&mutex_colas_de_recursos);
-            t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, i);
-            if (instancias_recursos[i] > 0 && list_size(cola_bloqueo_recurso) > 0)
-            {
-                t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
-                pthread_mutex_unlock(&mutex_colas_de_recursos);
+        t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
+        pthread_mutex_unlock(&mutex_colas_de_recursos);
 
-                pthread_mutex_lock(&mutex_lista_BLOCKED);
-                list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
-                pthread_mutex_unlock(&mutex_lista_BLOCKED);
+        pthread_mutex_lock(&mutex_lista_BLOCKED);
+        list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
+        pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
-                encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
-            }
-            else
-            {
-                pthread_mutex_unlock(&mutex_colas_de_recursos);
-            }
-        }
+        int *pos = malloc(sizeof(int));
+        *pos = pos_recurso;
+        list_add(pcb_a_desbloquear->recursos_asignados, pos);
+
+        pthread_mutex_lock(&mutex_instancias_recursos);
+        instancias_recursos[pos_recurso]--;
+        pthread_mutex_unlock(&mutex_instancias_recursos);
+
+        encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
+    }
+    else
+    {
+        pthread_mutex_unlock(&mutex_colas_de_recursos);
     }
 }
 
@@ -110,6 +105,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, pos_recurso);
             list_add(cola_bloqueo_recurso, pcb);
             pthread_mutex_unlock(&mutex_colas_de_recursos);
+
             sem_post(&desalojo_liberado);
         }
         else
@@ -138,20 +134,16 @@ void wait_recurso(char *recurso, t_pcb *pcb)
 
 void signal_recurso(char *recurso, t_pcb *pcb)
 {
-    bool condicion_liberar_recurso(void *elemento)
-    {
-        return posicion_recurso(recurso) == *(int *)elemento;
-    }
-
     if (existe_recurso(recurso))
     {
+        int pos_recurso = posicion_recurso(recurso);
         pthread_mutex_lock(&mutex_instancias_recursos);
-        int cantidad_instancias_recurso = instancias_recursos[posicion_recurso(recurso)]++;
+        int cantidad_instancias_recurso = instancias_recursos[pos_recurso]++;
         pthread_mutex_unlock(&mutex_instancias_recursos);
 
         pthread_mutex_lock(&mutex_colas_de_recursos);
         t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, posicion_recurso(recurso));
-        if (cantidad_instancias_recurso == 0 && list_size(cola_bloqueo_recurso) > 0)
+        if (cantidad_instancias_recurso >= 0 && list_size(cola_bloqueo_recurso) > 0)
         {
             // desbloqueamos al primer proceso de la cola de bloqueados de ese recurso
             t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
@@ -164,12 +156,17 @@ void signal_recurso(char *recurso, t_pcb *pcb)
             encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
             sem_post(&desalojo_liberado);
 
-            int recurso = *(int *)list_remove(pcb_a_desbloquear->recursos_asignados, list_size(pcb_a_desbloquear->recursos_asignados) - 1);
-            log_info(logger_propio, "Elimino el recurso %d", recurso);
-            // list_remove_by_condition(pcb_a_desbloquear->recursos_asignados, condicion_liberar_recurso);
+            int *pos = malloc(sizeof(int));
+            *pos = pos_recurso;
+            list_add(pcb_a_desbloquear->recursos_asignados, pos);
+
+            pthread_mutex_lock(&mutex_instancias_recursos);
+            instancias_recursos[pos_recurso]--;
+            pthread_mutex_unlock(&mutex_instancias_recursos);
         }
         else
         {
+            sem_post(&desalojo_liberado);
             pthread_mutex_unlock(&mutex_colas_de_recursos);
         }
 
@@ -184,6 +181,17 @@ void signal_recurso(char *recurso, t_pcb *pcb)
         enviar_pcb_a_EXIT(pcb, INVALID_RESOURCE);
         sem_post(&desalojo_liberado);
     }
+}
+
+void eliminar_pcb_de_colas_de_recursos(t_pcb *pcb)
+{
+    pthread_mutex_lock(&mutex_instancias_recursos);
+    for (int i = 0; i < list_size(colas_de_recursos); i++)
+    {
+        t_list *cola = list_get(colas_de_recursos, i);
+        list_remove_element(cola, pcb);
+    }
+    pthread_mutex_unlock(&mutex_instancias_recursos);
 }
 
 void destruir_lista_string(char **lista_string)

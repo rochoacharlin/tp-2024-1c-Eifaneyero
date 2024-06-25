@@ -44,9 +44,6 @@ void iniciar_planificacion(void)
     inicializar_listas_planificacion();
     inicializar_semaforos_planificacion();
 
-    if (pthread_create(&hilo_recursos_liberados, NULL, (void *)manejar_recursos_liberados, NULL))
-        log_error(logger_propio, "Error creando el hilo de recursos liberados.");
-
     if (pthread_create(&hilo_planificador_largo_plazo, NULL, (void *)planificar_a_largo_plazo, NULL))
         log_error(logger_propio, "Error creando el hilo del planificador de largo plazo.");
     if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
@@ -159,7 +156,6 @@ void inicializar_semaforos_planificacion(void)
     sem_init(&planificacion_largo_plazo_liberada, 0, 1);
     sem_init(&planificacion_corto_plazo_liberada, 0, 1);
     sem_init(&desalojo_liberado, 0, 1);
-    sem_init(&instancia_liberada, 0, 0);
 }
 
 void destruir_semaforos_planificacion(void)
@@ -179,7 +175,6 @@ void destruir_semaforos_planificacion(void)
     sem_close(&planificacion_largo_plazo_liberada);
     sem_close(&planificacion_corto_plazo_liberada);
     sem_close(&desalojo_liberado);
-    sem_close(&instancia_liberada);
 }
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
