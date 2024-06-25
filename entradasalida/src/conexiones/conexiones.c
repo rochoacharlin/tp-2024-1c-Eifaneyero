@@ -19,7 +19,10 @@ void conexion_con_kernel(char *nombre_interfaz)
 void conexion_con_memoria(void)
 {
     if (strcmp(obtener_tipo_interfaz(), "GENERICA") != 0)
+    {
         conexion_memoria = crear_conexion(logger_propio, obtener_ip_memoria(), obtener_puerto_memoria());
+        enviar_cod_op(CONEXION_IO, conexion_memoria);
+    }
 }
 
 void recibir_peticiones_del_kernel(void)

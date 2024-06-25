@@ -38,13 +38,7 @@ op_code atender_gen(int cod_op, t_list *parametros)
 
         int unidades_de_trabajo = atoi((char *)list_get(parametros, 1));
         uint32_t tiempo_de_espera_ms = calcular_tiempo_de_espera(unidades_de_trabajo) * 1000;
-        // TODO borrar
-        log_info(logger_propio, "Voy a dormir por %d unidades", unidades_de_trabajo);
-
         usleep((__useconds_t)tiempo_de_espera_ms);
-
-        // TODO borrar
-        log_info(logger_propio, "Ya desperté");
     }
     else
     {
@@ -63,37 +57,35 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         uint32_t *PID = (uint32_t *)list_get(parametros, 0);
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
 
-        int *tam = (int *)list_get(parametros, 1);
-        char lectura[*tam];
+        int tam = atoi(list_get(parametros, 1));
+
+        char lectura[tam];
 
         printf("Ingresar texto para STDIN: ");
-        scanf("%s", lectura);
+        scanf("%[^\n]s", lectura);
 
         int desplazamiento = 0;
+        char *texto_a_enviar;
         for (int i = 2; i < list_size(parametros); i += 2)
         {
-            uint32_t *direccion_fisica = (uint32_t *)list_get(parametros, i);
-            uint32_t *bytes_a_operar = (uint32_t *)list_get(parametros, i + 1);
+            uint32_t direccion_fisica = atoi(list_get(parametros, i));
+            uint32_t bytes_a_operar = atoi(list_get(parametros, i + 1));
 
-            char texto_a_enviar[*bytes_a_operar];
-            strncpy(texto_a_enviar, lectura + desplazamiento, *bytes_a_operar);
+            texto_a_enviar = string_substring(lectura, desplazamiento, bytes_a_operar);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
             agregar_a_paquete_uint32(paquete, *PID);
-            agregar_a_paquete_uint32(paquete, *direccion_fisica);
+            agregar_a_paquete_uint32(paquete, direccion_fisica);
             agregar_a_paquete_string(paquete, texto_a_enviar);
-            agregar_a_paquete_uint32(paquete, *bytes_a_operar);
+            agregar_a_paquete_uint32(paquete, bytes_a_operar);
             enviar_paquete(paquete, conexion_memoria);
 
-            desplazamiento += *bytes_a_operar;
+            desplazamiento += bytes_a_operar;
             respuesta = recibir_operacion(conexion_memoria);
 
             eliminar_paquete(paquete);
-            free(direccion_fisica);
-            free(bytes_a_operar);
+            free(texto_a_enviar);
         }
-
-        free(tam);
     }
     else
     {
