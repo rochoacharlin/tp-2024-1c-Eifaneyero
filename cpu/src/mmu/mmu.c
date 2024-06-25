@@ -70,15 +70,18 @@ int buscar_en_TLB(t_TLB *tlb, uint32_t PID, int pagina)
 
 void agregar_pagina_TLB(t_TLB *tlb, uint32_t PID, int pagina, int marco)
 {
-    if (tlb->entradas_utilizadas < tlb->max_entradas)
+    if (tlb->max_entradas)
     {
-        int tiempo_actual = tlb->tiempo_actual++;
-        t_registro_TLB nueva_entrada = {PID, pagina, marco, tiempo_actual, tiempo_actual};
-        tlb->entradas[tlb->entradas_utilizadas++] = nueva_entrada;
-    }
-    else
-    {
-        reemplazar_pagina_TLB(tlb, PID, pagina, marco);
+        if (tlb->entradas_utilizadas < tlb->max_entradas)
+        {
+            int tiempo_actual = tlb->tiempo_actual++;
+            t_registro_TLB nueva_entrada = {PID, pagina, marco, tiempo_actual, tiempo_actual};
+            tlb->entradas[tlb->entradas_utilizadas++] = nueva_entrada;
+        }
+        else
+        {
+            reemplazar_pagina_TLB(tlb, PID, pagina, marco);
+        }
     }
 }
 
