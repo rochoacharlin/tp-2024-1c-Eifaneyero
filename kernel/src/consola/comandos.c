@@ -1,12 +1,18 @@
 #include "consola.h"
 
-void ejecutar_script(char *path)
+void ejecutar_script(char *path_relativo)
 {
     FILE *archivo;
 
-    if (path != NULL)
+    if (path_relativo != NULL)
     {
-        archivo = fopen(path, "r");
+        char *path_kernel = "/home/utnso/tp-2024-1c-Eifaneyero/kernel";
+        size_t tam = strlen(path_kernel) + strlen(path_relativo) + 1;
+        char *path_absoluto = malloc_or_die(tam, "No se pudo reservar espacio para la ruta absoluta");
+        strcpy(path_absoluto, path_kernel);
+        strcat(path_absoluto, path_relativo);
+
+        archivo = fopen(path_absoluto, "r");
         if (archivo == NULL)
         {
             log_error(logger_propio, "Error al abrir el archivo.");
