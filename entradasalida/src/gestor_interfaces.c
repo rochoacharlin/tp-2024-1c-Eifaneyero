@@ -59,10 +59,17 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
         int tam = atoi(list_get(parametros, 1));
 
-        char lectura[tam];
-
-        printf("Ingresar texto para STDIN: ");
-        scanf("%[^\n]s", lectura);
+        char *lectura = NULL;
+        while (!lectura)
+        {
+            lectura = readline("Ingresar texto para STDIN:");
+            if (strlen(lectura) != tam)
+            {
+                log_info(logger_propio, "Se esperaba una string de %d caracteres", tam);
+                free(lectura);
+                lectura = NULL;
+            }
+        }
 
         int desplazamiento = 0;
         char *texto_a_enviar = NULL;
@@ -70,7 +77,6 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         {
             uint32_t direccion_fisica = atoi(list_get(parametros, i));
             uint32_t bytes_a_operar = atoi(list_get(parametros, i + 1));
-
             texto_a_enviar = string_substring(lectura, desplazamiento, bytes_a_operar);
 
             t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
@@ -92,6 +98,8 @@ op_code atender_stdin(int cod_op, t_list *parametros)
             eliminar_paquete(paquete);
             free(texto_a_enviar);
         }
+
+        free(lectura);
     }
     else
     {

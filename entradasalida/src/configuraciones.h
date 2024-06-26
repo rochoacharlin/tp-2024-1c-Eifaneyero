@@ -9,6 +9,7 @@
 #include <commons/string.h>
 #include <utils/estructuras_compartidas/instrucciones_cpu.h>
 #include "conexiones/conexiones.h"
+#include <readline/readline.h>
 
 #define obtener_tipo_interfaz() config_get_string_value(config, "TIPO_INTERFAZ")
 #define obtener_tiempo_unidad_trabajo() config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO")
