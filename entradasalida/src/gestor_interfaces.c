@@ -172,19 +172,24 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 op_code atender_dialfs(int cod_op, t_list *parametros)
 {
     op_code respuesta = OK;
+    uint32_t *PID = list_get(parametros, 0);
 
     switch (cod_op)
     {
     case IO_FS_CREATE:
-        crear_archivo(list_get(parametros, 1));
+        crear_archivo(PID, (char *)list_get(parametros, 1));
         break;
     case IO_FS_DELETE:
+        eliminar_archivo(PID, (char *)list_get(parametros, 1));
         break;
     case IO_FS_TRUNCATE:
-        break;
-    case IO_FS_WRITE:
+        truncar_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2));
         break;
     case IO_FS_READ:
+        leer_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), (int *)list_get(parametros, 3));
+        break;
+    case IO_FS_WRITE:
+        escribir_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), (int *)list_get(parametros, 3));
         break;
     default:
         respuesta = OPERACION_INVALIDA;

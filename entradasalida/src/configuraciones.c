@@ -7,7 +7,7 @@ void loggear_operacion(int PID, char *operacion)
 
 void loggear_dialfs_crear_archivo(int PID, char *nombre)
 {
-    // TODO
+    log_info(logger_obligatorio, "PID: <%d> - Crear archivo: <%s>", PID, nombre);
 }
 
 void loggear_dialfs_eliminar_archivo(int PID, char *nombre)

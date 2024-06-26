@@ -16,10 +16,10 @@ extern t_config *metadata;
 extern int bloque_utilizados;
 extern t_bitarray *bitarray;
 
-void crear_archivo(char *nombre);
-void eliminar_archivo(char *nombre);
-void truncar_archivo(char *nombre);
-void leer_archivo(char *nombre);
-void escribir_archivo(char *nombre);
+void crear_archivo(uint32_t *PID, char *nombre);
+void eliminar_archivo(uint32_t *PID, char *nombre);
+void truncar_archivo(uint32_t *PID, char *nombre, int tam);
+void leer_archivo(uint32_t *PID, char *nombre, int tam, int *puntero);
+void escribir_archivo(uint32_t *PID, char *nombre, int tam, int *puntero);
 
 #endif
