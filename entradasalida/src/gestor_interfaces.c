@@ -20,6 +20,11 @@ void atender_segun_tipo_interfaz(void)
     else if (strcmp(tipo_interfaz, "DIALFS") == 0)
     {
         atender = atender_dialfs;
+        bloque_utilizados = 0;
+        // REVISAR: Que va en el primer parametro del bitarray? es LSB_FIRST o MSB_FIRST
+        bitarray = bitarray_create_with_mode("", obtener_block_count(), LSB_FIRST);
+        bloques = fopen("bloques.dat", "r+"); // VERIFICAR: Hay que especificar el tamaño del archivo? BLOCK_SIZE * BLOCK_COUNT?
+        bitmap = fopen("bitmap.dat", "r+");
     }
 }
 
@@ -166,7 +171,27 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 
 op_code atender_dialfs(int cod_op, t_list *parametros)
 {
-    return 1; // TODO
+    op_code respuesta = OK;
+
+    switch (cod_op)
+    {
+    case IO_FS_CREATE:
+        crear_archivo(list_get(parametros, 1));
+        break;
+    case IO_FS_DELETE:
+        break;
+    case IO_FS_TRUNCATE:
+        break;
+    case IO_FS_WRITE:
+        break;
+    case IO_FS_READ:
+        break;
+    default:
+        respuesta = OPERACION_INVALIDA;
+        break;
+    }
+
+    return respuesta;
 }
 
 void setear_config(char *archivo_config_io)

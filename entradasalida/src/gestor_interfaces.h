@@ -9,6 +9,7 @@
 #include <commons/string.h>
 #include <utils/estructuras_compartidas/instrucciones_cpu.h>
 #include "configuraciones.h"
+#include "sistema_archivos.h"
 
 extern int conexion_memoria;
 extern op_code (*atender)(int cod_op, t_list *parametros);
