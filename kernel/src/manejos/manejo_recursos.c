@@ -229,3 +229,8 @@ int cantidad_recursos(void)
 
     return cantidad;
 }
+
+void destruir_colas_de_recursos(void)
+{
+    list_destroy_and_destroy_elements(colas_de_recursos, (void *)list_destroy);
+}

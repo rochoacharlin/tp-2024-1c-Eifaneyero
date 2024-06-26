@@ -27,5 +27,6 @@ bool existe_recurso(char *recurso);
 int posicion_recurso(char *recurso);
 int cantidad_recursos(void);
 void destruir_lista_string(char **lista_string);
+void destruir_colas_de_recursos(void);
 
 #endif

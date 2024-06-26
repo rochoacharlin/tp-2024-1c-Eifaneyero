@@ -33,6 +33,7 @@ void ejecutar_script(char *path_relativo)
             buscar_y_ejecutar_comando(token);
         }
 
+        free(path_absoluto);
         fclose(archivo);
     }
     else

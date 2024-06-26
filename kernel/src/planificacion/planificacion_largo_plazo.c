@@ -48,6 +48,9 @@ void iniciar_planificacion(void)
         log_error(logger_propio, "Error creando el hilo del planificador de largo plazo.");
     if (pthread_create(&hilo_planificador_corto_plazo, NULL, (void *)planificar_a_corto_plazo_segun_algoritmo, NULL))
         log_error(logger_propio, "Error creando el hilo del planificador de corto plazo.");
+
+    pthread_detach(hilo_planificador_largo_plazo);
+    pthread_detach(hilo_planificador_corto_plazo);
 }
 
 void planificar_a_largo_plazo(void)
@@ -137,6 +140,7 @@ void destruir_listas_planificacion(void)
     destruir_pcb(pcb_en_EXEC);
     list_destroy_and_destroy_elements(pcbs_en_BLOCKED, (void *)destruir_pcb);
     list_destroy_and_destroy_elements(pcbs_en_EXIT, (void *)destruir_pcb);
+    destruir_colas_de_recursos();
 }
 
 void inicializar_semaforos_planificacion(void)
