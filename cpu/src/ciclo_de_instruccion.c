@@ -343,6 +343,11 @@ void execute(t_instruccion *instruccion)
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_FS_CREATE - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
+    case IO_FS_DELETE:
+        io_fs_delete(list_get(instruccion->parametros, 0), list_get(instruccion->parametros, 1));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_FS_DELETE - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
+        break;
+
     case EXIT:
         exit_inst();
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: EXIT", contexto->PID);
@@ -360,6 +365,8 @@ bool instruccion_bloqueante(t_id id_instruccion)
     case IO_GEN_SLEEP:
     case IO_STDIN_READ:
     case IO_STDOUT_WRITE:
+    case IO_FS_CREATE:
+    case IO_FS_DELETE:
     case SIGNAL:
     case WAIT:
     case EXIT:
@@ -641,6 +648,14 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
 }
 
 void io_fs_create(char *interfaz, char *nombre_archivo)
+{
+    t_list *parametros = list_create();
+    list_add(parametros, string_duplicate(interfaz));
+    list_add(parametros, string_duplicate(nombre_archivo));
+    devolver_contexto(DESALOJO_IO, parametros);
+}
+
+void io_fs_delete(char *interfaz, char *nombre_archivo)
 {
     t_list *parametros = list_create();
     list_add(parametros, string_duplicate(interfaz));
