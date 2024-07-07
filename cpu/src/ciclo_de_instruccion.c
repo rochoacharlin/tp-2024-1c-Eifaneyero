@@ -348,6 +348,11 @@ void execute(t_instruccion *instruccion)
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_FS_DELETE - <%s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1));
         break;
 
+    case IO_FS_TRUNCATE:
+        io_fs_truncate(list_get(instruccion->parametros, 0), list_get(instruccion->parametros, 1), list_get(instruccion->parametros, 2));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_FS_TRUNCATE - <%s %s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1), (char *)list_get(instruccion->parametros, 2));
+        break;
+
     case EXIT:
         exit_inst();
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: EXIT", contexto->PID);
@@ -651,16 +656,28 @@ void io_fs_create(char *interfaz, char *nombre_archivo)
 {
     t_list *parametros = list_create();
     list_add(parametros, string_duplicate(interfaz));
+    list_add(parametros, string_itoa(IO_FS_CREATE));
     list_add(parametros, string_duplicate(nombre_archivo));
     devolver_contexto(DESALOJO_IO, parametros);
 }
 
 void io_fs_delete(char *interfaz, char *nombre_archivo)
 {
-    t_list *parametros = list_create();
-    list_add(parametros, string_duplicate(interfaz));
-    list_add(parametros, string_duplicate(nombre_archivo));
-    devolver_contexto(DESALOJO_IO, parametros);
+    t_list *param = list_create();
+    list_add(param, string_duplicate(interfaz));
+    list_add(param, string_itoa(IO_FS_DELETE));
+    list_add(param, string_duplicate(nombre_archivo));
+    devolver_contexto(DESALOJO_IO, param);
+}
+
+void io_fs_truncate(char *interfaz, char *nombre_archivo, char *registro_tamanio)
+{
+    t_list *param = list_create();
+    list_add(param, string_duplicate(interfaz));
+    list_add(param, string_itoa(IO_FS_TRUNCATE));
+    list_add(param, string_duplicate(nombre_archivo));
+    list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
+    devolver_contexto(DESALOJO_IO, param);
 }
 
 void exit_inst()
