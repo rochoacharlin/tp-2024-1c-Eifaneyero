@@ -211,6 +211,7 @@ t_instruccion *decode(char *instruccion_leida)
         break;
 
     case IO_FS_WRITE:
+    case IO_FS_READ:
         direccion_logica = obtener_valor_registro(contexto->registros_cpu, list_get(instruccion->parametros, 2));
         tamanio_a_operar = atoi(list_get(instruccion->parametros, 3));
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
@@ -364,6 +365,11 @@ void execute(t_instruccion *instruccion)
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_FS_WRITE - <%s %s %s %s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1), (char *)list_get(instruccion->parametros, 2), (char *)list_get(instruccion->parametros, 3), (char *)list_get(instruccion->parametros, 4));
         break;
 
+    case IO_FS_READ:
+        io_fs_read(list_get(instruccion->parametros, 0), list_get(instruccion->parametros, 1), instruccion->direcciones_fisicas, list_get(instruccion->parametros, 3), list_get(instruccion->parametros, 4));
+        log_info(logger_obligatorio, "PID: <%d> - Ejecutando: IO_FS_READ - <%s %s %s %s %s>", contexto->PID, (char *)list_get(instruccion->parametros, 0), (char *)list_get(instruccion->parametros, 1), (char *)list_get(instruccion->parametros, 2), (char *)list_get(instruccion->parametros, 3), (char *)list_get(instruccion->parametros, 4));
+        break;
+
     case EXIT:
         exit_inst();
         log_info(logger_obligatorio, "PID: <%d> - Ejecutando: EXIT", contexto->PID);
@@ -383,6 +389,9 @@ bool instruccion_bloqueante(t_id id_instruccion)
     case IO_STDOUT_WRITE:
     case IO_FS_CREATE:
     case IO_FS_DELETE:
+    case IO_FS_TRUNCATE:
+    case IO_FS_WRITE:
+    case IO_FS_READ:
     case SIGNAL:
     case WAIT:
     case EXIT:
@@ -696,6 +705,21 @@ void io_fs_write(char *interfaz, char *nombre_archivo, t_list *direcciones_fisic
     t_list *param = list_create();
     list_add(param, string_duplicate(interfaz));
     list_add(param, string_itoa(IO_FS_WRITE));
+    list_add(param, string_duplicate(nombre_archivo));
+    list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
+    list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_puntero_arch)));
+    for (int i = 0; i < list_size(direcciones_fisicas); i++)
+    {
+        list_add(param, string_itoa(*(int *)list_get(direcciones_fisicas, i)));
+    }
+    devolver_contexto(DESALOJO_IO, param);
+}
+
+void io_fs_read(char *interfaz, char *nombre_archivo, t_list *direcciones_fisicas, char *registro_tamanio, char *registro_puntero_arch)
+{
+    t_list *param = list_create();
+    list_add(param, string_duplicate(interfaz));
+    list_add(param, string_itoa(IO_FS_READ));
     list_add(param, string_duplicate(nombre_archivo));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_puntero_arch)));
