@@ -86,6 +86,7 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas);
 void io_fs_create(char *interfaz, char *nombre_archivo);
 void io_fs_delete(char *interfaz, char *nombre_archivo);
 void io_fs_truncate(char *interfaz, char *nombre_archivo, char *registro_tamanio);
+void io_fs_write(char *interfaz, char *nombre_archivo, t_list *direcciones_fisicas, char *registro_tamanio, char *registro_puntero_arch);
 void exit_inst();
 
 // -------------------- MANEJO DE CONTEXTO -------------------- //
