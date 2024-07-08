@@ -137,9 +137,13 @@ void crear_archivo(uint32_t *PID, char *nombre)
     strcpy(path_absoluto, path_dialfs);
     strcat(path_absoluto, nombre);
 
+    FILE *metadataArchivo = fopen(path_absoluto, "w");
+    fclose(metadataArchivo);
     t_config *metadata = config_create(path_absoluto);
+
     config_set_value(metadata, "BLOQUE_INICIAL", string_itoa(bloque_utilizados++));
     config_set_value(metadata, "TAMANIO_ARCHIVO", "0");
+    config_save(metadata);
 
     // REVISAR: Falta algo mas?
 

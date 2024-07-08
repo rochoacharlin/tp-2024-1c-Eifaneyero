@@ -23,7 +23,13 @@ void atender_segun_tipo_interfaz(void)
         bloque_utilizados = 0; // esto no serviría para las siguientes ejecuciones
         iniciar_bitmap();
         leer_bloques();
-        // leer_fcbs();
+        FILE *ruta_base_fs = fopen(obtener_path_base_dialfs(), "w");
+        if (ruta_base_fs == NULL)
+        {
+            log_error(logger_propio, "No se pudo crear el directorio base del sistema de archivos.");
+            exit(EXIT_FAILURE);
+        }
+        fclose(ruta_base_fs);
     }
 }
 
