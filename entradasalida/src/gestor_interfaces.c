@@ -191,10 +191,12 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         break;
     case IO_FS_READ:
         void *lectura = leer_archivo(PID, list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3));
-        if (!escribir_en_memoria(*PID, list_slice(parametros, 4, list_size(parametros) - 4), lectura))
+        t_list *direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
+        if (!escribir_en_memoria(*PID, direcciones_fisicas, lectura))
         {
             respuesta = OPERACION_INVALIDA;
         }
+        list_destroy(direcciones_fisicas);
         free(lectura);
         break;
     case IO_FS_WRITE:
