@@ -9,8 +9,7 @@ size_t tamanio_bitmap;
 void iniciar_bitmap()
 {
     char *path = string_new();
-    string_append(&path, obtener_path_base_dialfs());
-    string_append(&path, "/bitmap.dat");
+    string_append_with_format(&path, "%s/%s", obtener_path_base_dialfs(), "bitmap.dat");
     FILE *fbitmap = fopen(path, "wb+");
     free(path);
     if (fbitmap == NULL)
@@ -35,8 +34,7 @@ void iniciar_bitmap()
 void leer_bloques()
 {
     char *path = string_new();
-    string_append(&path, obtener_path_base_dialfs());
-    string_append(&path, "/bloques.dat");
+    string_append_with_format(&path, "%s/%s", obtener_path_base_dialfs(), "bloques.dat");
     FILE *fbloques = fopen(path, "wb+");
     free(path);
     if (fbloques == NULL)
@@ -145,12 +143,8 @@ int obtener_bloque_libre(void)
 
 void crear_archivo(uint32_t *PID, char *nombre)
 {
-    char *path_dialfs = obtener_path_base_dialfs();
-    size_t tam = strlen(nombre) + strlen(path_dialfs) + 1;
-    char *path_absoluto = malloc_or_die(tam, "No se pudo crear espacio para el path_absoluto del archivo.");
-    strcpy(path_absoluto, path_dialfs);
-    strcat(path_absoluto, "/metadata/");
-    strcat(path_absoluto, nombre);
+    char *path_absoluto = string_new();
+    string_append_with_format(&path_absoluto, "%s/%s/%s", obtener_path_base_dialfs(), "metadata", nombre);
 
     FILE *metadataArchivo = fopen(path_absoluto, "w");
     fclose(metadataArchivo);
