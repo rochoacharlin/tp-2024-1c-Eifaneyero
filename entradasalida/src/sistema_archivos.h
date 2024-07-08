@@ -43,5 +43,6 @@ int tamanio_en_bloques(char *archivo);
 t_fcb *metadata_de_archivo(char *archivo);
 void liberar_archivo(char *archivo);
 void eliminar_metadata(char *archivo);
+void destruir_fcb(void *data);
 
 #endif
