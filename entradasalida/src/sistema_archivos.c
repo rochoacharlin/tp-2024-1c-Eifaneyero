@@ -59,8 +59,7 @@ void leer_fcbs()
 {
     // creo directorio para metadata si no existe
     char *path = string_new();
-    string_append(&path, obtener_path_base_dialfs());
-    string_append(&path, "/metadata");
+    string_append_with_format(&path, "%s/metadata", obtener_path_base_dialfs());
     if (mkdir(path, 0777) == -1 && errno != EEXIST)
     {
         free(path);
@@ -89,8 +88,7 @@ void leer_fcbs()
         {
             // abro config
             config_ruta = string_new();
-            string_append(&config_ruta, path);
-            string_append(&config_ruta, de->d_name);
+            string_append_with_format(&config_ruta, "%s/%s", path, de->d_name);
             config = iniciar_config(logger_propio, config_ruta);
 
             if (config == NULL)
@@ -197,9 +195,7 @@ void eliminar_metadata(char *archivo)
     list_remove_and_destroy_by_condition(fcbs, buscar_por_nombre, destruir_fcb);
 
     char *path = string_new();
-    string_append(&path, obtener_path_base_dialfs());
-    string_append(&path, "/metadata/");
-    string_append(&path, archivo);
+    string_append_with_format(&path, "%s/metadata/%s", obtener_path_base_dialfs(), archivo);
     remove(path);
     free(path);
 }
