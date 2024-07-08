@@ -202,7 +202,7 @@ void eliminar_metadata(char *archivo)
 
     char *path = string_new();
     string_append(&path, obtener_path_base_dialfs());
-    string_append(&path, "metadata/");
+    string_append(&path, "/metadata/");
     string_append(&path, archivo);
     remove(path);
     free(path);
