@@ -5,7 +5,7 @@ char *motivo_interrupcion;
 bool continua_ejecucion = true;
 bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
-t_contexto *contexto; // Diferencia e/ t_contexto* y t_contexto?
+t_contexto *contexto;
 
 void destruir_instruccion(t_instruccion *instruccion)
 {
@@ -24,12 +24,9 @@ void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
     {
         char *instruccion_leida = fetch();
         t_instruccion *instruccion = decode(instruccion_leida);
-
         free(instruccion_leida);
-
         execute(instruccion);
         check_interrupt(instruccion);
-
         destruir_instruccion(instruccion);
     }
 }
@@ -81,50 +78,11 @@ t_instruccion *convertir_string_a_instruccion_beta(char *instruccion_string)
     }
 
     for (i = 0; instruccion_array[i] != NULL; i++)
-    {
         free(instruccion_array[i]);
-    }
     free(instruccion_array);
 
     return instruccion;
 }
-
-// t_instruccion *convertir_string_a_instruccion(char *instruccion_string)
-// {
-//     t_instruccion *instruccion = malloc_or_die(sizeof(t_instruccion), "Error al asignar memoria para la instrucción");
-//     inicializar_instruccion(instruccion);
-//     char **instruccion_array = string_split(instruccion_string, " ");
-//     char *instruccion_array_fixed[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-//     for (int i = 0; i < 6 && instruccion_array[i] != NULL; i++)
-//     {
-//         instruccion_array_fixed[i] = instruccion_array[i];
-//     }
-//     instruccion->id = string_id_to_enum_id(instruccion_array_fixed[0]);
-//     if (instruccion_array_fixed[1] != NULL)
-//         (char*)list_get(instruccion->parametros,0) = string_duplicate(instruccion_array_fixed[1]);
-//     if (instruccion_array_fixed[2] != NULL)
-//         (char*)list_get(instruccion->parametros,1) = string_duplicate(instruccion_array_fixed[2]);
-//     if (instruccion_array_fixed[3] != NULL)
-//         (char*)list_get(instruccion->parametros,2) = string_duplicate(instruccion_array_fixed[3]);
-//     if (instruccion_array_fixed[4] != NULL)
-//         (char*)list_get(instruccion->parametros,3) = string_duplicate(instruccion_array_fixed[4]);
-//     if (instruccion_array_fixed[5] != NULL)
-//         (char*)list_get(instruccion->parametros,4) = string_duplicate(instruccion_array_fixed[5]);
-//     free(instruccion_array);
-//     return instruccion;
-// }
-
-// t_instruccion *inicializar_instruccion(t_instruccion *instruccion)
-// {
-//     instruccion->id = EXIT;
-//     (char*)list_get(instruccion->parametros,0) = NULL;
-//     (char*)list_get(instruccion->parametros,1) = NULL;
-//     (char*)list_get(instruccion->parametros,2) = NULL;
-//     (char*)list_get(instruccion->parametros,3) = NULL;
-//     (char*)list_get(instruccion->parametros,4) = NULL;
-//     instruccion->direcciones_fisicas = list_create();
-//     return instruccion;
-// }
 
 t_id string_id_to_enum_id(char *id_string)
 {
@@ -262,15 +220,9 @@ void agregar_direcciones_fisicas(t_instruccion *instruccion, uint32_t direccion_
 uint8_t tamanio_de_registro(char *registro)
 {
     if (strlen(registro) == 3 || !strcmp(registro, "SI") || !strcmp(registro, "DI") || !strcmp(registro, "PC")) // caso registros de 4 bytes
-    {
         return 4;
-    }
-
     else if (strlen(registro) == 2) // caso registros de 1 bytes
-    {
         return 1;
-    }
-
     return 0;
 }
 
@@ -469,9 +421,7 @@ void jnz(char *nombre_registro, uint32_t nro_instruccion)
 {
     uint32_t val_registro = obtener_valor_registro(contexto->registros_cpu, nombre_registro);
     if (val_registro != 0)
-    {
         set("PC", nro_instruccion);
-    }
 }
 
 void wait(char *recurso)
@@ -504,9 +454,7 @@ void io_stdin_read(char *nombre, t_list *direcciones_fisicas, char *registro_tam
     list_add(param, string_itoa(IO_STDIN_READ));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
-    {
         list_add(param, string_itoa(*(int *)list_get(direcciones_fisicas, i)));
-    }
     devolver_contexto(DESALOJO_IO, param);
 }
 
@@ -543,9 +491,7 @@ void mov_in(char *registro_datos_destino, t_list *direcciones_fisicas)
             list_destroy_and_destroy_elements(paquete_valor, free);
         }
         else
-        {
             log_info(logger_propio, "Conflicto en mov_in"); // TODO E:
-        }
 
         desplazamiento += *bytes_a_leer;
     }
@@ -553,10 +499,7 @@ void mov_in(char *registro_datos_destino, t_list *direcciones_fisicas)
     if (tamanio_de_registro(registro_datos_destino) == 1)
         set(registro_datos_destino, *(uint8_t *)valor_total);
     else
-    {
         set(registro_datos_destino, *(uint32_t *)valor_total);
-    }
-
     free(valor_total);
 }
 
@@ -636,10 +579,7 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
             free(valor_leido);
         }
         else
-        {
             log_info(logger_propio, "Algo ocurrio no se pudo leer en memoria");
-        }
-
         pos_lectura = i;
     }
     // escribimos en memoria
@@ -648,7 +588,6 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
 
         direccion = list_get(direcciones_fisicas, o);
         tamanio = (uint32_t *)list_get(direcciones_fisicas, o + 1);
-
         a_enviar = string_substring(valores_leidos, 0, *tamanio); // liberar a_enviar
 
         char *valores_sin_escribir = string_substring_from(valores_leidos, string_length(a_enviar));
@@ -658,14 +597,9 @@ void copy_string(int tamanio_a_operar, t_list *direcciones_fisicas)
         enviar_escritura_espacio_usuario(contexto->PID, (uint32_t *)direccion, (void *)a_enviar, tamanio);
 
         if (recibir_operacion(conexion_cpu_memoria) == OK)
-        {
             loggear_escritura_memoria_char(contexto->PID, *(uint32_t *)direccion, a_enviar);
-        }
         else
-        {
             log_info(logger_propio, "Algo ocurrio no se pudo escribir en memoria");
-        }
-
         free(a_enviar);
     }
 
@@ -709,9 +643,7 @@ void io_fs_write(char *interfaz, char *nombre_archivo, t_list *direcciones_fisic
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_puntero_arch)));
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
-    {
         list_add(param, string_itoa(*(int *)list_get(direcciones_fisicas, i)));
-    }
     devolver_contexto(DESALOJO_IO, param);
 }
 
@@ -724,9 +656,7 @@ void io_fs_read(char *interfaz, char *nombre_archivo, t_list *direcciones_fisica
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_tamanio)));
     list_add(param, string_itoa(obtener_valor_registro(contexto->registros_cpu, registro_puntero_arch)));
     for (int i = 0; i < list_size(direcciones_fisicas); i++)
-    {
         list_add(param, string_itoa(*(int *)list_get(direcciones_fisicas, i)));
-    }
     devolver_contexto(DESALOJO_IO, param);
 }
 
@@ -743,9 +673,7 @@ void devolver_contexto(motivo_desalojo motivo_desalojo, t_list *param)
     if (param != NULL)
     {
         for (int i = 0; i < list_size(param); i++)
-        {
             agregar_a_paquete_string(paquete, (char *)list_get(param, i));
-        }
     }
 
     enviar_paquete(paquete, conexion_cpu_kernel_dispatch);
