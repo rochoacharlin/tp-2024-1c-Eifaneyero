@@ -29,12 +29,15 @@ typedef struct
 void crear_archivo(uint32_t *PID, char *nombre);
 void eliminar_archivo(uint32_t *PID, char *nombre);
 void truncar_archivo(uint32_t *PID, char *nombre, int tam);
-void leer_archivo(uint32_t *PID, char *nombre, int tam, int *puntero);
-void escribir_archivo(uint32_t *PID, char *nombre, int tam, int *puntero);
+void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero);
+void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero);
 void iniciar_bitmap();
 void leer_bloques();
 void leer_fcbs();
 void cargar_fcb(t_fcb *fcb);
 bool ordenar_fcb_por_bloque_inicial(void *fcb1, void *fcb2);
+
+int bloque_inicial(char *archivo);
+t_fcb *metadata_de_archivo(char *archivo);
 
 #endif
