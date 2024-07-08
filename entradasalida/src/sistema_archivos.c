@@ -1,6 +1,5 @@
 #include "sistema_archivos.h"
 
-FILE *bloques;
 t_bitarray *bitmap;
 t_list *fcbs;
 void *bloques;
