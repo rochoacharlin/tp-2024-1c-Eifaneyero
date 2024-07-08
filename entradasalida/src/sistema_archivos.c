@@ -156,11 +156,11 @@ void crear_archivo(uint32_t *PID, char *nombre)
     fclose(metadataArchivo);
     t_config *metadata = iniciar_config(logger_propio, path_absoluto);
 
-    config_set_value(metadata, "BLOQUE_INICIAL", string_itoa(obtener_bloque_libre()));
+    int bloque_libre = obtener_bloque_libre();
+    config_set_value(metadata, "BLOQUE_INICIAL", string_itoa(bloque_libre));
+    bitarray_set_bit(bitmap, bloque_libre);
     config_set_value(metadata, "TAMANIO_ARCHIVO", "0");
     config_save(metadata);
-
-    bitarray_set_bit(bitmap, 1);
 
     // REVISAR: Falta algo mas?
 

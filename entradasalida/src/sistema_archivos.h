@@ -36,6 +36,7 @@ void leer_bloques();
 void leer_fcbs();
 void cargar_fcb(t_fcb *fcb);
 bool ordenar_fcb_por_bloque_inicial(void *fcb1, void *fcb2);
+int obtener_bloque_libre(void);
 
 int bloque_inicial(char *archivo);
 t_fcb *metadata_de_archivo(char *archivo);
