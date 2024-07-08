@@ -1,9 +1,9 @@
 #include "sistema_archivos.h"
 
-FILE *bloques;
 int bloque_utilizados;
 t_bitarray *bitmap;
 t_list *fcbs;
+void *bloques;
 
 void iniciar_bitmap()
 {
@@ -47,7 +47,7 @@ void leer_bloques()
     size_t tamanio = obtener_block_count() * obtener_block_size();
     ftruncate(fileno(fbloques), tamanio);
 
-    void *bloques = mmap(NULL, tamanio, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(fbloques), 0);
+    bloques = mmap(NULL, tamanio, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(fbloques), 0);
     fclose(fbloques);
     if (bloques == MAP_FAILED)
     {
@@ -161,12 +161,34 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     // TODO
 }
 
-void leer_archivo(uint32_t *PID, char *nombre, int tam, int *puntero)
+void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
 {
-    // TODO
+    int pos_inicial = bloque_inicial(nombre) * obtener_block_size() + puntero;
+    void *lectura = malloc(tam);
+    memcpy(lectura, bloques + pos_inicial, tam);
+    return lectura;
 }
 
-void escribir_archivo(uint32_t *PID, char *nombre, int tam, int *puntero)
+int bloque_inicial(char *archivo)
+{
+    t_fcb *fcb = metadata_de_archivo(archivo);
+    return fcb->bloque_inicial;
+}
+
+t_fcb *metadata_de_archivo(char *archivo)
+{
+    bool buscar_por_nombre(void *fcb)
+    {
+        return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0;
+    }
+
+    t_list *filtrados = list_filter(fcbs, buscar_por_nombre);
+    t_fcb *fcb = list_remove(filtrados, 0);
+    list_destroy(filtrados);
+    return fcb;
+}
+
+void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
 {
     // TODO
 }

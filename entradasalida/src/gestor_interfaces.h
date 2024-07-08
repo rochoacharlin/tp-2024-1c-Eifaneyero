@@ -21,6 +21,8 @@ op_code atender_stdin(int cod_op, t_list *parametros);
 op_code atender_stdout(int cod_op, t_list *parametros);
 op_code atender_dialfs(int cod_op, t_list *parametros);
 
+bool escribir_en_memoria(uint32_t PID, t_list *direcciones_fisicas, void *escritura);
+
 void setear_config(char *archivo_config_io);
 
 #endif

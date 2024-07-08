@@ -177,7 +177,7 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 op_code atender_dialfs(int cod_op, t_list *parametros)
 {
     op_code respuesta = OK;
-    uint32_t *PID = list_get(parametros, 0);
+    uint32_t *PID = list_remove(parametros, 0);
 
     switch (cod_op)
     {
@@ -191,10 +191,15 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         truncar_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2));
         break;
     case IO_FS_READ:
-        leer_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), (int *)list_get(parametros, 3));
+        void *lectura = leer_archivo(PID, list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3));
+        if (!escribir_en_memoria(*PID, list_slice(parametros, 4, list_size(parametros) - 4), lectura))
+        {
+            respuesta = OPERACION_INVALIDA;
+        }
+        free(lectura);
         break;
     case IO_FS_WRITE:
-        escribir_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), (int *)list_get(parametros, 3));
+        escribir_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3));
         break;
     default:
         respuesta = OPERACION_INVALIDA;
@@ -202,6 +207,45 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
     }
 
     return respuesta;
+}
+
+bool escribir_en_memoria(uint32_t PID, t_list *direcciones_fisicas, void *escritura)
+{
+    bool operacion_exitosa = true;
+    uint32_t direccion_fisica;
+    uint32_t bytes_a_operar;
+    int desplazamiento = 0;
+    void *escritura_a_enviar = NULL;
+
+    for (int i = 2; i < list_size(direcciones_fisicas); i += 2)
+    {
+        // obtengo trozo a escribir
+        direccion_fisica = atoi(list_get(direcciones_fisicas, i));
+        bytes_a_operar = atoi(list_get(direcciones_fisicas, i + 1));
+        escritura_a_enviar = malloc(bytes_a_operar);
+        memcpy(escritura_a_enviar, escritura, bytes_a_operar);
+
+        // solicito escritura en la memoria
+        t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
+        agregar_a_paquete_uint32(paquete, PID);
+        agregar_a_paquete_uint32(paquete, direccion_fisica);
+        agregar_a_paquete(paquete, escritura_a_enviar, bytes_a_operar);
+        agregar_a_paquete_uint32(paquete, bytes_a_operar);
+        enviar_paquete(paquete, conexion_memoria);
+
+        if (recibir_operacion(conexion_memoria) != OK)
+        {
+            log_info(logger_propio, "Se produjo un error al intentar escribir %s en la memoria", (char *)escritura_a_enviar);
+            operacion_exitosa = false;
+            break;
+        }
+
+        desplazamiento += bytes_a_operar;
+        eliminar_paquete(paquete);
+        free(escritura_a_enviar);
+    }
+
+    return operacion_exitosa;
 }
 
 void setear_config(char *archivo_config_io)
