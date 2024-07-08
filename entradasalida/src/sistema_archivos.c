@@ -142,7 +142,7 @@ int obtener_bloque_libre(void)
 void crear_archivo(uint32_t *PID, char *nombre)
 {
     char *path_absoluto = string_new();
-    string_append_with_format(&path_absoluto, "%s/%s/%s", obtener_path_base_dialfs(), "metadata", nombre);
+    string_append_with_format(&path_absoluto, "%s/metadata/%s", obtener_path_base_dialfs(), nombre);
 
     FILE *metadataArchivo = fopen(path_absoluto, "w");
     fclose(metadataArchivo);
