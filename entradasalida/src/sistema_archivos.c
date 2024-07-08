@@ -182,7 +182,7 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     usleep(obtener_tiempo_unidad_trabajo() * 1000);
 
     // log minimo y obligatorio
-    loggear_dialfs_eliminar_archivo(*PID, nombre);
+    loggear_dialfs_truncar_archivo(PID, nombre, tam);
 }
 
 void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
@@ -191,6 +191,10 @@ void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
     void *lectura = malloc(tam);
     memcpy(lectura, bloques + pos_inicial, tam);
     usleep(obtener_tiempo_unidad_trabajo() * 1000);
+
+    // log minimo y obligatorio
+    loggear_dialfs_leer_archivo(PID, nombre, tam, puntero);
+
     return lectura;
 }
 
@@ -217,4 +221,7 @@ void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
 {
     // TODO
     usleep(obtener_tiempo_unidad_trabajo() * 1000);
+
+    // log minimo y obligatorio
+    loggear_dialfs_escribir_archivo(PID, nombre, tam, puntero);
 }
