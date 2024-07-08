@@ -172,12 +172,18 @@ void eliminar_archivo(uint32_t *PID, char *nombre)
 {
     // TODO
     usleep(obtener_tiempo_unidad_trabajo() * 1000);
+
+    // log minimo y obligatorio
+    loggear_dialfs_eliminar_archivo(*PID, nombre);
 }
 
 void truncar_archivo(uint32_t *PID, char *nombre, int tam)
 {
     // TODO
     usleep(obtener_tiempo_unidad_trabajo() * 1000);
+
+    // log minimo y obligatorio
+    loggear_dialfs_eliminar_archivo(*PID, nombre);
 }
 
 void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
