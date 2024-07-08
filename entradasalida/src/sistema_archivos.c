@@ -62,7 +62,7 @@ void leer_fcbs()
     // creo directorio para metadata si no existe
     char *path = string_new();
     string_append(&path, obtener_path_base_dialfs());
-    string_append(&path, "metadata");
+    string_append(&path, "/metadata");
     if (mkdir(path, 0777) == -1)
     {
         free(path);
@@ -149,6 +149,7 @@ void crear_archivo(uint32_t *PID, char *nombre)
     size_t tam = strlen(nombre) + strlen(path_dialfs) + 1;
     char *path_absoluto = malloc_or_die(tam, "No se pudo crear espacio para el path_absoluto del archivo.");
     strcpy(path_absoluto, path_dialfs);
+    strcat(path_absoluto, "/metadata/");
     strcat(path_absoluto, nombre);
 
     FILE *metadataArchivo = fopen(path_absoluto, "w");
