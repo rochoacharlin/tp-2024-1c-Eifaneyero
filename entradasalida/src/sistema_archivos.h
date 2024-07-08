@@ -17,6 +17,7 @@
 extern t_config *metadata;
 extern int bloque_utilizados;
 extern t_bitarray *bitmap;
+extern t_list *fcbs;
 
 typedef struct
 {
@@ -33,5 +34,7 @@ void escribir_archivo(uint32_t *PID, char *nombre, int tam, int *puntero);
 void iniciar_bitmap();
 void leer_bloques();
 void leer_fcbs();
+void cargar_fcb(t_fcb *fcb);
+bool ordenar_fcb_por_bloque_inicial(void *fcb1, void *fcb2);
 
 #endif

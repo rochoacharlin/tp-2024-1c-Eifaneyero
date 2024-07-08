@@ -3,6 +3,7 @@
 FILE *bloques;
 int bloque_utilizados;
 t_bitarray *bitmap;
+t_list *fcbs;
 
 void iniciar_bitmap()
 {
@@ -79,11 +80,53 @@ void leer_fcbs()
 
     // leo la metadata
     struct dirent *de;
+
+    t_config *config;
+    char *config_ruta;
+    t_fcb *fcb;
+    int tamanio_en_bloques;
     while ((de = readdir(drmetadata)) != NULL)
     {
-        // crear estructura de fcb y guardarla en una lista. Por qué una lista? Porque se puede filtrar
+        // abro config
+        config_ruta = string_new();
+        string_append(&config_ruta, path);
+        string_append(&config_ruta, de->d_name);
+        config = iniciar_config(logger_propio, config_ruta);
+
+        if (config == NULL)
+        {
+            log_error(logger_propio, "No se encontró el archivo en %s", config_ruta);
+            free(config_ruta);
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            free(config_ruta);
+        }
+
+        // cargo fcb
+        // crear estructura de fcb y guardarla en una lista. Por qué una lista? Porque se puede filtrar (eliminar comentario)
+        fcb = malloc(sizeof(fcb));
+        fcb->nombre = string_duplicate(de->d_name);
+        fcb->bloque_inicial = config_get_int_value(config, "BLOQUE_INICIAL");
+        tamanio_en_bloques = (config_get_int_value(config, "TAMANIO_ARCHIVO") + obtener_block_size() - 1) / obtener_block_size();
+        fcb->tamanio_en_bloques = tamanio_en_bloques;
+
+        cargar_fcb(fcb);
+
+        config_destroy(config);
     }
     closedir(drmetadata);
+}
+
+void cargar_fcb(t_fcb *fcb)
+{
+    list_add_sorted(fcbs, fcb, ordenar_fcb_por_bloque_inicial);
+}
+
+bool ordenar_fcb_por_bloque_inicial(void *fcb1, void *fcb2)
+{
+    return ((t_fcb *)fcb1)->bloque_inicial < ((t_fcb *)fcb2)->bloque_inicial;
 }
 
 void crear_archivo(uint32_t *PID, char *nombre)
