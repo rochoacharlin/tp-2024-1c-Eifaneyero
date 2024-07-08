@@ -28,13 +28,13 @@ extern t_log *logger_obligatorio;
 extern char *nombres_de_instrucciones[];
 
 // Logs minimos y obligatorios
-void loggear_operacion(int PID, char *operacion);
-void loggear_dialfs_crear_archivo(int PID, char *nombre);
-void loggear_dialfs_eliminar_archivo(int PID, char *nombre);
-void loggear_dialfs_truncar_archivo(int PID, char *nombre, int tam);
-void loggear_dialfs_leer_archivo(int PID, char *nombre, int tam, int puntero);
-void loggear_dialfs_escribir_archivo(int PID, char *nombre, int tam, int puntero);
-void loggear_dialfs_inicio_compactacion(int PID);
-void loggear_dialfs_fin_compactacion(int PID);
+void loggear_operacion(uint32_t PID, char *operacion);
+void loggear_dialfs_crear_archivo(uint32_t PID, char *nombre);
+void loggear_dialfs_eliminar_archivo(uint32_t PID, char *nombre);
+void loggear_dialfs_truncar_archivo(uint32_t PID, char *nombre, int tam);
+void loggear_dialfs_leer_archivo(uint32_t PID, char *nombre, int tam, int puntero);
+void loggear_dialfs_escribir_archivo(uint32_t PID, char *nombre, int tam, int puntero);
+void loggear_dialfs_inicio_compactacion(uint32_t PID);
+void loggear_dialfs_fin_compactacion(uint32_t PID);
 
 #endif
