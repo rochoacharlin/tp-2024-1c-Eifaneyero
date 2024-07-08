@@ -15,7 +15,6 @@
 #include "configuraciones.h"
 
 extern t_config *metadata;
-extern int bloque_utilizados;
 extern t_bitarray *bitmap;
 extern t_list *fcbs;
 
