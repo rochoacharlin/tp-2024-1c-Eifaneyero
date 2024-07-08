@@ -1,7 +1,6 @@
 #include "sistema_archivos.h"
 
 FILE *bloques;
-int bloque_utilizados;
 t_bitarray *bitmap;
 t_list *fcbs;
 
@@ -9,8 +8,8 @@ void iniciar_bitmap()
 {
     char *path = string_new();
     string_append(&path, obtener_path_base_dialfs());
-    string_append(&path, "bitmap.dat");
-    FILE *fbitmap = fopen(path, "wb");
+    string_append(&path, "/bitmap.dat");
+    FILE *fbitmap = fopen(path, "wb+");
     free(path);
     if (fbitmap == NULL)
     {
@@ -35,8 +34,8 @@ void leer_bloques()
 {
     char *path = string_new();
     string_append(&path, obtener_path_base_dialfs());
-    string_append(&path, "bloques.dat");
-    FILE *fbloques = fopen(path, "wb");
+    string_append(&path, "/bloques.dat");
+    FILE *fbloques = fopen(path, "wb+");
     free(path);
     if (fbloques == NULL)
     {
@@ -129,6 +128,21 @@ bool ordenar_fcb_por_bloque_inicial(void *fcb1, void *fcb2)
     return ((t_fcb *)fcb1)->bloque_inicial < ((t_fcb *)fcb2)->bloque_inicial;
 }
 
+int obtener_bloque_libre(void)
+{
+    int bloque = -1;
+
+    for (int i = 0; i < obtener_block_count() && bloque < 0; i++)
+    {
+        if (!bitarray_test_bit(bitmap, i))
+        {
+            bloque = i;
+        }
+    }
+
+    return bloque;
+}
+
 void crear_archivo(uint32_t *PID, char *nombre)
 {
     char *path_dialfs = obtener_path_base_dialfs();
@@ -139,11 +153,13 @@ void crear_archivo(uint32_t *PID, char *nombre)
 
     FILE *metadataArchivo = fopen(path_absoluto, "w");
     fclose(metadataArchivo);
-    t_config *metadata = config_create(path_absoluto);
+    t_config *metadata = iniciar_config(logger_propio, path_absoluto);
 
-    config_set_value(metadata, "BLOQUE_INICIAL", string_itoa(bloque_utilizados++));
+    config_set_value(metadata, "BLOQUE_INICIAL", string_itoa(obtener_bloque_libre()));
     config_set_value(metadata, "TAMANIO_ARCHIVO", "0");
     config_save(metadata);
+
+    bitarray_set_bit(bitmap, 1);
 
     // REVISAR: Falta algo mas?
 

@@ -19,17 +19,14 @@ void atender_segun_tipo_interfaz(void)
     }
     else if (strcmp(tipo_interfaz, "DIALFS") == 0)
     {
-        atender = atender_dialfs;
-        bloque_utilizados = 0; // esto no serviría para las siguientes ejecuciones
-        iniciar_bitmap();
-        leer_bloques();
-        FILE *ruta_base_fs = fopen(obtener_path_base_dialfs(), "w");
-        if (ruta_base_fs == NULL)
+        if (mkdir(obtener_path_base_dialfs(), 0777) && errno != EEXIST)
         {
             log_error(logger_propio, "No se pudo crear el directorio base del sistema de archivos.");
             exit(EXIT_FAILURE);
         }
-        fclose(ruta_base_fs);
+        atender = atender_dialfs;
+        leer_bloques();
+        iniciar_bitmap();
     }
 }
 
