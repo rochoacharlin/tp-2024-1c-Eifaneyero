@@ -174,7 +174,9 @@ op_code atender_stdout(int cod_op, t_list *parametros)
 op_code atender_dialfs(int cod_op, t_list *parametros)
 {
     op_code respuesta = OK;
-    uint32_t *PID = list_remove(parametros, 0);
+    uint32_t *PID = list_get(parametros, 0);
+
+    usleep(obtener_tiempo_unidad_trabajo() * 1000);
 
     switch (cod_op)
     {

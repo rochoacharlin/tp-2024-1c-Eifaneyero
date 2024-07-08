@@ -3,6 +3,8 @@
 t_bitarray *bitmap;
 t_list *fcbs;
 void *bloques;
+void *espacio_bitmap;
+size_t tamanio_bitmap;
 
 void iniciar_bitmap()
 {
@@ -16,10 +18,10 @@ void iniciar_bitmap()
         log_error(logger_propio, "No se pudo crear o abrir el archivo bitmap.dat: %s", strerror(errno));
         exit(EXIT_FAILURE);
     }
-    size_t tamanio_bitmap = (obtener_block_count() + 8 - 1) / 8;
+    tamanio_bitmap = (obtener_block_count() + 8 - 1) / 8;
     ftruncate(fileno(fbitmap), tamanio_bitmap);
 
-    void *espacio_bitmap = mmap(NULL, tamanio_bitmap, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(fbitmap), 0);
+    espacio_bitmap = mmap(NULL, tamanio_bitmap, PROT_READ | PROT_WRITE, MAP_SHARED, fileno(fbitmap), 0);
     fclose(fbitmap);
     if (espacio_bitmap == MAP_FAILED)
     {
@@ -83,7 +85,6 @@ void leer_fcbs()
     t_config *config;
     char *config_ruta;
     t_fcb *fcb;
-    int tamanio_en_bloques;
     while ((de = readdir(drmetadata)) != NULL)
     {
         // abro config
@@ -108,8 +109,7 @@ void leer_fcbs()
         fcb = malloc(sizeof(fcb));
         fcb->nombre = string_duplicate(de->d_name);
         fcb->bloque_inicial = config_get_int_value(config, "BLOQUE_INICIAL");
-        tamanio_en_bloques = (config_get_int_value(config, "TAMANIO_ARCHIVO") + obtener_block_size() - 1) / obtener_block_size();
-        fcb->tamanio_en_bloques = tamanio_en_bloques;
+        fcb->tamanio_en_bytes = config_get_int_value(config, "TAMANIO_ARCHIVO");
 
         cargar_fcb(fcb);
 
@@ -161,25 +161,60 @@ void crear_archivo(uint32_t *PID, char *nombre)
     config_set_value(metadata, "TAMANIO_ARCHIVO", "0");
     config_save(metadata);
 
-    usleep(obtener_tiempo_unidad_trabajo() * 1000);
-
     // log minimo y obligatorio
     loggear_dialfs_crear_archivo(*PID, nombre);
 }
 
 void eliminar_archivo(uint32_t *PID, char *nombre)
 {
-    // TODO
-    usleep(obtener_tiempo_unidad_trabajo() * 1000);
-
     // log minimo y obligatorio
     loggear_dialfs_eliminar_archivo(*PID, nombre);
+
+    liberar_archivo(nombre);
+    eliminar_metadata(nombre);
+}
+
+void liberar_archivo(char *archivo)
+{
+    int pos_inicial = bloque_inicial(archivo) * obtener_block_size();
+    int tam_en_bloques = tamanio_en_bloques(archivo);
+    for (int i = pos_inicial; i < tam_en_bloques; i++)
+    {
+        bitarray_set_bit(bitmap, i);
+    }
+    msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
+}
+
+void eliminar_metadata(char *archivo)
+{
+    bool buscar_por_nombre(void *fcb)
+    {
+        return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0;
+    }
+    void eliminar_fcb(void *data)
+    {
+        t_fcb *fcb = (t_fcb *)data;
+        free(fcb->nombre);
+        free(fcb);
+    }
+    list_remove_and_destroy_by_condition(fcbs, buscar_por_nombre, eliminar_fcb);
+
+    char *path = string_new();
+    string_append(&path, obtener_path_base_dialfs());
+    string_append(&path, "metadata/");
+    string_append(&path, archivo);
+    remove(path);
+    free(path);
+}
+
+int tamanio_en_bloques(char *archivo)
+{
+    t_fcb *fcb = metadata_de_archivo(archivo);
+    return (fcb->tamanio_en_bytes + obtener_block_size() - 1) / obtener_block_size();
 }
 
 void truncar_archivo(uint32_t *PID, char *nombre, int tam)
 {
-    // TODO
-    usleep(obtener_tiempo_unidad_trabajo() * 1000);
 
     // log minimo y obligatorio
     loggear_dialfs_truncar_archivo(*PID, nombre, tam);
@@ -190,7 +225,6 @@ void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
     int pos_inicial = bloque_inicial(nombre) * obtener_block_size() + puntero;
     void *lectura = malloc(tam);
     memcpy(lectura, bloques + pos_inicial, tam);
-    usleep(obtener_tiempo_unidad_trabajo() * 1000);
 
     // log minimo y obligatorio
     loggear_dialfs_leer_archivo(*PID, nombre, tam, puntero);
@@ -210,7 +244,6 @@ t_fcb *metadata_de_archivo(char *archivo)
     {
         return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0;
     }
-
     t_list *filtrados = list_filter(fcbs, buscar_por_nombre);
     t_fcb *fcb = list_remove(filtrados, 0);
     list_destroy(filtrados);
@@ -219,8 +252,6 @@ t_fcb *metadata_de_archivo(char *archivo)
 
 void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
 {
-    // TODO
-    usleep(obtener_tiempo_unidad_trabajo() * 1000);
 
     // log minimo y obligatorio
     loggear_dialfs_escribir_archivo(*PID, nombre, tam, puntero);

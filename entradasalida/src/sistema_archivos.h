@@ -23,7 +23,7 @@ typedef struct
 {
     char *nombre;
     int bloque_inicial;
-    int tamanio_en_bloques;
+    int tamanio_en_bytes;
 } t_fcb;
 
 void crear_archivo(uint32_t *PID, char *nombre);
@@ -39,6 +39,9 @@ bool ordenar_fcb_por_bloque_inicial(void *fcb1, void *fcb2);
 int obtener_bloque_libre(void);
 
 int bloque_inicial(char *archivo);
+int tamanio_en_bloques(char *archivo);
 t_fcb *metadata_de_archivo(char *archivo);
+void liberar_archivo(char *archivo);
+void eliminar_metadata(char *archivo);
 
 #endif
