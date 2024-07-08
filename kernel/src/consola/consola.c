@@ -15,6 +15,8 @@ void consola_interactiva(void)
     char *leido = readline("> ");
     char *token = strtok(leido, " ");
 
+    add_history(leido);
+
     while (1)
     {
         buscar_y_ejecutar_comando(token);

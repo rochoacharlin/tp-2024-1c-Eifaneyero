@@ -6,6 +6,7 @@
 #include "../planificacion/pcb.h"
 #include "../planificacion/planificacion.h"
 #include <unistd.h>
+#include <readline/history.h>
 
 extern sem_t planificacion_liberada;
 extern sem_t planificacion_pausada;
