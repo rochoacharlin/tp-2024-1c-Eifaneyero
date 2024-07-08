@@ -44,7 +44,6 @@ void ejecutar_script(char *path_relativo)
 
 void iniciar_proceso(char *path)
 {
-    // COMPLETAR: falta tener en cuenta el filesystem.
     if (path != NULL)
     {
         t_pcb *pcb = crear_pcb();
@@ -71,7 +70,6 @@ void iniciar_proceso(char *path)
 
 void finalizar_proceso(char *PID)
 {
-    // COMPLETAR: Liberar archivos
     t_pcb *pcb = NULL;
 
     if (PID != NULL)
