@@ -63,7 +63,7 @@ void leer_fcbs()
     char *path = string_new();
     string_append(&path, obtener_path_base_dialfs());
     string_append(&path, "/metadata");
-    if (mkdir(path, 0777) == -1)
+    if (mkdir(path, 0777) == -1 && errno != EEXIST)
     {
         free(path);
         log_error(logger_propio, "No se pudo crear el directorio de metadata: %s", strerror(errno));
@@ -87,33 +87,33 @@ void leer_fcbs()
     t_fcb *fcb;
     while ((de = readdir(drmetadata)) != NULL)
     {
-        // abro config
-        config_ruta = string_new();
-        string_append(&config_ruta, path);
-        string_append(&config_ruta, de->d_name);
-        config = iniciar_config(logger_propio, config_ruta);
-
-        if (config == NULL)
+        if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0)
         {
-            log_error(logger_propio, "No se encontró el archivo en %s", config_ruta);
-            free(config_ruta);
-            exit(EXIT_FAILURE);
+            // abro config
+            config_ruta = string_new();
+            string_append(&config_ruta, path);
+            string_append(&config_ruta, de->d_name);
+            config = iniciar_config(logger_propio, config_ruta);
+
+            if (config == NULL)
+            {
+                log_error(logger_propio, "No se encontró el archivo en %s", config_ruta);
+                free(config_ruta);
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                free(config_ruta);
+            }
+
+            // cargo fcb
+            fcb = malloc(sizeof(fcb));
+            fcb->nombre = string_duplicate(de->d_name);
+            fcb->bloque_inicial = config_get_int_value(config, "BLOQUE_INICIAL");
+            fcb->tamanio_en_bytes = config_get_int_value(config, "TAMANIO_ARCHIVO");
+
+            cargar_fcb(fcb);
         }
-        else
-        {
-            free(config_ruta);
-        }
-
-        // cargo fcb
-        // crear estructura de fcb y guardarla en una lista. Por qué una lista? Porque se puede filtrar (eliminar comentario)
-        fcb = malloc(sizeof(fcb));
-        fcb->nombre = string_duplicate(de->d_name);
-        fcb->bloque_inicial = config_get_int_value(config, "BLOQUE_INICIAL");
-        fcb->tamanio_en_bytes = config_get_int_value(config, "TAMANIO_ARCHIVO");
-
-        cargar_fcb(fcb);
-
-        config_destroy(config);
     }
     closedir(drmetadata);
 }
@@ -186,19 +186,21 @@ void liberar_archivo(char *archivo)
     msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
 }
 
+void destruir_fcb(void *data)
+{
+    t_fcb *fcb = (t_fcb *)data;
+    free(fcb->nombre);
+    free(fcb);
+}
+
 void eliminar_metadata(char *archivo)
 {
     bool buscar_por_nombre(void *fcb)
     {
         return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0;
     }
-    void eliminar_fcb(void *data)
-    {
-        t_fcb *fcb = (t_fcb *)data;
-        free(fcb->nombre);
-        free(fcb);
-    }
-    list_remove_and_destroy_by_condition(fcbs, buscar_por_nombre, eliminar_fcb);
+
+    list_remove_and_destroy_by_condition(fcbs, buscar_por_nombre, destruir_fcb);
 
     char *path = string_new();
     string_append(&path, obtener_path_base_dialfs());
