@@ -20,11 +20,10 @@ void atender_segun_tipo_interfaz(void)
     else if (strcmp(tipo_interfaz, "DIALFS") == 0)
     {
         atender = atender_dialfs;
-        bloque_utilizados = 0;
-        // REVISAR: Que va en el primer parametro del bitarray? es LSB_FIRST o MSB_FIRST
-        bitarray = bitarray_create_with_mode("", obtener_block_count(), LSB_FIRST);
-        bloques = fopen("bloques.dat", "r+"); // VERIFICAR: Hay que especificar el tamaño del archivo? BLOCK_SIZE * BLOCK_COUNT?
-        bitmap = fopen("bitmap.dat", "r+");
+        bloque_utilizados = 0; // esto no serviría para las siguientes ejecuciones
+        iniciar_bitmap();
+        leer_bloques();
+        // leer_fcbs();
     }
 }
 
