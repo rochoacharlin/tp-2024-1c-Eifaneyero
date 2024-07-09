@@ -199,18 +199,11 @@ int tamanio_en_bloques(char *archivo)
 
 void truncar_archivo(uint32_t *PID, char *nombre, int tam)
 {
-
-    // log minimo y obligatorio
-    loggear_dialfs_truncar_archivo(*PID, nombre, tam);
-}
-
-void truncar_archivo(uint32_t *PID, char *nombre, int tam)
-{
-    char *path = char obtener_path(nombre);
+    char *path = string_new();
+    string_append_with_format(&path, "%s/metadata/%s", obtener_path_base_dialfs(), nombre);
 
     FILE *archivo = fopen(path, "w");
-
-    t_fcb *fcb = metadata_de_archivo(char *archivo);
+    t_fcb *fcb = metadata_de_archivo(archivo);
 
     // Obtengo el bloque inicial del archivo y su tamaño actual
     int bloque_inicial = fcb->bloque_inicial;
@@ -231,9 +224,9 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     }
 
     // Si es necesario compactar, llamar a la función compactar
-    if (validar_compactacion(nuevos_bloques, fcb, fcbs))
+    if (validar_compactacion(nuevos_bloques, fcb))
     {
-        compactar();
+        compactar(PID, archivo, tam);
     }
 
     // Actualizar metadata
@@ -248,17 +241,17 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     loggear_dialfs_truncar_archivo(*PID, nombre, tam);
 }
 
-bool validar_compactacion(int bloque_agregados, t_fcb fcb)
+bool validar_compactacion(int bloque_agregados, t_fcb *fcb)
 {
-    t_list_iterator fcb_iterando;
+    t_list_iterator *fcb_iterando = list_iterator_create(fcbs);
 
     while (list_iterator_has_next(fcb_iterando))
     {
 
-        t_fcb fcb_actual = list_iterator_next(fcb_iterando);
-        int bloques_de_siguiente = list_iterator_next(fcb_iterando)->bloque_inicial;
+        t_fcb *fcb_actual = list_iterator_next(fcb_iterando);
+        int bloques_de_siguiente = ((t_fcb *)list_iterator_next(fcb_iterando))->bloque_inicial;
 
-        if (strcmp(fcb->nombre_de_archivo, fcb_actual->nombre) && (bloques_de_siguiente - bloque_agregados < 0))
+        if (strcmp(fcb->nombre, fcb_actual->nombre) && (bloques_de_siguiente - bloque_agregados < 0))
         {
             return true;
         }
