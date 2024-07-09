@@ -204,6 +204,50 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     loggear_dialfs_truncar_archivo(*PID, nombre, tam);
 }
 
+void truncar_archivo(uint32_t *PID, char *nombre, int tam)
+{
+    char *path = char obtener_path(nombre);
+
+    FILE *archivo = fopen(path, "w");
+
+    t_fcb *fcb = metadata_de_archivo(char *archivo);
+
+    // Obtengo el bloque inicial del archivo y su tamaño actual
+    int bloque_inicial = fcb->bloque_inicial;
+    int tamanio_anterior = fcb->tamanio_en_bytes;
+
+    // Calcular el nuevo tamaño en bloques,  REVISAR
+    int nuevos_bloques = bytes_a_bloques(tam);
+    int bloques_anteriores = bytes_a_bloques(tamanio_anterior);
+
+    // Si el nuevo tamaño es menor, se liberan los bloques adicionales
+    if (nuevos_bloques < bloques_anteriores)
+    {
+        for (int i = nuevos_bloques; i < bloques_anteriores; i++)
+        {
+            int bloque_a_liberar = bloque_inicial + i;
+            bitarray_clean_bit(bitmap, bloque_a_liberar);
+        }
+    }
+
+    // Si es necesario compactar, llamar a la función compactar
+    if (validar_compactacion(nuevos_bloques, fcb, fcbs))
+    {
+        compactar();
+    }
+
+    // Actualizar metadata
+
+    config_set_value(metadata, "TAMANIO_ARCHIVO", string_itoa(tam));
+    config_save(metadata);
+
+    free(path);
+    close(archivo);
+
+    // log minimo y obligatorio
+    loggear_dialfs_truncar_archivo(*PID, nombre, tam);
+}
+
 bool validar_compactacion(int bloque_agregados, t_fcb fcb)
 {
     t_list_iterator fcb_iterando;
