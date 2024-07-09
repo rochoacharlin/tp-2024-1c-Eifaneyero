@@ -230,9 +230,7 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     }
 
     // Actualizar metadata
-
-    config_set_value(metadata, "TAMANIO_ARCHIVO", string_itoa(tam));
-    config_save(metadata);
+    actualizar_metadata(fcb);
 
     free(path);
     close(fileno(archivo));
