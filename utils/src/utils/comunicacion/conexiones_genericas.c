@@ -65,6 +65,12 @@ int iniciar_servidor(t_log *logger, char *puerto)
         exit(EXIT_FAILURE);
     }
 
+    if (setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0)
+    {
+        log_error(logger, "No se pudo hacer reusable el socket: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
     // Asociamos el socket a un puerto
     if (bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen))
     {
