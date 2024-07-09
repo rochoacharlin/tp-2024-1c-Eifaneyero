@@ -118,63 +118,35 @@ op_code atender_stdin(int cod_op, t_list *parametros)
 
 op_code atender_stdout(int cod_op, t_list *parametros)
 {
-    op_code respuesta = OK;
+    op_code respuesta;
 
     if (cod_op == IO_STDOUT_WRITE)
     {
+        char *valor_leido_completo = NULL;
         uint32_t *PID = (uint32_t *)list_get(parametros, 0);
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
         int cantidad_caracteres = atoi(list_get(parametros, 1));
-        int tam = sizeof(char) * cantidad_caracteres + 1;
-        char *valor_leido_completo = malloc(tam);
-        valor_leido_completo[tam - 1] = '\0';
-        int desplazamiento = 0;
+        uint32_t tamanio = sizeof(char) * cantidad_caracteres + 1;
+        t_list *direcciones_fisicas = list_slice(parametros, 2, list_size(parametros) - 2);
 
-        for (int i = 2; i < list_size(parametros); i += 2)
-        {
-            uint32_t direccion_fisica = atoi(list_get(parametros, i));
-            uint32_t bytes_a_operar = atoi(list_get(parametros, i + 1));
+        respuesta = leer_de_memoria(*PID, tamanio, direcciones_fisicas, valor_leido_completo);
 
-            t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
-            agregar_a_paquete_uint32(paquete, *PID);
-            agregar_a_paquete_uint32(paquete, direccion_fisica);
-            agregar_a_paquete_uint32(paquete, bytes_a_operar);
-            enviar_paquete(paquete, conexion_memoria);
+        if (respuesta == OK)
+            log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", valor_leido_completo);
 
-            if (recibir_operacion(conexion_memoria) == OK)
-            {
-
-                t_list *paquete_recibido = recibir_paquete(conexion_memoria);
-                void *valor_leido = list_get(paquete_recibido, 0);
-                memcpy(valor_leido_completo + desplazamiento, valor_leido, sizeof(char) * bytes_a_operar);
-                list_destroy_and_destroy_elements(paquete_recibido, free);
-                desplazamiento += bytes_a_operar;
-            }
-            else
-            {
-                log_info(logger_propio, "Se produjo un error al intentar leer %d bytes en la df %d", bytes_a_operar, direccion_fisica);
-                respuesta = OPERACION_INVALIDA;
-                break;
-            }
-
-            eliminar_paquete(paquete);
-        }
-
-        log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", (char *)valor_leido_completo);
+        list_destroy(direcciones_fisicas);
         free(valor_leido_completo);
+        return respuesta;
     }
     else
-    {
-        respuesta = OPERACION_INVALIDA;
-    }
-
-    return respuesta;
+        return OPERACION_INVALIDA;
 }
 
 op_code atender_dialfs(int cod_op, t_list *parametros)
 {
     op_code respuesta = OK;
     uint32_t *PID = list_get(parametros, 0);
+    t_list *direcciones_fisicas;
 
     usleep(obtener_tiempo_unidad_trabajo() * 1000);
 
@@ -191,7 +163,7 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         break;
     case IO_FS_READ:
         void *lectura = leer_archivo(PID, list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3));
-        t_list *direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
+        direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
         if (!escribir_en_memoria(*PID, direcciones_fisicas, lectura))
         {
             respuesta = OPERACION_INVALIDA;
@@ -200,7 +172,12 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         free(lectura);
         break;
     case IO_FS_WRITE:
-        escribir_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3));
+        char *valor_leido_completo = NULL;
+        direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
+        respuesta = leer_de_memoria(*PID, *(uint32_t *)list_get(parametros, 2), direcciones_fisicas, valor_leido_completo);
+        escribir_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3), valor_leido_completo);
+        list_destroy(direcciones_fisicas);
+        free(valor_leido_completo);
         break;
     default:
         respuesta = OPERACION_INVALIDA;
@@ -208,6 +185,49 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
     }
 
     return respuesta;
+}
+
+op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_bytes, t_list *direcciones_fisicas, char *valor_leido_completo)
+{
+    valor_leido_completo = malloc(cantidad_bytes);
+    valor_leido_completo[cantidad_bytes - 1] = '\0';
+    int desplazamiento = 0;
+
+    for (int i = 2; i < list_size(direcciones_fisicas); i += 2)
+    {
+        uint32_t direccion_fisica = atoi(list_get(direcciones_fisicas, i));
+        uint32_t bytes_a_operar = atoi(list_get(direcciones_fisicas, i + 1));
+
+        enviar_lectura_espacio_usuario(PID, direccion_fisica, bytes_a_operar);
+
+        if (recibir_operacion(conexion_memoria) == OK)
+            recibir_lectura_parcial_memoria(valor_leido_completo, desplazamiento, bytes_a_operar);
+        else
+        {
+            log_info(logger_propio, "Se produjo un error al intentar leer %d bytes en la df %d", bytes_a_operar, direccion_fisica);
+            return OPERACION_INVALIDA;
+        }
+    }
+    return OK;
+}
+
+void enviar_lectura_espacio_usuario(uint32_t PID, uint32_t direccion, uint32_t bytes_a_leer)
+{
+    t_paquete *paquete_direccion = crear_paquete(ACCESO_ESPACIO_USUARIO_LECTURA);
+    agregar_a_paquete_uint32(paquete_direccion, PID);
+    agregar_a_paquete_uint32(paquete_direccion, direccion);
+    agregar_a_paquete_uint32(paquete_direccion, bytes_a_leer);
+    enviar_paquete(paquete_direccion, conexion_memoria);
+    eliminar_paquete(paquete_direccion);
+}
+
+void recibir_lectura_parcial_memoria(char *valor_leido_completo, int desplazamiento, uint32_t bytes_a_operar)
+{
+    t_list *paquete_recibido = recibir_paquete(conexion_memoria);
+    void *valor_leido = list_get(paquete_recibido, 0);
+    memcpy(valor_leido_completo + desplazamiento, valor_leido, sizeof(char) * bytes_a_operar);
+    list_destroy_and_destroy_elements(paquete_recibido, free);
+    desplazamiento += bytes_a_operar;
 }
 
 bool escribir_en_memoria(uint32_t PID, t_list *direcciones_fisicas, void *escritura)
