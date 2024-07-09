@@ -204,6 +204,25 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     loggear_dialfs_truncar_archivo(*PID, nombre, tam);
 }
 
+bool validar_compactacion(int bloque_agregados, t_fcb fcb)
+{
+    t_list_iterator fcb_iterando;
+
+    while (list_iterator_has_next(fcb_iterando))
+    {
+
+        t_fcb fcb_actual = list_iterator_next(fcb_iterando);
+        int bloques_de_siguiente = list_iterator_next(fcb_iterando)->bloque_inicial;
+
+        if (strcmp(fcb->nombre_de_archivo, fcb_actual->nombre) && (bloques_de_siguiente - bloque_agregados < 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques)
 {
     // log minimo y obligatorio
