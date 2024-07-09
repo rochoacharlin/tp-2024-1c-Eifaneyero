@@ -273,3 +273,33 @@ void actualizar_metadata(t_fcb *fcb)
     free(tamanio_en_bytes);
     config_destroy(config);
 }
+
+void mover_fcb(t_fcb *fcb, int nuevo_inicio)
+{
+    int viejo_inicio = fcb->bloque_inicial;
+    void *src = bloques + viejo_inicio * obtener_block_size();
+    mover_contenido_fcb(fcb, nuevo_inicio, src);
+}
+
+void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido)
+{
+    int viejo_inicio = fcb->bloque_inicial;
+    int tam_en_bloques = bytes_a_bloques(fcb->tamanio_en_bytes);
+    void *dst = bloques + nuevo_inicio * obtener_block_size();
+    memcpy(dst, src_contenido, tam_en_bloques * obtener_block_size());
+
+    // Actualizar el bitmap
+    for (int i = 0; i < tam_en_bloques; i++)
+    {
+        bitarray_clean_bit(bitmap, viejo_inicio + i);
+        bitarray_set_bit(bitmap, nuevo_inicio + i);
+    }
+
+    // Actualizar el FCB del siguiente con su nuevo bloque inicial
+    fcb->bloque_inicial = nuevo_inicio;
+}
+
+int bytes_a_bloques(int bytes)
+{
+    return (bytes + obtener_block_size() - 1) / obtener_block_size();
+}

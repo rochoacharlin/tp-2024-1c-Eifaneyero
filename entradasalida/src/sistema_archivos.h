@@ -44,5 +44,10 @@ void liberar_archivo(char *archivo);
 void eliminar_metadata(char *archivo);
 void destruir_fcb(void *data);
 void actualizar_metadata(t_fcb *fcb);
+// mueve el fcb al nuevo inicio, pisando lo que haya allí
+void mover_fcb(t_fcb *fcb, int nuevo_inicio);
+void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido);
+
+int bytes_a_bloques(int bytes);
 
 #endif
