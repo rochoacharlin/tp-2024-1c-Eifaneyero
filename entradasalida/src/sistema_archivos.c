@@ -98,9 +98,7 @@ void leer_fcbs()
                 exit(EXIT_FAILURE);
             }
             else
-            {
                 free(config_ruta);
-            }
 
             // cargo fcb
             fcb = malloc(sizeof(fcb));
@@ -131,9 +129,7 @@ int obtener_bloque_libre(void)
     for (int i = 0; i < obtener_block_count() && bloque < 0; i++)
     {
         if (!bitarray_test_bit(bitmap, i))
-        {
             bloque = i;
-        }
     }
 
     return bloque;
@@ -172,9 +168,7 @@ void liberar_archivo(char *archivo)
     int pos_inicial = bloque_inicial(archivo) * obtener_block_size();
     int tam_en_bloques = tamanio_en_bloques(archivo);
     for (int i = pos_inicial; i < tam_en_bloques; i++)
-    {
         bitarray_set_bit(bitmap, i);
-    }
     msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
 }
 
@@ -187,10 +181,7 @@ void destruir_fcb(void *data)
 
 void eliminar_metadata(char *archivo)
 {
-    bool buscar_por_nombre(void *fcb)
-    {
-        return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0;
-    }
+    bool buscar_por_nombre(void *fcb) return strcmp(((t_fcb *)fcb) -> nombre, archivo) == 0;
 
     list_remove_and_destroy_by_condition(fcbs, buscar_por_nombre, destruir_fcb);
 
@@ -254,9 +245,7 @@ void compactar(t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques)
             }
         }
         else
-        {
             bloque_final = ultimo_bloque_actual;
-        }
     }
 
     list_iterator_destroy(fcbs_iterando);
@@ -272,9 +261,7 @@ void compactar(t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques)
 
     // Actualizar el bitmap
     for (int i = 0; i < tamanio_en_bloques(archivo_a_truncar); i++)
-    {
         bitarray_set_bit(bitmap, archivo_a_truncar->bloque_inicial + i);
-    }
 
     free(archivo_auxiliar);
 
@@ -302,10 +289,7 @@ int bloque_inicial(char *archivo)
 
 t_fcb *metadata_de_archivo(char *archivo)
 {
-    bool buscar_por_nombre(void *fcb)
-    {
-        return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0;
-    }
+    bool buscar_por_nombre(void *fcb) return strcmp(((t_fcb *)fcb) -> nombre, archivo) == 0;
     t_list *filtrados = list_filter(fcbs, buscar_por_nombre);
     t_fcb *fcb = list_remove(filtrados, 0);
     list_destroy(filtrados);
