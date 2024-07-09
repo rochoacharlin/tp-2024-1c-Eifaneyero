@@ -251,3 +251,25 @@ void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero, void *d
     // log minimo y obligatorio
     loggear_dialfs_escribir_archivo(*PID, nombre, tam, puntero);
 }
+
+void actualizar_metadata(t_fcb *fcb)
+{
+    // abro config
+    char *config_ruta = string_new();
+    string_append_with_format(&config_ruta, "%s/metadata/%s", obtener_path_base_dialfs(), fcb->nombre);
+    t_config *config = iniciar_config(logger_propio, config_ruta);
+
+    // seteo valores
+    char *bloque_inicial = string_itoa(fcb->bloque_inicial);
+    char *tamanio_en_bytes = string_itoa(fcb->tamanio_en_bytes);
+    config_set_value(config, "BLOQUE_INICIAL", bloque_inicial);
+    config_set_value(config, "TAMANIO_ARCHIVO", tamanio_en_bytes);
+
+    // grabo config
+    config_save(config);
+
+    // cierro config y libero valores
+    free(bloque_inicial);
+    free(tamanio_en_bytes);
+    config_destroy(config);
+}
