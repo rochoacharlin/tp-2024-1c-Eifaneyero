@@ -308,7 +308,7 @@ void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero, void *d
 {
     int pos_inicial = bloque_inicial(nombre) * obtener_block_size() + puntero;
     memcpy(bloques + pos_inicial, dato_a_escribir, tam);
-
+    msync(bloques, obtener_block_count() * obtener_block_size(), MS_SYNC);
     // log minimo y obligatorio
     loggear_dialfs_escribir_archivo(*PID, nombre, tam, puntero);
 }
