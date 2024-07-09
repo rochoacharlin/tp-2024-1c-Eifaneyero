@@ -47,7 +47,7 @@ void actualizar_metadata(t_fcb *fcb);
 // mueve el fcb al nuevo inicio, pisando lo que haya allí
 void mover_fcb(t_fcb *fcb, int nuevo_inicio);
 void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido);
-
+void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques);
 int bytes_a_bloques(int bytes);
 
 #endif

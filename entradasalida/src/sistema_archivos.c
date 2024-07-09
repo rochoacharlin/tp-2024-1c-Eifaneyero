@@ -213,8 +213,13 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     loggear_dialfs_truncar_archivo(*PID, nombre, tam);
 }
 
-void compactar(t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques)
+void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques)
 {
+    // log minimo y obligatorio
+    loggear_dialfs_inicio_compactacion(*PID);
+
+    usleep(obtener_retraso_compactacion() * 1000);
+
     // Ordenar la lista de FCBs por bloque inicial
     ordenar_fcb_por_bloque_inicial(fcbs);
 
@@ -280,6 +285,9 @@ void compactar(t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques)
 
     msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
     msync(bloques, obtener_block_count() * obtener_block_size(), MS_SYNC);
+
+    // log minimo y obligatorio
+    loggear_dialfs_fin_compactacion(*PID);
 }
 
 void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
