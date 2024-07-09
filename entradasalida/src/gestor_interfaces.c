@@ -125,14 +125,12 @@ op_code atender_stdout(int cod_op, t_list *parametros)
         char *valor_leido_completo = NULL;
         uint32_t *PID = (uint32_t *)list_get(parametros, 0);
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
-        int cantidad_caracteres = atoi(list_get(parametros, 1));
-        uint32_t tamanio = sizeof(char) * cantidad_caracteres + 1;
         t_list *direcciones_fisicas = list_slice(parametros, 2, list_size(parametros) - 2);
 
-        respuesta = leer_de_memoria(*PID, tamanio, direcciones_fisicas, valor_leido_completo);
+        respuesta = leer_de_memoria(*PID, atoi(list_get(parametros, 1)), direcciones_fisicas, valor_leido_completo);
 
         if (respuesta == OK)
-            log_info(logger_propio, "El valor leido de la memoria para STDOUT es: %s", valor_leido_completo);
+            log_info(logger_obligatorio, "PID: <%d> - Interfaz: <STDOUT> - Valor: %s", *PID, valor_leido_completo);
 
         list_destroy(direcciones_fisicas);
         free(valor_leido_completo);
@@ -165,9 +163,7 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         void *lectura = leer_archivo(PID, list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3));
         direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
         if (!escribir_en_memoria(*PID, direcciones_fisicas, lectura))
-        {
             respuesta = OPERACION_INVALIDA;
-        }
         list_destroy(direcciones_fisicas);
         free(lectura);
         break;
@@ -187,10 +183,11 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
     return respuesta;
 }
 
-op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_bytes, t_list *direcciones_fisicas, char *valor_leido_completo)
+op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *direcciones_fisicas, char *valor_leido_completo)
 {
-    valor_leido_completo = malloc(cantidad_bytes);
-    valor_leido_completo[cantidad_bytes - 1] = '\0';
+    uint32_t tamanio = sizeof(char) * cantidad_caracteres + 1;
+    valor_leido_completo = malloc(tamanio);
+    valor_leido_completo[tamanio - 1] = '\0';
     int desplazamiento = 0;
 
     for (int i = 2; i < list_size(direcciones_fisicas); i += 2)
