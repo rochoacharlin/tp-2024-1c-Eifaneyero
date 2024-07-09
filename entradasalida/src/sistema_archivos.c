@@ -213,6 +213,75 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     loggear_dialfs_truncar_archivo(*PID, nombre, tam);
 }
 
+void compactar(t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques)
+{
+    // Ordenar la lista de FCBs por bloque inicial
+    ordenar_fcb_por_bloque_inicial(fcbs);
+
+    // Copiar el contenido del archivo a truncar en un auxiliar y eliminarlo de la lista
+    void *archivo_auxiliar = malloc(tamanio_en_bloques(archivo_a_truncar) * obtener_block_size());
+    void *src = bloques + archivo_a_truncar->bloque_inicial * obtener_block_size();
+    memcpy(archivo_auxiliar, src, tamanio_en_bloques(archivo_a_truncar) * obtener_block_size());
+    list_remove_and_destroy_by_condition(fcbs, (void *)archivo_a_truncar);
+
+    t_list_iterator *fcbs_iterando = list_iterator_create(fcbs);
+    int bloque_final = 0;
+
+    if (list_get(fcbs, 0)->bloque_inicial != 0)
+    {
+        t_fcb *primer_fcb = list_get(fcbs, 0);
+        mover_fcb(primer_fcb, 0);
+    }
+
+    while (list_iterator_has_next(fcbs_iterando))
+    {
+        t_fcb *fcb_actual = list_iterator_next(fcbs_iterando);
+        int bloque_inicial_actual = fcb_actual->bloque_inicial;
+        int ultimo_bloque_actual = bytes_a_bloques(fcb_actual->tamanio_en_bloques) + bloque_inicial_actual;
+
+        if (list_iterator_has_next(fcbs_iterando))
+        {
+            t_fcb *fcb_siguiente = list_iterator_next(fcbs_iterando);
+            int bloque_inicial_siguiente = fcb_siguiente->bloque_inicial;
+            int ultimo_bloque_siguiente = bytes_a_bloques(fcb_siguiente->tamanio_en_bloques) + bloque_inicial_siguiente;
+
+            if (ultimo_bloque_actual + 1 != bloque_inicial_siguiente)
+            {
+                mover_contenido_fcb(fcb_siguiente, ultimo_bloque_actual + 1, bloques + bloque_inicial_siguiente * obtener_block_size());
+                fcb_siguiente->bloque_inicial = ultimo_bloque_actual + 1;
+                bloque_final = ultimo_bloque_actual + 1 + bytes_a_bloques(fcb_siguiente->tamanio_en_bloques);
+                actualizar_metadata(fcb_siguiente);
+            }
+        }
+        else
+        {
+            bloque_final = ultimo_bloque_actual;
+        }
+    }
+
+    list_iterator_destroy(fcbs_iterando);
+
+    // Pegar el contenido de archivo_auxiliar desde bloque_final
+    void *dst = bloques + (bloque_final + 1) * obtener_block_size();
+    memcpy(dst, archivo_auxiliar, tamanio_en_bloques(archivo_a_truncar) * obtener_block_size());
+
+    // Actualizar el FCB del archivo truncado con su nuevo tamaño y bloque inicial
+    archivo_a_truncar->bloque_inicial = bloque_final + 1;
+    archivo_a_truncar->tamanio_en_bloques += tamanio_execedente_en_bloques;
+    actualizar_metadata(archivo_a_truncar);
+
+    // Actualizar el bitmap
+    for (int i = 0; i < tamanio_en_bloques(archivo_a_truncar); i++)
+    {
+        bitarray_set_bit(bitmap, archivo_a_truncar->bloque_inicial + i);
+    }
+
+    free(archivo_auxiliar);
+
+    msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
+    msync(bloques, obtener_block_count() * obtener_block_size(), MS_SYNC);
+}
+
 void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
 {
     int pos_inicial = bloque_inicial(nombre) * obtener_block_size() + puntero;
