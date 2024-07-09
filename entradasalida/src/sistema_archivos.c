@@ -203,7 +203,7 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     string_append_with_format(&path, "%s/metadata/%s", obtener_path_base_dialfs(), nombre);
 
     FILE *archivo = fopen(path, "w");
-    t_fcb *fcb = metadata_de_archivo(archivo);
+    t_fcb *fcb = metadata_de_archivo(nombre);
 
     // Obtengo el bloque inicial del archivo y su tamaño actual
     int bloque_inicial = fcb->bloque_inicial;
@@ -226,7 +226,7 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     // Si es necesario compactar, llamar a la función compactar
     if (validar_compactacion(nuevos_bloques, fcb))
     {
-        compactar(PID, archivo, tam);
+        compactar(PID, fcb, tam);
     }
 
     // Actualizar metadata
@@ -235,7 +235,7 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     config_save(metadata);
 
     free(path);
-    close(archivo);
+    close(fileno(archivo));
 
     // log minimo y obligatorio
     loggear_dialfs_truncar_archivo(*PID, nombre, tam);
