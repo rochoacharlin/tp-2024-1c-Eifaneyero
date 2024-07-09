@@ -1,20 +1,41 @@
 #!/bin/bash
 
+# Encontrar todos los archivos .config en el directorio actual y sus subdirectorios
 archivos=($(find ./ -name '*.config'))
 
-modulos=(MEMORIA CPU KERNEL)
+# Definir los módulos
+modulos=("MEMORIA" "CPU" "KERNEL")
 
-echo "Ingresar IP de la memoria: "
-read IP[0]
+# Inicializar arrays para IPs y Puertos
+declare -A IPs
+declare -A Puertos
 
-echo "Ingresar IP del CPU: "
-read IP[1]
+# Capturar IPs y Puertos del usuario
+for modulo in "${modulos[@]}"; do
+    echo "Ingresar IP de la ${modulo}: "
+    read IPs["${modulo}"]
 
-echo "Ingresar IP del Kernel: "
-read IP[2]
+    if [ "$modulo" == "CPU" ]; then
+        echo "Ingresar Puerto INTERRUPT de la ${modulo}: "
+        read Puertos["${modulo}_INTERRUPT"]
 
-for i in ${archivos[@]};
-    do for j in {0..2};
-        do sed -i "s/IP_${modulos[$j]}=[a-z0-9\.]*/IP_${modulos[$j]}=${IP[$j]}/" "$i";
-    done;
-done;
+        echo "Ingresar Puerto DISPATCH de la ${modulo}: "
+        read Puertos["${modulo}_DISPATCH"]
+    else
+        echo "Ingresar Puerto de la ${modulo}: "
+        read Puertos["${modulo}"]
+    fi
+done
+
+# Reemplazar IPs y Puertos en los archivos .config
+for archivo in "${archivos[@]}"; do
+    for modulo in "${modulos[@]}"; do
+        sed -i "s/IP_${modulo}=[a-z0-9\.]*/IP_${modulo}=${IPs[${modulo}]}/" "$archivo"
+        if [ "$modulo" == "CPU" ]; then
+            sed -i "s/PUERTO_${modulo}_INTERRUPT=[a-z0-9\.]*/PUERTO_${modulo}_INTERRUPT=${Puertos[${modulo}_INTERRUPT]}/" "$archivo"
+            sed -i "s/PUERTO_${modulo}_DISPATCH=[a-z0-9\.]*/PUERTO_${modulo}_DISPATCH=${Puertos[${modulo}_DISPATCH]}/" "$archivo"
+        else
+            sed -i "s/PUERTO_${modulo}=[a-z0-9\.]*/PUERTO_${modulo}=${Puertos[${modulo}]}/" "$archivo"
+        fi
+    done
+done
