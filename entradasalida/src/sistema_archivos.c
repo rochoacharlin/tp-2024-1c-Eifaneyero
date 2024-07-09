@@ -6,7 +6,7 @@ void *bloques;
 void *espacio_bitmap;
 size_t tamanio_bitmap;
 
-void iniciar_bitmap()
+void iniciar_bitmap(void)
 {
     char *path = string_new();
     string_append_with_format(&path, "%s/%s", obtener_path_base_dialfs(), "bitmap.dat");
@@ -31,7 +31,7 @@ void iniciar_bitmap()
     bitmap = bitarray_create_with_mode(espacio_bitmap, tamanio_bitmap, LSB_FIRST);
 }
 
-void leer_bloques()
+void leer_bloques(void)
 {
     char *path = string_new();
     string_append_with_format(&path, "%s/%s", obtener_path_base_dialfs(), "bloques.dat");
@@ -181,7 +181,7 @@ void destruir_fcb(void *data)
 
 void eliminar_metadata(char *archivo)
 {
-    bool buscar_por_nombre(void *fcb) return strcmp(((t_fcb *)fcb) -> nombre, archivo) == 0;
+    bool buscar_por_nombre(void *fcb) { return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0; }
 
     list_remove_and_destroy_by_condition(fcbs, buscar_por_nombre, destruir_fcb);
 
@@ -212,18 +212,18 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
     usleep(obtener_retraso_compactacion() * 1000);
 
     // Ordenar la lista de FCBs por bloque inicial
-    ordenar_fcb_por_bloque_inicial(fcbs);
+    // ordenar_fcb_por_bloque_inicial(fcbs); // rocio dice que no hace falta
 
     // Copiar el contenido del archivo a truncar en un auxiliar y eliminarlo de la lista
-    void *archivo_auxiliar = malloc(tamanio_en_bloques(archivo_a_truncar) * obtener_block_size());
+    void *archivo_auxiliar = malloc(bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes) * obtener_block_size());
     void *src = bloques + archivo_a_truncar->bloque_inicial * obtener_block_size();
-    memcpy(archivo_auxiliar, src, tamanio_en_bloques(archivo_a_truncar) * obtener_block_size());
-    list_remove_and_destroy_by_condition(fcbs, (void *)archivo_a_truncar);
+    memcpy(archivo_auxiliar, src, bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes) * obtener_block_size());
+    list_remove_element(fcbs, (void *)archivo_a_truncar);
 
     t_list_iterator *fcbs_iterando = list_iterator_create(fcbs);
     int bloque_final = 0;
 
-    if (list_get(fcbs, 0)->bloque_inicial != 0)
+    if (((t_fcb *)list_get(fcbs, 0))->bloque_inicial != 0)
     {
         t_fcb *primer_fcb = list_get(fcbs, 0);
         mover_fcb(primer_fcb, 0);
@@ -233,19 +233,19 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
     {
         t_fcb *fcb_actual = list_iterator_next(fcbs_iterando);
         int bloque_inicial_actual = fcb_actual->bloque_inicial;
-        int ultimo_bloque_actual = bytes_a_bloques(fcb_actual->tamanio_en_bloques) + bloque_inicial_actual;
+        int ultimo_bloque_actual = bytes_a_bloques(fcb_actual->tamanio_en_bytes) + bloque_inicial_actual;
 
         if (list_iterator_has_next(fcbs_iterando))
         {
             t_fcb *fcb_siguiente = list_iterator_next(fcbs_iterando);
             int bloque_inicial_siguiente = fcb_siguiente->bloque_inicial;
-            int ultimo_bloque_siguiente = bytes_a_bloques(fcb_siguiente->tamanio_en_bloques) + bloque_inicial_siguiente;
+            // int ultimo_bloque_siguiente = bytes_a_bloques(fcb_siguiente->tamanio_en_bytes) + bloque_inicial_siguiente;
 
             if (ultimo_bloque_actual + 1 != bloque_inicial_siguiente)
             {
                 mover_contenido_fcb(fcb_siguiente, ultimo_bloque_actual + 1, bloques + bloque_inicial_siguiente * obtener_block_size());
                 fcb_siguiente->bloque_inicial = ultimo_bloque_actual + 1;
-                bloque_final = ultimo_bloque_actual + 1 + bytes_a_bloques(fcb_siguiente->tamanio_en_bloques);
+                bloque_final = ultimo_bloque_actual + 1 + bytes_a_bloques(fcb_siguiente->tamanio_en_bytes);
                 actualizar_metadata(fcb_siguiente);
             }
         }
@@ -257,15 +257,15 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
 
     // Pegar el contenido de archivo_auxiliar desde bloque_final
     void *dst = bloques + (bloque_final + 1) * obtener_block_size();
-    memcpy(dst, archivo_auxiliar, tamanio_en_bloques(archivo_a_truncar) * obtener_block_size());
+    memcpy(dst, archivo_auxiliar, bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes) * obtener_block_size());
 
     // Actualizar el FCB del archivo truncado con su nuevo tamaño y bloque inicial
     archivo_a_truncar->bloque_inicial = bloque_final + 1;
-    archivo_a_truncar->tamanio_en_bloques += tamanio_execedente_en_bloques;
+    archivo_a_truncar->tamanio_en_bytes += tamanio_execedente_en_bloques;
     actualizar_metadata(archivo_a_truncar);
 
     // Actualizar el bitmap
-    for (int i = 0; i < tamanio_en_bloques(archivo_a_truncar); i++)
+    for (int i = 0; i < bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes); i++)
         bitarray_set_bit(bitmap, archivo_a_truncar->bloque_inicial + i);
 
     free(archivo_auxiliar);
@@ -297,7 +297,7 @@ int bloque_inicial(char *archivo)
 
 t_fcb *metadata_de_archivo(char *archivo)
 {
-    bool buscar_por_nombre(void *fcb) return strcmp(((t_fcb *)fcb) -> nombre, archivo) == 0;
+    bool buscar_por_nombre(void *fcb) { return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0; }
     t_list *filtrados = list_filter(fcbs, buscar_por_nombre);
     t_fcb *fcb = list_remove(filtrados, 0);
     list_destroy(filtrados);
