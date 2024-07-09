@@ -29,7 +29,7 @@ void crear_archivo(uint32_t *PID, char *nombre);
 void eliminar_archivo(uint32_t *PID, char *nombre);
 void truncar_archivo(uint32_t *PID, char *nombre, int tam);
 void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero);
-void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero);
+void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero, void *dato_a_escribir);
 void iniciar_bitmap();
 void leer_bloques();
 void leer_fcbs();
