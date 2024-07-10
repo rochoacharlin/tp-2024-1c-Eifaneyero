@@ -171,7 +171,7 @@ t_instruccion *decode(char *instruccion_leida)
     case IO_FS_WRITE:
     case IO_FS_READ:
         direccion_logica = obtener_valor_registro(contexto->registros_cpu, list_get(instruccion->parametros, 2));
-        tamanio_a_operar = atoi(list_get(instruccion->parametros, 3));
+        tamanio_a_operar = obtener_valor_registro(contexto->registros_cpu, list_get(instruccion->parametros, 3));
         agregar_direcciones_fisicas(instruccion, direccion_logica, tamanio_a_operar);
         break;
 
