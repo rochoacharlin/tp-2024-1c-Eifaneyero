@@ -145,10 +145,14 @@ void crear_archivo(uint32_t *PID, char *nombre)
     t_config *metadata = iniciar_config(logger_propio, path_absoluto);
 
     int bloque_libre = obtener_bloque_libre();
+    log_info(logger_propio, "Bloque libre: %d", bloque_libre);
     config_set_value(metadata, "BLOQUE_INICIAL", string_itoa(bloque_libre));
     bitarray_set_bit(bitmap, bloque_libre);
     config_set_value(metadata, "TAMANIO_ARCHIVO", "0");
     config_save(metadata);
+
+    t_fcb *fcb = crear_fcb(nombre);
+    list_add(fcbs, fcb);
 
     // log minimo y obligatorio
     loggear_dialfs_crear_archivo(*PID, nombre);
@@ -352,9 +356,14 @@ int bloque_inicial(char *archivo)
 t_fcb *metadata_de_archivo(char *archivo)
 {
     bool buscar_por_nombre(void *fcb) { return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0; }
-    t_list *filtrados = list_filter(fcbs, buscar_por_nombre);
-    t_fcb *fcb = list_remove(filtrados, 0);
-    list_destroy(filtrados);
+
+    t_fcb *fcb = list_find(fcbs, buscar_por_nombre);
+    if (fcb == NULL)
+    {
+        log_error(logger_propio, "No se encontro ningun FCB que tenga el nombre: %s", archivo);
+        exit(EXIT_FAILURE);
+    }
+
     return fcb;
 }
 
@@ -417,4 +426,14 @@ void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido)
 int bytes_a_bloques(int bytes)
 {
     return (bytes + obtener_block_size() - 1) / obtener_block_size();
+}
+
+t_fcb *crear_fcb(char *nombre)
+{
+    t_fcb *fcb = malloc_or_die(sizeof(fcb), "No se pudo crear el fcb.");
+    fcb->bloque_inicial = 0;
+    fcb->tamanio_en_bytes = 0;
+    fcb->nombre = nombre;
+
+    return fcb;
 }

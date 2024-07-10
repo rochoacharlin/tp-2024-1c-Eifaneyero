@@ -19,6 +19,7 @@ void atender_segun_tipo_interfaz(void)
     }
     else if (strcmp(tipo_interfaz, "DIALFS") == 0)
     {
+        fcbs = list_create();
         if (mkdir(obtener_path_base_dialfs(), 0777) && errno != EEXIST)
         {
             log_error(logger_propio, "No se pudo crear el directorio base del sistema de archivos.");
@@ -27,6 +28,7 @@ void atender_segun_tipo_interfaz(void)
         atender = atender_dialfs;
         leer_bloques();
         iniciar_bitmap();
+        leer_fcbs();
     }
 }
 
