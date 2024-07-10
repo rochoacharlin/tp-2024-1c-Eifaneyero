@@ -30,7 +30,7 @@ void eliminar_archivo(uint32_t *PID, char *nombre);
 void truncar_archivo(uint32_t *PID, char *nombre, int tam);
 bool validar_compactacion(int bloque_agregados, t_fcb *fcb);
 void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero);
-void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero, void *dato_a_escribir);
+void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero, char *dato_a_escribir);
 void iniciar_bitmap(void);
 void leer_bloques(void);
 void leer_fcbs(void);

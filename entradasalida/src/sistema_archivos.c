@@ -149,15 +149,25 @@ void crear_archivo(uint32_t *PID, char *nombre)
     fcb->nombre = string_duplicate(nombre);
     fcb->bloque_inicial = bloque_libre;
     fcb->tamanio_en_bytes = 0;
-    bitarray_set_bit(bitmap, bloque_libre);
-    msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
 
-    actualizar_metadata(fcb);
+    bool buscar_por_nombre(void *fcb) { return strcmp(((t_fcb *)fcb)->nombre, nombre) == 0; }
+    t_fcb *fcb_encontrado = list_find(fcbs, buscar_por_nombre);
+    if (fcb_encontrado != NULL)
+    {
+        log_error(logger_propio, "Ya existe el archivo con el nombre: %s", fcb_encontrado->nombre);
+    }
+    else
+    {
+        bitarray_set_bit(bitmap, bloque_libre);
+        msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
 
-    cargar_fcb(fcb);
+        actualizar_metadata(fcb);
 
-    // log minimo y obligatorio
-    loggear_dialfs_crear_archivo(*PID, nombre);
+        cargar_fcb(fcb);
+
+        // log minimo y obligatorio
+        loggear_dialfs_crear_archivo(*PID, nombre);
+    }
 }
 
 void eliminar_archivo(uint32_t *PID, char *nombre)
@@ -363,9 +373,10 @@ t_fcb *metadata_de_archivo(char *archivo)
     return fcb;
 }
 
-void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero, void *dato_a_escribir)
+void escribir_archivo(uint32_t *PID, char *nombre, int tam, int puntero, char *dato_a_escribir)
 {
     int pos_inicial = bloque_inicial(nombre) * obtener_block_size() + puntero;
+    log_info(logger_propio, "Archivo: %s, Dato a escribir: %s, Tam: %d", nombre, dato_a_escribir, tam);
     memcpy(bloques + pos_inicial, dato_a_escribir, tam);
     msync(bloques, obtener_block_count() * obtener_block_size(), MS_SYNC);
     // log minimo y obligatorio

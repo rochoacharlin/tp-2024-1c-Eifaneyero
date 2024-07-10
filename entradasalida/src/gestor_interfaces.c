@@ -173,7 +173,19 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
     case IO_FS_WRITE:
         char *valor_leido_completo = NULL;
         direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
-        respuesta = leer_de_memoria(*PID, *(uint32_t *)list_get(parametros, 2), direcciones_fisicas, valor_leido_completo);
+        for (int i = 0; i < list_size(direcciones_fisicas) - 1; i++)
+        {
+            log_info(logger_propio, "Direccion %d: %s", i, (char *)list_get(direcciones_fisicas, i));
+        }
+        log_info(logger_propio, "Cantidad caracteres: %d", atoi((char *)list_get(parametros, 2)));
+
+        respuesta = leer_de_memoria(*PID, atoi((char *)list_get(parametros, 2)), direcciones_fisicas, valor_leido_completo);
+        if (valor_leido_completo == NULL)
+        {
+            log_error(logger_propio, "No se pudo leer el valor de la memoria.");
+            exit(EXIT_FAILURE);
+        }
+        log_info(logger_propio, "Valor leido: %s", valor_leido_completo);
         escribir_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3), valor_leido_completo);
         list_destroy(direcciones_fisicas);
         free(valor_leido_completo);
@@ -199,15 +211,20 @@ op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *dire
         uint32_t bytes_a_operar = atoi(list_get(direcciones_fisicas, i + 1));
 
         enviar_lectura_espacio_usuario(PID, direccion_fisica, bytes_a_operar);
+        log_info(logger_propio, "Bytes a operar: %d", bytes_a_operar);
 
         if (recibir_operacion(conexion_memoria) == OK)
+        {
             recibir_lectura_parcial_memoria(valor_leido_completo, desplazamiento, bytes_a_operar);
+            log_info(logger_propio, "Valor leido: %s", valor_leido_completo);
+        }
         else
         {
             log_info(logger_propio, "Se produjo un error al intentar leer %d bytes en la df %d", bytes_a_operar, direccion_fisica);
             return OPERACION_INVALIDA;
         }
     }
+
     return OK;
 }
 
