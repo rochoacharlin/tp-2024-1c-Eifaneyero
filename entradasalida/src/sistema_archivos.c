@@ -223,7 +223,6 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
             int bloque_a_liberar = bloque_inicial + i;
             bitarray_clean_bit(bitmap, bloque_a_liberar);
         }
-        fcb->tamanio_en_bytes = tam;
     }
     else
     {
@@ -231,10 +230,19 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
         if (validar_compactacion(nuevos_bloques, fcb))
         {
             compactar(PID, fcb, tam);
-        } // y qué pasa si no hace falta compactar? no trunca?
+        }
+        else
+        { // asignar bloques extra que necesita
+            for (int i = bloques_anteriores + 1; i < nuevos_bloques - bloques_anteriores; i++)
+            {
+                bitarray_set_bit(bitmap, i);
+            }
+        }
     }
-    // // Actualizar metadata
-    // actualizar_metadata(fcb);
+
+    // Actualizar metadata
+    fcb->tamanio_en_bytes = tam;
+    actualizar_metadata(fcb);
 
     msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
 
@@ -309,7 +317,6 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
 
     // Pegar el contenido de archivo_auxiliar desde bloque_final
     mover_contenido_fcb(archivo_a_truncar, bloque_final + 1, archivo_auxiliar);
-    actualizar_metadata(archivo_a_truncar);
 
     free(archivo_auxiliar);
 
