@@ -206,8 +206,8 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     char *path = string_new();
     string_append_with_format(&path, "%s/metadata/%s", obtener_path_base_dialfs(), nombre);
 
-    FILE *archivo = fopen(path, "w");
     t_fcb *fcb = metadata_de_archivo(nombre);
+    FILE *archivo = fopen(path, "w");
 
     // Obtengo el bloque inicial del archivo y su tamaño actual
     int bloque_inicial = fcb->bloque_inicial;
@@ -355,12 +355,15 @@ int bloque_inicial(char *archivo)
 
 t_fcb *metadata_de_archivo(char *archivo)
 {
-    bool buscar_por_nombre(void *fcb) { return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0; }
+    bool buscar_por_nombre(void *fcb)
+    {
+        return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0;
+    }
 
     t_fcb *fcb = list_find(fcbs, buscar_por_nombre);
     if (fcb == NULL)
     {
-        log_error(logger_propio, "No se encontro ningun FCB que tenga el nombre: %s", archivo);
+        log_error(logger_propio, "No se encontro ningun archivo que tenga el nombre: %s", archivo);
         exit(EXIT_FAILURE);
     }
 
@@ -430,10 +433,12 @@ int bytes_a_bloques(int bytes)
 
 t_fcb *crear_fcb(char *nombre)
 {
-    t_fcb *fcb = malloc_or_die(sizeof(fcb), "No se pudo crear el fcb.");
+    t_fcb *fcb = malloc_or_die(sizeof(t_fcb), "No se pudo crear el fcb.");
     fcb->bloque_inicial = 0;
     fcb->tamanio_en_bytes = 0;
-    fcb->nombre = nombre;
+    char *nombre_fehaciente = string_new();
+    string_append(&nombre_fehaciente, nombre);
+    fcb->nombre = nombre_fehaciente;
 
     return fcb;
 }
