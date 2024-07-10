@@ -26,6 +26,7 @@ void atender_segun_tipo_interfaz(void)
             exit(EXIT_FAILURE);
         }
         atender = atender_dialfs;
+
         leer_bloques();
         iniciar_bitmap();
         leer_fcbs();
@@ -159,7 +160,7 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         eliminar_archivo(PID, (char *)list_get(parametros, 1));
         break;
     case IO_FS_TRUNCATE:
-        truncar_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2));
+        truncar_archivo(PID, (char *)list_get(parametros, 1), atoi((char *)list_get(parametros, 2)));
         break;
     case IO_FS_READ:
         void *lectura = leer_archivo(PID, list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3));
