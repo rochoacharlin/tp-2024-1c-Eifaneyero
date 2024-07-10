@@ -142,17 +142,19 @@ void crear_archivo(uint32_t *PID, char *nombre)
 
     FILE *metadataArchivo = fopen(path_absoluto, "w");
     fclose(metadataArchivo);
-    t_config *metadata = iniciar_config(logger_propio, path_absoluto);
 
     int bloque_libre = obtener_bloque_libre();
-    log_info(logger_propio, "Bloque libre: %d", bloque_libre);
-    config_set_value(metadata, "BLOQUE_INICIAL", string_itoa(bloque_libre));
-    bitarray_set_bit(bitmap, bloque_libre);
-    config_set_value(metadata, "TAMANIO_ARCHIVO", "0");
-    config_save(metadata);
 
-    t_fcb *fcb = crear_fcb(nombre);
-    list_add(fcbs, fcb);
+    t_fcb *fcb = malloc_or_die(sizeof(t_fcb), "No se pudo crear el fcb.");
+    fcb->nombre = string_duplicate(nombre);
+    fcb->bloque_inicial = bloque_libre;
+    fcb->tamanio_en_bytes = 0;
+    bitarray_set_bit(bitmap, bloque_libre);
+    msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
+
+    actualizar_metadata(fcb);
+
+    cargar_fcb(fcb);
 
     // log minimo y obligatorio
     loggear_dialfs_crear_archivo(*PID, nombre);
@@ -429,16 +431,4 @@ void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido)
 int bytes_a_bloques(int bytes)
 {
     return (bytes + obtener_block_size() - 1) / obtener_block_size();
-}
-
-t_fcb *crear_fcb(char *nombre)
-{
-    t_fcb *fcb = malloc_or_die(sizeof(t_fcb), "No se pudo crear el fcb.");
-    fcb->bloque_inicial = 0;
-    fcb->tamanio_en_bytes = 0;
-    char *nombre_fehaciente = string_new();
-    string_append(&nombre_fehaciente, nombre);
-    fcb->nombre = nombre_fehaciente;
-
-    return fcb;
 }
