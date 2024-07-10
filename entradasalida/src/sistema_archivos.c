@@ -272,7 +272,7 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
     // log minimo y obligatorio
     loggear_dialfs_inicio_compactacion(*PID);
 
-    // usleep(obtener_retraso_compactacion() * 1000);
+    usleep(obtener_retraso_compactacion() * 1000);
 
     // Ordenar la lista de FCBs por bloque inicial
     // ordenar_fcb_por_bloque_inicial(fcbs); // rocio dice que no hace falta
@@ -317,6 +317,7 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
 
     // Pegar el contenido de archivo_auxiliar desde bloque_final
     mover_contenido_fcb(archivo_a_truncar, bloque_final + 1, archivo_auxiliar);
+    cargar_fcb(archivo_a_truncar);
 
     free(archivo_auxiliar);
 
