@@ -175,19 +175,19 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
         for (int i = 0; i < list_size(direcciones_fisicas) - 1; i += 2)
         {
-            log_info(logger_propio, "Direccion %d: %d", i, (char *)list_get(direcciones_fisicas, i));
+            log_info(logger_propio, "Direccion %d: %s", i, (char *)list_get(direcciones_fisicas, i));
+            log_info(logger_propio, "Cantidad bytes %d: %s", i, (char *)list_get(direcciones_fisicas, i + 1));
         }
         log_info(logger_propio, "Cantidad caracteres: %d", atoi((char *)list_get(parametros, 2)));
 
         respuesta = leer_de_memoria(*PID, atoi((char *)list_get(parametros, 2)), direcciones_fisicas, &valor_leido_completo);
-        log_info(logger_propio, "Valor leido case IO: %s", valor_leido_completo);
         if (valor_leido_completo == NULL)
         {
             log_error(logger_propio, "No se pudo leer el valor de la memoria.");
             exit(EXIT_FAILURE);
         }
         log_info(logger_propio, "Valor leido case IO: %s", valor_leido_completo);
-        escribir_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3), valor_leido_completo);
+        escribir_archivo(PID, (char *)list_get(parametros, 1), atoi((char *)list_get(parametros, 2)), atoi((char *)list_get(parametros, 3)), valor_leido_completo);
         list_destroy(direcciones_fisicas);
         free(valor_leido_completo);
         break;
@@ -195,7 +195,6 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         respuesta = OPERACION_INVALIDA;
         break;
     }
-
     return respuesta;
 }
 
@@ -206,7 +205,7 @@ op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *dire
     (*valor_leido_completo)[tamanio - 1] = '\0';
     int desplazamiento = 0;
 
-    for (int i = 2; i < list_size(direcciones_fisicas); i += 2)
+    for (int i = 0; i < list_size(direcciones_fisicas); i += 2)
     {
         uint32_t direccion_fisica = atoi(list_get(direcciones_fisicas, i));
         uint32_t bytes_a_operar = atoi(list_get(direcciones_fisicas, i + 1));
