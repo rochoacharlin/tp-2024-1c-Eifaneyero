@@ -163,7 +163,7 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
         truncar_archivo(PID, (char *)list_get(parametros, 1), atoi((char *)list_get(parametros, 2)));
         break;
     case IO_FS_READ:
-        void *lectura = leer_archivo(PID, list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3));
+        void *lectura = leer_archivo(PID, (char *)list_get(parametros, 1), atoi((char *)list_get(parametros, 2)), atoi((char *)list_get(parametros, 3)));
         direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
         if (!escribir_en_memoria(*PID, direcciones_fisicas, lectura))
             respuesta = OPERACION_INVALIDA;
