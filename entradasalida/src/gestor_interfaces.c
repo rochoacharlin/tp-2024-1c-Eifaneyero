@@ -130,7 +130,7 @@ op_code atender_stdout(int cod_op, t_list *parametros)
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
         t_list *direcciones_fisicas = list_slice(parametros, 2, list_size(parametros) - 2);
 
-        respuesta = leer_de_memoria(*PID, atoi(list_get(parametros, 1)), direcciones_fisicas, valor_leido_completo);
+        respuesta = leer_de_memoria(*PID, atoi(list_get(parametros, 1)), direcciones_fisicas, &valor_leido_completo);
 
         if (respuesta == OK)
             log_info(logger_obligatorio, "PID: <%d> - Interfaz: <STDOUT> - Valor: %s", *PID, valor_leido_completo);
@@ -173,19 +173,20 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
     case IO_FS_WRITE:
         char *valor_leido_completo = NULL;
         direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
-        for (int i = 0; i < list_size(direcciones_fisicas) - 1; i++)
+        for (int i = 0; i < list_size(direcciones_fisicas) - 1; i += 2)
         {
-            log_info(logger_propio, "Direccion %d: %s", i, (char *)list_get(direcciones_fisicas, i));
+            log_info(logger_propio, "Direccion %d: %d", i, (char *)list_get(direcciones_fisicas, i));
         }
         log_info(logger_propio, "Cantidad caracteres: %d", atoi((char *)list_get(parametros, 2)));
 
-        respuesta = leer_de_memoria(*PID, atoi((char *)list_get(parametros, 2)), direcciones_fisicas, valor_leido_completo);
+        respuesta = leer_de_memoria(*PID, atoi((char *)list_get(parametros, 2)), direcciones_fisicas, &valor_leido_completo);
+        log_info(logger_propio, "Valor leido case IO: %s", valor_leido_completo);
         if (valor_leido_completo == NULL)
         {
             log_error(logger_propio, "No se pudo leer el valor de la memoria.");
             exit(EXIT_FAILURE);
         }
-        log_info(logger_propio, "Valor leido: %s", valor_leido_completo);
+        log_info(logger_propio, "Valor leido case IO: %s", valor_leido_completo);
         escribir_archivo(PID, (char *)list_get(parametros, 1), *(int *)list_get(parametros, 2), *(int *)list_get(parametros, 3), valor_leido_completo);
         list_destroy(direcciones_fisicas);
         free(valor_leido_completo);
@@ -198,11 +199,11 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
     return respuesta;
 }
 
-op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *direcciones_fisicas, char *valor_leido_completo)
+op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *direcciones_fisicas, char **valor_leido_completo)
 {
     uint32_t tamanio = sizeof(char) * cantidad_caracteres + 1;
-    valor_leido_completo = malloc(tamanio);
-    valor_leido_completo[tamanio - 1] = '\0';
+    *valor_leido_completo = malloc(tamanio);
+    (*valor_leido_completo)[tamanio - 1] = '\0';
     int desplazamiento = 0;
 
     for (int i = 2; i < list_size(direcciones_fisicas); i += 2)
@@ -215,8 +216,14 @@ op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *dire
 
         if (recibir_operacion(conexion_memoria) == OK)
         {
-            recibir_lectura_parcial_memoria(valor_leido_completo, desplazamiento, bytes_a_operar);
-            log_info(logger_propio, "Valor leido: %s", valor_leido_completo);
+            recibir_lectura_parcial_memoria(*valor_leido_completo, desplazamiento, bytes_a_operar);
+            desplazamiento += bytes_a_operar;
+
+            char *valor_parcial = malloc(desplazamiento + 1);
+            memcpy(valor_parcial, *valor_leido_completo, desplazamiento);
+            valor_parcial[desplazamiento] = '\0';
+            log_info(logger_propio, "Valor parcial leido: %s", valor_parcial);
+            free(valor_parcial);
         }
         else
         {
@@ -244,7 +251,6 @@ void recibir_lectura_parcial_memoria(char *valor_leido_completo, int desplazamie
     void *valor_leido = list_get(paquete_recibido, 0);
     memcpy(valor_leido_completo + desplazamiento, valor_leido, sizeof(char) * bytes_a_operar);
     list_destroy_and_destroy_elements(paquete_recibido, free);
-    desplazamiento += bytes_a_operar;
 }
 
 bool escribir_en_memoria(uint32_t PID, t_list *direcciones_fisicas, void *escritura)
