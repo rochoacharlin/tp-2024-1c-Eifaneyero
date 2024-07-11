@@ -10,7 +10,7 @@ void iniciar_bitmap(void)
 {
     char *path = string_new();
     string_append_with_format(&path, "%s/%s", obtener_path_base_dialfs(), "bitmap.dat");
-    FILE *fbitmap = fopen(path, "wb+");
+    FILE *fbitmap = fopen(path, "ab+");
     free(path);
     if (fbitmap == NULL)
     {
@@ -35,7 +35,7 @@ void leer_bloques(void)
 {
     char *path = string_new();
     string_append_with_format(&path, "%s/%s", obtener_path_base_dialfs(), "bloques.dat");
-    FILE *fbloques = fopen(path, "wb+");
+    FILE *fbloques = fopen(path, "ab+");
     free(path);
     if (fbloques == NULL)
     {
@@ -251,8 +251,8 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     }
 
     // Actualizar metadata
-    fcb->tamanio_en_bytes = tam;
     actualizar_metadata(fcb);
+    fcb->tamanio_en_bytes = tam;
 
     msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
 
@@ -277,7 +277,7 @@ bool validar_compactacion(int bloque_agregados, t_fcb *fcb)
     return false;
 }
 
-void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques)
+void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar)
 {
     // log minimo y obligatorio
     loggear_dialfs_inicio_compactacion(*PID);
@@ -293,7 +293,10 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
     memcpy(archivo_auxiliar, src, bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes) * obtener_block_size());
     list_remove_element(fcbs, archivo_a_truncar);
 
-    int bloque_final = 0;
+    for (int i = 0; i < tamanio_a_truncar; i++)
+    {
+        bitarray_clean_bit(bitmap, archivo_a_truncar->bloque_inicial + i);
+    }
 
     if (((t_fcb *)list_get(fcbs, 0))->bloque_inicial != 0)
     {
@@ -302,8 +305,8 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
         actualizar_metadata(primer_fcb);
     }
 
-    int i = 0;
-    for (; i < list_size(fcbs) - 1; i++)
+    int i;
+    for (i = 0; i < list_size(fcbs) - 1; i++)
     {
         t_fcb *fcb_actual = list_get(fcbs, i);
         int bloque_inicial_actual = fcb_actual->bloque_inicial;
@@ -321,12 +324,9 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_e
         }
     }
 
-    t_fcb *fcb_actual = list_get(fcbs, i);
-    int bloque_inicial_actual = fcb_actual->bloque_inicial;
-    bloque_final = bytes_a_bloques(fcb_actual->tamanio_en_bytes) + bloque_inicial_actual;
-
     // Pegar el contenido de archivo_auxiliar desde bloque_final
-    mover_contenido_fcb(archivo_a_truncar, bloque_final + 1, archivo_auxiliar);
+    mover_contenido_fcb(archivo_a_truncar, obtener_bloque_libre(), archivo_auxiliar, false, tamanio_a_truncar);
+
     cargar_fcb(archivo_a_truncar);
 
     free(archivo_auxiliar);
@@ -409,20 +409,21 @@ void mover_fcb(t_fcb *fcb, int nuevo_inicio)
 {
     int viejo_inicio = fcb->bloque_inicial;
     void *src = bloques + viejo_inicio * obtener_block_size();
-    mover_contenido_fcb(fcb, nuevo_inicio, src);
+    mover_contenido_fcb(fcb, nuevo_inicio, src, true, fcb->tamanio_en_bytes);
 }
 
-void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido)
+void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido, bool hacer_clean, int tamanio_a_truncar)
 {
     int viejo_inicio = fcb->bloque_inicial;
     int tam_en_bloques = bytes_a_bloques(fcb->tamanio_en_bytes);
     void *dst = bloques + nuevo_inicio * obtener_block_size();
     memcpy(dst, src_contenido, tam_en_bloques * obtener_block_size());
+    fcb->tamanio_en_bytes = tamanio_a_truncar;
 
     // Actualizar el bitmap
     for (int i = 0; i < tam_en_bloques; i++)
     {
-        bitarray_clean_bit(bitmap, viejo_inicio + i);
+        hacer_clean ? bitarray_clean_bit(bitmap, viejo_inicio + i) : 1;
         bitarray_set_bit(bitmap, nuevo_inicio + i);
     }
 
@@ -432,5 +433,5 @@ void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido)
 
 int bytes_a_bloques(int bytes)
 {
-    return (bytes + obtener_block_size() - 1) / obtener_block_size();
+    return bytes == 0 ? 1 : (bytes + obtener_block_size() - 1) / obtener_block_size();
 }

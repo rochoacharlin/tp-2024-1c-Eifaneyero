@@ -130,10 +130,19 @@ op_code atender_stdout(int cod_op, t_list *parametros)
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
         t_list *direcciones_fisicas = list_slice(parametros, 2, list_size(parametros) - 2);
 
-        respuesta = leer_de_memoria(*PID, atoi(list_get(parametros, 1)), direcciones_fisicas, &valor_leido_completo);
+        for (int i = 0; i < list_size(direcciones_fisicas) - 1; i += 2)
+        {
+            log_info(logger_propio, "Direccion %d: %s", i, (char *)list_get(direcciones_fisicas, i));
+            log_info(logger_propio, "Cantidad bytes %d: %s", i, (char *)list_get(direcciones_fisicas, i + 1));
+        }
+        log_info(logger_propio, "Cantidad caracteres: %d", atoi(list_get(parametros, 1)));
 
-        if (respuesta == OK)
+        respuesta = leer_de_memoria(*PID, atoi((char *)list_get(parametros, 1)), direcciones_fisicas, &valor_leido_completo);
+
+        if (respuesta == OK && valor_leido_completo != NULL)
             log_info(logger_obligatorio, "PID: <%d> - Interfaz: <STDOUT> - Valor: %s", *PID, valor_leido_completo);
+        else
+            log_error(logger_propio, "No se pudo leer el valor de la memoria.");
 
         list_destroy(direcciones_fisicas);
         free(valor_leido_completo);
@@ -173,20 +182,12 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
     case IO_FS_WRITE:
         char *valor_leido_completo = NULL;
         direcciones_fisicas = list_slice(parametros, 4, list_size(parametros) - 4);
-        for (int i = 0; i < list_size(direcciones_fisicas) - 1; i += 2)
-        {
-            log_info(logger_propio, "Direccion %d: %s", i, (char *)list_get(direcciones_fisicas, i));
-            log_info(logger_propio, "Cantidad bytes %d: %s", i, (char *)list_get(direcciones_fisicas, i + 1));
-        }
-        log_info(logger_propio, "Cantidad caracteres: %d", atoi((char *)list_get(parametros, 2)));
-
         respuesta = leer_de_memoria(*PID, atoi((char *)list_get(parametros, 2)), direcciones_fisicas, &valor_leido_completo);
         if (valor_leido_completo == NULL)
         {
             log_error(logger_propio, "No se pudo leer el valor de la memoria.");
             exit(EXIT_FAILURE);
         }
-        log_info(logger_propio, "Valor leido case IO: %s", valor_leido_completo);
         escribir_archivo(PID, (char *)list_get(parametros, 1), atoi((char *)list_get(parametros, 2)), atoi((char *)list_get(parametros, 3)), valor_leido_completo);
         list_destroy(direcciones_fisicas);
         free(valor_leido_completo);
@@ -211,7 +212,6 @@ op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *dire
         uint32_t bytes_a_operar = atoi(list_get(direcciones_fisicas, i + 1));
 
         enviar_lectura_espacio_usuario(PID, direccion_fisica, bytes_a_operar);
-        log_info(logger_propio, "Bytes a operar: %d", bytes_a_operar);
 
         if (recibir_operacion(conexion_memoria) == OK)
         {
@@ -221,7 +221,6 @@ op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *dire
             char *valor_parcial = malloc(desplazamiento + 1);
             memcpy(valor_parcial, *valor_leido_completo, desplazamiento);
             valor_parcial[desplazamiento] = '\0';
-            log_info(logger_propio, "Valor parcial leido: %s", valor_parcial);
             free(valor_parcial);
         }
         else
@@ -260,13 +259,13 @@ bool escribir_en_memoria(uint32_t PID, t_list *direcciones_fisicas, void *escrit
     int desplazamiento = 0;
     void *escritura_a_enviar = NULL;
 
-    for (int i = 2; i < list_size(direcciones_fisicas); i += 2)
+    for (int i = 0; i < list_size(direcciones_fisicas); i += 2)
     {
         // obtengo trozo a escribir
         direccion_fisica = atoi(list_get(direcciones_fisicas, i));
         bytes_a_operar = atoi(list_get(direcciones_fisicas, i + 1));
         escritura_a_enviar = malloc(bytes_a_operar);
-        memcpy(escritura_a_enviar, escritura, bytes_a_operar);
+        memcpy(escritura_a_enviar, escritura + desplazamiento, bytes_a_operar);
 
         // solicito escritura en la memoria
         t_paquete *paquete = crear_paquete(ACCESO_ESPACIO_USUARIO_ESCRITURA);
