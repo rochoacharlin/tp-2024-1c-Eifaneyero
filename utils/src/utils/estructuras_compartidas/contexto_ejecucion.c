@@ -39,7 +39,7 @@ void agregar_a_paquete_registros_cpu(t_paquete *paquete, t_dictionary *registros
 
 void agregar_a_paquete_contexto(t_paquete *paquete, t_contexto *contexto)
 {
-    agregar_a_paquete(paquete, (void *)&contexto->PID, sizeof(contexto->PID));
+    agregar_a_paquete_uint32(paquete, *(uint32_t *)&contexto->PID);
     agregar_a_paquete_registros_cpu(paquete, contexto->registros_cpu);
 }
 
