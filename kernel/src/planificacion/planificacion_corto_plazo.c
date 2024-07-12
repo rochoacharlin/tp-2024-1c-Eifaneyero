@@ -28,8 +28,9 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
     crear_colas_de_bloqueo();
     while (1)
     {
-        sem_wait(&planificacion_corto_plazo_liberada);
         sem_wait(&hay_pcbs_READY);
+        sem_wait(&planificacion_corto_plazo_liberada);
+
         pcb_en_EXEC = proximo_a_ejecutar();
 
         estado anterior = pcb_en_EXEC->estado;

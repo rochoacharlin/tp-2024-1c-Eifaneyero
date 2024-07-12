@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <readline/history.h>
 
-extern sem_t planificacion_liberada;
 extern sem_t planificacion_pausada;
 extern sem_t sem_grado_multiprogramacion;
 

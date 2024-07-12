@@ -1,5 +1,7 @@
 #include "consola.h"
 
+bool planificacion_detenida = false;
+
 void ejecutar_script(char *path_relativo)
 {
     FILE *archivo;
@@ -91,18 +93,22 @@ void finalizar_proceso(char *PID)
 
 void detener_planificacion(void)
 {
-    sem_wait(&planificacion_largo_plazo_liberada);
-    sem_wait(&planificacion_corto_plazo_liberada);
+    planificacion_detenida = true;
+    cambiar_valor_de_semaforo(&planificacion_largo_plazo_liberada, 0);
+    cambiar_valor_de_semaforo(&planificacion_corto_plazo_liberada, 0);
     sem_wait(&desalojo_liberado);
     sem_post(&planificacion_pausada);
 }
 
 void reanudar_planificacion(void)
 {
-    sem_wait(&planificacion_pausada); // para asegurar que solo se libere la planificacion cuando este pausada.
-    sem_post(&planificacion_largo_plazo_liberada);
-    sem_post(&planificacion_corto_plazo_liberada);
-    sem_post(&desalojo_liberado);
+    if (planificacion_detenida)
+    {
+        sem_post(&planificacion_largo_plazo_liberada);
+        sem_post(&planificacion_corto_plazo_liberada);
+        sem_post(&desalojo_liberado);
+        planificacion_detenida = false;
+    }
 }
 
 void cambiar_grado_multiprogramacion(char *valor_deseado)

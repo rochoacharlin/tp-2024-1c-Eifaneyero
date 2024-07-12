@@ -14,7 +14,6 @@ void consola_interactiva(void)
 {
     char *leido = readline("> ");
     char *token = strtok(leido, " ");
-
     add_history(leido);
 
     while (1)
@@ -24,6 +23,7 @@ void consola_interactiva(void)
 
         sleep(1);
         leido = readline("> ");
+        add_history(leido);
         token = strtok(leido, " ");
     }
 

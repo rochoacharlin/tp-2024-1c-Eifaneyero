@@ -57,15 +57,11 @@ void planificar_a_largo_plazo(void)
 {
     while (1)
     {
-        sem_wait(&planificacion_largo_plazo_liberada);
         sem_wait(&hay_pcbs_NEW);
         sem_wait(&sem_grado_multiprogramacion);
+        sem_wait(&planificacion_largo_plazo_liberada);
 
         t_pcb *pcb = obtener_siguiente_pcb_READY();
-
-        // VERIFICAR: Cuando se crea un proceso en NEW se carga completamente en memoria
-        //            o hay que esperar a que pase a READY para que se creen todas
-        //            sus estructuras?
 
         estado anterior = pcb->estado;
         pcb->estado = READY;
