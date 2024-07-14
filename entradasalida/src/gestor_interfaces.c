@@ -51,9 +51,7 @@ op_code atender_gen(int cod_op, t_list *parametros)
         usleep((__useconds_t)tiempo_de_espera_ms);
     }
     else
-    {
         respuesta = OPERACION_INVALIDA;
-    }
 
     return respuesta;
 }
@@ -112,9 +110,7 @@ op_code atender_stdin(int cod_op, t_list *parametros)
         free(lectura);
     }
     else
-    {
         respuesta = OPERACION_INVALIDA;
-    }
 
     return respuesta;
 }
@@ -202,7 +198,7 @@ op_code atender_dialfs(int cod_op, t_list *parametros)
 op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *direcciones_fisicas, char **valor_leido_completo)
 {
     uint32_t tamanio = sizeof(char) * cantidad_caracteres + 1;
-    *valor_leido_completo = malloc(tamanio);
+    *valor_leido_completo = malloc_or_die(tamanio, "Error al reservar memoria dinamica para valor_leido_completo de memoria");
     (*valor_leido_completo)[tamanio - 1] = '\0';
     int desplazamiento = 0;
 
@@ -225,7 +221,7 @@ op_code leer_de_memoria(uint32_t PID, uint32_t cantidad_caracteres, t_list *dire
         }
         else
         {
-            log_info(logger_propio, "Se produjo un error al intentar leer %d bytes en la df %d", bytes_a_operar, direccion_fisica);
+            log_error(logger_propio, "Error al intentar leer %d bytes en la direccion fisica %d", bytes_a_operar, direccion_fisica);
             return OPERACION_INVALIDA;
         }
     }
@@ -277,7 +273,7 @@ bool escribir_en_memoria(uint32_t PID, t_list *direcciones_fisicas, void *escrit
 
         if (recibir_operacion(conexion_memoria) != OK)
         {
-            log_info(logger_propio, "Se produjo un error al intentar escribir %s en la memoria", (char *)escritura_a_enviar);
+            log_error(logger_propio, "Error al intentar escribir %s en la memoria", (char *)escritura_a_enviar);
             operacion_exitosa = false;
             break;
         }
