@@ -5,6 +5,7 @@ t_list *fcbs;
 void *bloques;
 void *espacio_bitmap;
 size_t tamanio_bitmap;
+char *bitmap_string;
 
 void iniciar_bitmap(void)
 {
@@ -28,7 +29,19 @@ void iniciar_bitmap(void)
         exit(EXIT_FAILURE);
     }
 
-    bitmap = bitarray_create_with_mode(espacio_bitmap, tamanio_bitmap, LSB_FIRST);
+    bitmap = bitarray_create_with_mode(espacio_bitmap, tamanio_bitmap, MSB_FIRST);
+
+    // bitmap_string = leer_bitmap(bitmap, 0, 32);
+    // log_info(logger_propio, "Bitmap string: %s", bitmap_string);
+    // log_info(logger_propio, "Bitmap size: %ld", bitmap->size);
+
+    // for (int i = 20; i < 33; i++)
+    //     assignBlock(i);
+    // bitmap_string = leer_bitmap(bitmap, 0, 32);
+    // for (int i = 0; i < 5; i++)
+    //     unassignBlock(i);
+    // bitmap_string = leer_bitmap(bitmap, 0, 32);
+    // log_info(logger_propio, "Bitmap string: %s", bitmap_string);
 }
 
 void leer_bloques(void)
@@ -94,22 +107,34 @@ void leer_fcbs()
             if (config == NULL)
             {
                 log_error(logger_propio, "No se encontró el archivo en %s", config_ruta);
+                closedir(drmetadata);
                 free(config_ruta);
+                free(path);
                 exit(EXIT_FAILURE);
             }
             else
                 free(config_ruta);
 
             // cargo fcb
-            fcb = malloc(sizeof(fcb));
+            fcb = malloc_or_die(sizeof(t_fcb), "Fallo en malloc para fcb");
+            if (fcb == NULL)
+            {
+                closedir(drmetadata);
+                config_destroy(config);
+                free(path);
+                exit(EXIT_FAILURE);
+            }
+
             fcb->nombre = string_duplicate(de->d_name);
             fcb->bloque_inicial = config_get_int_value(config, "BLOQUE_INICIAL");
             fcb->tamanio_en_bytes = config_get_int_value(config, "TAMANIO_ARCHIVO");
 
+            config_destroy(config);
             cargar_fcb(fcb);
         }
     }
     closedir(drmetadata);
+    free(path);
 }
 
 void cargar_fcb(t_fcb *fcb)
@@ -119,19 +144,17 @@ void cargar_fcb(t_fcb *fcb)
 
 bool ordenar_fcb_por_bloque_inicial(void *fcb1, void *fcb2)
 {
-    return ((t_fcb *)fcb1)->bloque_inicial < ((t_fcb *)fcb2)->bloque_inicial;
+    return ((t_fcb *)fcb1)->bloque_inicial <= ((t_fcb *)fcb2)->bloque_inicial;
 }
 
 int obtener_bloque_libre(void)
 {
     int bloque = -1;
-
     for (int i = 0; i < obtener_block_count() && bloque < 0; i++)
     {
         if (!bitarray_test_bit(bitmap, i))
             bloque = i;
     }
-
     return bloque;
 }
 
@@ -151,7 +174,7 @@ void crear_archivo(uint32_t *PID, char *nombre)
     fcb->tamanio_en_bytes = 0;
 
     bool buscar_por_nombre(void *fcb) { return strcmp(((t_fcb *)fcb)->nombre, nombre) == 0; }
-    t_fcb *fcb_encontrado = list_find(fcbs, buscar_por_nombre);
+    t_fcb *fcb_encontrado = (t_fcb *)list_find(fcbs, buscar_por_nombre);
     if (fcb_encontrado != NULL)
     {
         log_error(logger_propio, "Ya existe el archivo con el nombre: %s", fcb_encontrado->nombre);
@@ -181,10 +204,8 @@ void eliminar_archivo(uint32_t *PID, char *nombre)
 
 void liberar_archivo(char *archivo)
 {
-    int pos_inicial = bloque_inicial(archivo) * obtener_block_size();
-    int tam_en_bloques = tamanio_en_bloques(archivo);
-    for (int i = pos_inicial; i < tam_en_bloques; i++)
-        bitarray_set_bit(bitmap, i);
+    for (int i = 0; i < tamanio_en_bloques(archivo); i++)
+        bitarray_clean_bit(bitmap, bloque_inicial(archivo) + i);
     msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
 }
 
@@ -198,7 +219,6 @@ void destruir_fcb(void *data)
 void eliminar_metadata(char *archivo)
 {
     bool buscar_por_nombre(void *fcb) { return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0; }
-
     list_remove_and_destroy_by_condition(fcbs, buscar_por_nombre, destruir_fcb);
 
     char *path = string_new();
@@ -288,7 +308,7 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar)
     // ordenar_fcb_por_bloque_inicial(fcbs); // rocio dice que no hace falta
 
     // Copiar el contenido del archivo a truncar en un auxiliar y eliminarlo de la lista
-    void *archivo_auxiliar = malloc(bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes) * obtener_block_size());
+    void *archivo_auxiliar = malloc_or_die(bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes) * obtener_block_size(), "Error al reservar memoria para archivo_auxiliar en compactar()");
     void *src = bloques + archivo_a_truncar->bloque_inicial * obtener_block_size();
     memcpy(archivo_auxiliar, src, bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes) * obtener_block_size());
     list_remove_element(fcbs, archivo_a_truncar);
@@ -300,7 +320,7 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar)
 
     if (((t_fcb *)list_get(fcbs, 0))->bloque_inicial != 0)
     {
-        t_fcb *primer_fcb = list_get(fcbs, 0);
+        t_fcb *primer_fcb = (t_fcb *)list_get(fcbs, 0);
         mover_fcb(primer_fcb, 0);
         actualizar_metadata(primer_fcb);
     }
@@ -363,7 +383,7 @@ t_fcb *metadata_de_archivo(char *archivo)
         return strcmp(((t_fcb *)fcb)->nombre, archivo) == 0;
     }
 
-    t_fcb *fcb = list_find(fcbs, buscar_por_nombre);
+    t_fcb *fcb = (t_fcb *)list_find(fcbs, buscar_por_nombre);
     if (fcb == NULL)
     {
         log_error(logger_propio, "No se encontro ningun archivo que tenga el nombre: %s", archivo);
@@ -434,4 +454,54 @@ void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido, bool
 int bytes_a_bloques(int bytes)
 {
     return bytes == 0 ? 1 : (bytes + obtener_block_size() - 1) / obtener_block_size();
+}
+
+char *leer_bitmap(const t_bitarray *bitmap, size_t indice_inico, size_t cantidad_de_bits)
+{
+    char *result = (char *)malloc((cantidad_de_bits + 1) * sizeof(char));
+    if (!result)
+        return NULL; // Error de asignación
+
+    size_t byte_index, bit_index;
+    for (size_t i = 0; i < cantidad_de_bits; i++)
+    {
+        byte_index = (indice_inico + i) / 8;
+        bit_index = (indice_inico + i) % 8;
+
+        if (bitmap->bitarray[byte_index] & (1 << (7 - bit_index)))
+            result[i] = '1';
+        else
+            result[i] = '0';
+    }
+
+    result[cantidad_de_bits] = '\0'; // Añadir el terminador nulo
+    return result;
+}
+
+void assignBlock(int blockIndex)
+{
+    if (bitmap == NULL || bitmap->bitarray == NULL)
+    {
+        log_info(logger_propio, "El bitmap no está inicializado correctamente\n");
+        return;
+    }
+
+    bitarray_set_bit(bitmap, blockIndex);
+
+    if (msync(bitmap->bitarray, bitmap->size, MS_SYNC) == -1)
+        log_info(logger_propio, "Error en la sincronización con msync()\n");
+}
+
+void unassignBlock(int blockIndex)
+{
+    if (bitmap == NULL || bitmap->bitarray == NULL)
+    {
+        log_info(logger_propio, "El bitmap no está inicializado correctamente\n");
+        return;
+    }
+
+    bitarray_clean_bit(bitmap, blockIndex);
+
+    if (msync(bitmap->bitarray, bitmap->size, MS_SYNC) == -1)
+        log_info(logger_propio, "Error en la sincronización con msync()\n");
 }
