@@ -50,5 +50,8 @@ void mover_fcb(t_fcb *fcb, int nuevo_inicio);
 void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido, bool hacer_clean, int tamanio_a_truncar);
 void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_execedente_en_bloques);
 int bytes_a_bloques(int bytes);
+char *leer_bitmap(const t_bitarray *bitmap, size_t indice_inico, size_t cantidad_de_bits);
+void assignBlock(int blockIndex);
+void unassignBlock(int blockIndex);
 
 #endif
