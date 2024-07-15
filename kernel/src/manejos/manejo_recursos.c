@@ -73,7 +73,8 @@ void desbloquear_pcb_si_corresponde(t_pcb *pcb, int pos_recurso)
         instancias_recursos[pos_recurso]--;
         pthread_mutex_unlock(&mutex_instancias_recursos);
 
-        encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
+        // no considero mandarlo a Ready con prioridad ya que no se bloqueo por una IO
+        ingresar_pcb_a_READY(pcb_a_desbloquear);
     }
     else
     {
@@ -118,7 +119,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
             *pos = pos_recurso;
             list_add(pcb->recursos_asignados, pos);
 
-            // devolvemos la ejecucion al pcb
+            // devolvemos la ejecucion al pcb sin resetear quantum en caso de ser RR o VRR
             pthread_t hilo_quantum;
             procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
             sem_post(&desalojo_liberado);
@@ -153,7 +154,8 @@ void signal_recurso(char *recurso, t_pcb *pcb)
             list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
-            encolar_pcb_ready_segun_algoritmo(pcb_a_desbloquear);
+            // no considero mandarlo a Ready con prioridad ya que no se bloqueo por una IO
+            ingresar_pcb_a_READY(pcb_a_desbloquear);
             sem_post(&desalojo_liberado);
 
             int *pos = malloc(sizeof(int));
@@ -170,7 +172,7 @@ void signal_recurso(char *recurso, t_pcb *pcb)
             pthread_mutex_unlock(&mutex_colas_de_recursos);
         }
 
-        // devolvemos la ejecucion al pcb
+        // devolvemos la ejecucion al pcb sin resetear quantum en caso de ser RR o VRR
         pthread_t hilo_quantum;
         procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
         sem_post(&desalojo_liberado);
