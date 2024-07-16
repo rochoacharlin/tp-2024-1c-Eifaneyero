@@ -26,7 +26,7 @@ void ejecutar_espera_interfaces(void)
             list_destroy_and_destroy_elements(interfaz, free);
             break;
         default:
-            log_info(logger_propio, "Recibi una operacion no valida de la interfaz.");
+            log_info(logger_propio, "Se recibio una operacion no valida de la interfaz.");
             break;
         }
     }
@@ -40,7 +40,7 @@ void inicializar_interfaces()
 
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
 {
-    t_io_list *interfaz = crear_interfaz(nombre, tipo, fd);
+    t_io *interfaz = crear_interfaz(nombre, tipo, fd);
 
     pthread_mutex_lock(&mutex_interfaces);
     list_add(interfaces, (void *)interfaz);
@@ -49,9 +49,17 @@ void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
     // creo hilo para atender cada interfaz se conecta
     pthread_t hilo_interfaz;
     if (pthread_create(&hilo_interfaz, NULL, (void *)atender_interfaz, (void *)interfaz) != 0)
-        log_error(logger_propio, "Error creando el hilo para una interfaz");
+        log_error(logger_propio, "Error creando el hilo para atender una interfaz");
+
+    pthread_t hilo_desconexion;
+    if (pthread_create(&hilo_desconexion, NULL, (void *)atender_desconexion, (void *)interfaz) != 0)
+        log_error(logger_propio, "Error creando el hilo para la desconexion de interfaz");
+
+    interfaz->hilo_interfaz = hilo_interfaz;
+    interfaz->hilo_desconexion = hilo_interfaz;
 
     pthread_detach(hilo_interfaz);
+    pthread_detach(hilo_desconexion);
 }
 
 void manejador_interfaz(t_pcb *pcb, t_list *parametros)
@@ -59,7 +67,7 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
     char *nombre_interfaz = (char *)list_remove(parametros, 0);
     char *tipo_de_operacion = (char *)list_get(parametros, 0);
 
-    t_io_list *io = buscar_interfaz(nombre_interfaz); // Verifico que se conecto
+    t_io *io = buscar_interfaz(nombre_interfaz); // Verifico que se conecto
 
     if (io != NULL)
     {
@@ -100,7 +108,7 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
     free(nombre_interfaz);
 }
 
-bool puede_realizar_operacion(t_io_list *io, char *operacion)
+bool puede_realizar_operacion(t_io *io, char *operacion)
 {
     if (strcmp(io->tipo, "STDOUT") == 0)
     {
@@ -133,7 +141,7 @@ bool puede_realizar_operacion(t_io_list *io, char *operacion)
 
 void atender_interfaz(void *interfaz)
 {
-    t_io_list *io = (t_io_list *)interfaz;
+    t_io *io = (t_io *)interfaz;
 
     while (1)
     {
@@ -150,11 +158,11 @@ void atender_interfaz(void *interfaz)
         uint32_t *pid = &proceso->pcb->PID;
         agregar_a_paquete(p_interfaz, (void *)pid, sizeof(uint32_t));
         agregar_parametros_a_paquete(p_interfaz, proceso->parametros);
-        int estado_al_enviar = enviar_paquete_interfaz(p_interfaz, io->fd);
+        enviar_paquete(p_interfaz, io->fd);
 
-        if (estado_al_enviar != -1)
+        if (recibir_operacion(io->fd) == OK)
         {
-            if (recibir_operacion(io->fd) == OK)
+            if (proceso->pcb->estado == BLOCKED)
             {
                 pthread_mutex_lock(&mutex_lista_BLOCKED);
                 list_remove_element(pcbs_en_BLOCKED, proceso->pcb);
@@ -162,18 +170,10 @@ void atender_interfaz(void *interfaz)
 
                 encolar_pcb_ready_segun_algoritmo(proceso->pcb);
             }
-            // VERIFICAR: se podria hacer algo más si el resultado no es ok ???
         }
         else
         {
-            // VERIFICAR: El enunciado no indica que se debe enviar el proceso a EXIT
-            //            si no se pudo enviar el paquete a la interfaz sin embargo
-            //            aca se esta haciendo eso.
-
-            enviar_pcb_a_EXIT(proceso->pcb, INVALID_INTERFACE);
-            eliminar_proceso_bloqueado(proceso);
-            eliminar_paquete(p_interfaz);
-            break;
+            log_error(logger_propio, "La interfaz de entrada salida %s no respondio correctamente.", io->nombre);
         }
 
         free(op_a_realizar);
@@ -182,6 +182,28 @@ void atender_interfaz(void *interfaz)
     }
 
     liberar_interfaz(io);
+}
+
+void atender_desconexion(void *interfaz)
+{
+    t_io *io = (t_io *)interfaz;
+
+    while (1)
+    {
+        int operacion = recibir_operacion(io->fd);
+        switch (operacion)
+        {
+        case DESCONEXION_INTERFAZ_KERNEL:
+            log_info(logger_propio, "La interfaz de entrada salida %s se ha desconectado.", io->nombre);
+            liberar_interfaz(io);
+            pthread_exit(NULL);
+            break;
+
+        default:
+            log_error(logger_propio, "La interfaz de entrada salida %s no respondio correctamente.", io->nombre);
+            break;
+        }
+    }
 }
 
 // funciones de manejo de t_proceso_bloqueado
@@ -201,11 +223,11 @@ t_proceso_bloqueado *crear_proceso_bloqueado(t_pcb *pcb, t_list *parametros)
     return proceso_bloqueado;
 }
 
-// funciones de manejo de t_io_list
+// funciones de manejo de t_io
 
-t_io_list *crear_interfaz(char *nombre, char *tipo, int fd)
+t_io *crear_interfaz(char *nombre, char *tipo, int fd)
 {
-    t_io_list *interfaz = malloc_or_die(sizeof(t_io_list), "No se pudo reservar memoria para interfaz");
+    t_io *interfaz = malloc_or_die(sizeof(t_io), "No se pudo reservar memoria para interfaz");
     interfaz->fd = fd;
     interfaz->nombre = malloc(strlen(nombre) + 1);
     interfaz->tipo = malloc(strlen(tipo) + 1);
@@ -218,13 +240,13 @@ t_io_list *crear_interfaz(char *nombre, char *tipo, int fd)
     return interfaz;
 }
 
-t_io_list *buscar_interfaz(char *nombre_io)
+t_io *buscar_interfaz(char *nombre_io)
 {
-    t_io_list *io = NULL;
+    t_io *io = NULL;
     int tamanio = list_size(interfaces);
     for (int i = 0; i < tamanio; i++)
     {
-        io = (t_io_list *)list_get(interfaces, i);
+        io = (t_io *)list_get(interfaces, i);
         if (strcmp(io->nombre, nombre_io) == 0)
         {
             return io;
@@ -233,24 +255,26 @@ t_io_list *buscar_interfaz(char *nombre_io)
     return NULL;
 }
 
-void liberar_interfaz(t_io_list *io)
+void liberar_interfaz(t_io *io)
 {
+    pthread_mutex_lock(&mutex_interfaces);
+    list_remove_element(interfaces, io);
+    pthread_mutex_unlock(&mutex_interfaces);
     free(io->nombre);
     free(io->tipo);
+    pthread_cancel(io->hilo_interfaz);
     liberar_procesos_io(io->procesos_bloqueados);
-    pthread_mutex_destroy(&io->cola_bloqueados);
-    sem_destroy(&io->procesos_en_cola);
+    pthread_mutex_destroy(&(io->cola_bloqueados));
+    sem_destroy(&(io->procesos_en_cola));
     free(io);
 }
 
 void liberar_procesos_io(t_list *procesos_io)
 {
     int size = list_size(procesos_io);
-    for (int i = 0; i <= size; i++)
+    for (int i = 0; i < size; i++)
     {
         t_proceso_bloqueado *proceso = list_remove(procesos_io, i);
-        // VERIFICAR: es necesario enviar los procesos a exit al liberar una interfaz? en que lugar de la consigna dice eso?
-        // enviar_pcb_a_EXIT(proceso->pcb, INVALID_INTERFACE);
         eliminar_proceso_bloqueado(proceso);
     }
 }

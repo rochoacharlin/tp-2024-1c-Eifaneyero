@@ -23,7 +23,9 @@ typedef struct
     t_list *procesos_bloqueados;
     pthread_mutex_t cola_bloqueados;
     sem_t procesos_en_cola;
-} t_io_list;
+    pthread_t hilo_interfaz;
+    pthread_t hilo_desconexion;
+} t_io;
 
 typedef struct
 {
@@ -46,19 +48,20 @@ typedef enum
 // funciones para el manejo de interfaces
 void ejecutar_espera_interfaces(void);
 void inicializar_interfaces();
-bool puede_realizar_operacion(t_io_list *io, char *operacion);
+bool puede_realizar_operacion(t_io *io, char *operacion);
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd);
 void manejador_interfaz(t_pcb *pcb, t_list *parametros);
 void atender_interfaz(void *interfaz);
+void atender_desconexion(void *interfaz);
 
 // funciones de manejo de t_proceso_bloqueado
 void eliminar_proceso_bloqueado(t_proceso_bloqueado *proceso);
 t_proceso_bloqueado *crear_proceso_bloqueado(t_pcb *pcb, t_list *parametros);
 
-// funciones de manejo de t_io_list
-t_io_list *crear_interfaz(char *nombre, char *tipo, int fd);
-t_io_list *buscar_interfaz(char *nombre_io);
-void liberar_interfaz(t_io_list *io);
+// funciones de manejo de t_io
+t_io *crear_interfaz(char *nombre, char *tipo, int fd);
+t_io *buscar_interfaz(char *nombre_io);
+void liberar_interfaz(t_io *io);
 void liberar_procesos_io(t_list *procesos_io);
 
 #endif
