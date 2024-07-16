@@ -2,13 +2,14 @@
 
 int conexion_memoria;
 int conexion_kernel;
+bool apto_para_recibir_operaciones = true;
 
-void conexion_con_kernel(char *nombre_interfaz)
+void conexion_con_kernel(void)
 {
     conexion_kernel = crear_conexion(logger_propio, obtener_ip_kernel(), obtener_puerto_kernel());
 
     t_paquete *paquete = crear_paquete(CONEXION_INTERFAZ_KERNEL);
-    agregar_a_paquete_string(paquete, nombre_interfaz);
+    agregar_a_paquete_string(paquete, nombre);
     agregar_a_paquete_string(paquete, obtener_tipo_interfaz());
     enviar_paquete(paquete, conexion_kernel);
     eliminar_paquete(paquete);
@@ -31,7 +32,7 @@ void recibir_peticiones_del_kernel(void)
     int cod_op;
     t_list *parametros;
 
-    while ((cod_op = recibir_operacion(conexion_kernel)) != -1)
+    while ((cod_op = recibir_operacion(conexion_kernel)) != -1 || apto_para_recibir_operaciones)
     {
         parametros = recibir_paquete(conexion_kernel);
         respuesta = atender(cod_op, parametros);
@@ -40,4 +41,19 @@ void recibir_peticiones_del_kernel(void)
         list_destroy_and_destroy_elements(parametros, free);
     }
     log_info(logger_propio, "Conexión cerrada con kernel");
+}
+
+void notificar_desconexion_al_kernel(int sig)
+{
+    apto_para_recibir_operaciones = false;
+    t_paquete *paquete = crear_paquete(DESCONEXION_INTERFAZ_KERNEL);
+    agregar_a_paquete_string(paquete, nombre);
+    agregar_a_paquete_string(paquete, obtener_tipo_interfaz());
+    enviar_paquete(paquete, conexion_kernel);
+    eliminar_paquete(paquete);
+
+    log_info(logger_propio, "%s", nombre);
+    sleep(2);
+
+    exit(EXIT_SUCCESS);
 }

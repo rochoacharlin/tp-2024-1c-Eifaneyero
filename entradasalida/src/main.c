@@ -1,9 +1,11 @@
 #include "gestor_interfaces.h"
 #include "conexiones/conexiones.h"
+#include <signal.h>
 
 t_log *logger_obligatorio;
 t_log *logger_propio;
 t_config *config;
+char *nombre;
 
 int main(int argc, char *argv[])
 {
@@ -15,7 +17,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    char *nombre = malloc(strlen(argv[1]) + 1);
+    nombre = malloc(strlen(argv[1]) + 1);
     strcpy(nombre, argv[1]);
     logger_obligatorio = crear_logger("entradasalida_obligatorio");
     log_info(logger_propio, "Iniciando Interfaz de I/O %s", nombre);
@@ -23,14 +25,15 @@ int main(int argc, char *argv[])
     setear_config(argv[2]);
 
     // conectar con kernel y memoria (en caso de que corresponda)
+    conexion_con_kernel();
     conexion_con_memoria();
-    conexion_con_kernel(nombre);
+    signal(SIGINT, notificar_desconexion_al_kernel);
 
     atender_segun_tipo_interfaz();
     recibir_peticiones_del_kernel();
 
     close(conexion_memoria);
-    close(conexion_kernel);
+    // close(conexion_kernel);
     log_destroy(logger_obligatorio);
     log_destroy(logger_propio);
     config_destroy(config);
