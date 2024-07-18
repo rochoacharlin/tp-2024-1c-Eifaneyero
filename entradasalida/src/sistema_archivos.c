@@ -444,6 +444,7 @@ void mover_contenido_fcb(t_fcb *fcb, int nuevo_inicio, void *src_contenido, bool
     void *dst = bloques + nuevo_inicio * obtener_block_size();
     memcpy(dst, src_contenido, tam_en_bloques * obtener_block_size());
     fcb->tamanio_en_bytes = tamanio_a_truncar;
+    tam_en_bloques = bytes_a_bloques(fcb->tamanio_en_bytes);
 
     // Actualizar el bitmap
     for (int i = 0; i < tam_en_bloques; i++)
