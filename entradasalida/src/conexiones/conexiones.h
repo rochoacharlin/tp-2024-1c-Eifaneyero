@@ -18,6 +18,5 @@ extern char *nombre;
 void conexion_con_kernel(void);
 void conexion_con_memoria(void);
 void recibir_peticiones_del_kernel(void);
-void notificar_desconexion_al_kernel(int sig);
 
 #endif

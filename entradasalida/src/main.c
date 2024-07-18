@@ -27,13 +27,12 @@ int main(int argc, char *argv[])
     // conectar con kernel y memoria (en caso de que corresponda)
     conexion_con_kernel();
     conexion_con_memoria();
-    signal(SIGINT, notificar_desconexion_al_kernel);
 
     atender_segun_tipo_interfaz();
     recibir_peticiones_del_kernel();
 
     close(conexion_memoria);
-    // close(conexion_kernel);
+    close(conexion_kernel);
     log_destroy(logger_obligatorio);
     log_destroy(logger_propio);
     config_destroy(config);

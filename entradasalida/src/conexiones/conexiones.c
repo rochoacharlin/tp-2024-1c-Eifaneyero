@@ -34,23 +34,17 @@ void recibir_peticiones_del_kernel(void)
 
     while ((cod_op = recibir_operacion(conexion_kernel)) != -1 && apto_para_recibir_operaciones)
     {
-        parametros = recibir_paquete(conexion_kernel);
-        respuesta = atender(cod_op, parametros);
-        enviar_cod_op(respuesta, conexion_kernel);
-
-        list_destroy_and_destroy_elements(parametros, free);
+        if (cod_op == VERIFICAR_DESCONEXION)
+        {
+            enviar_cod_op(CONEXION_ACTIVA, conexion_kernel);
+        }
+        else
+        {
+            parametros = recibir_paquete(conexion_kernel);
+            respuesta = atender(cod_op, parametros);
+            enviar_cod_op(respuesta, conexion_kernel);
+            list_destroy_and_destroy_elements(parametros, free);
+        }
     }
     log_info(logger_propio, "Conexión cerrada con kernel");
-}
-
-void notificar_desconexion_al_kernel(int sig)
-{
-    apto_para_recibir_operaciones = false;
-    t_paquete *paquete = crear_paquete(DESCONEXION_INTERFAZ_KERNEL);
-    agregar_a_paquete_string(paquete, nombre);
-    agregar_a_paquete_string(paquete, obtener_tipo_interfaz());
-    enviar_paquete(paquete, conexion_kernel);
-    eliminar_paquete(paquete);
-
-    exit(EXIT_SUCCESS);
 }
