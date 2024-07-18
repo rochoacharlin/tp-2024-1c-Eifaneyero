@@ -450,7 +450,7 @@ void actualizar_metadata(t_fcb *fcb)
     free(tamanio_en_bytes);
     config_destroy(config);
 
-    leer_metadata(fcb->nombre);
+    // leer_metadata(fcb->nombre); //TODO: eliminar, está para hacer pruebas nomás la función
 }
 
 void mover_fcb(t_fcb *fcb, int nuevo_inicio)
