@@ -335,7 +335,7 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar_en
     {
         t_fcb *fcb_actual = list_get(fcbs, i);
         int bloque_inicial_actual = fcb_actual->bloque_inicial;
-        int ultimo_bloque_actual = bytes_a_bloques(fcb_actual->tamanio_en_bytes) + bloque_inicial_actual;
+        int ultimo_bloque_actual = bytes_a_bloques(fcb_actual->tamanio_en_bytes) + bloque_inicial_actual - 1;
 
         t_fcb *fcb_siguiente = list_get(fcbs, i + 1);
         int bloque_inicial_siguiente = fcb_siguiente->bloque_inicial;
@@ -361,6 +361,27 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar_en
 
     // log minimo y obligatorio
     loggear_dialfs_fin_compactacion(*PID);
+}
+
+void leer_metadata(char *archivo)
+{
+    // abro config
+    char *config_ruta = string_new();
+    string_append_with_format(&config_ruta, "%s/metadata/%s", obtener_path_base_dialfs(), archivo);
+    t_config *config = iniciar_config(logger_propio, config_ruta);
+
+    // seteo valores
+    int bloque_inicial = config_get_int_value(config, "BLOQUE_INICIAL");
+    int tamanio_en_bytes = config_get_int_value(config, "TAMANIO_ARCHIVO");
+    log_info(logger_propio, "================================================");
+    log_info(logger_propio, "archivo %s", archivo);
+    log_info(logger_propio, "bloque inicial: %d", bloque_inicial);
+    log_info(logger_propio, "tam en bytes: %d", tamanio_en_bytes);
+    log_info(logger_propio, "================================================");
+
+    // cierro config y libero valores
+    free(config_ruta);
+    config_destroy(config);
 }
 
 void *leer_archivo(uint32_t *PID, char *nombre, int tam, int puntero)
@@ -428,6 +449,8 @@ void actualizar_metadata(t_fcb *fcb)
     free(bloque_inicial);
     free(tamanio_en_bytes);
     config_destroy(config);
+
+    leer_metadata(fcb->nombre);
 }
 
 void mover_fcb(t_fcb *fcb, int nuevo_inicio)
