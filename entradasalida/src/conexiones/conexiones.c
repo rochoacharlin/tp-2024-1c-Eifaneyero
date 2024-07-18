@@ -32,7 +32,7 @@ void recibir_peticiones_del_kernel(void)
     int cod_op;
     t_list *parametros;
 
-    while ((cod_op = recibir_operacion(conexion_kernel)) != -1 || apto_para_recibir_operaciones)
+    while ((cod_op = recibir_operacion(conexion_kernel)) != -1 && apto_para_recibir_operaciones)
     {
         parametros = recibir_paquete(conexion_kernel);
         respuesta = atender(cod_op, parametros);
@@ -51,9 +51,6 @@ void notificar_desconexion_al_kernel(int sig)
     agregar_a_paquete_string(paquete, obtener_tipo_interfaz());
     enviar_paquete(paquete, conexion_kernel);
     eliminar_paquete(paquete);
-
-    log_info(logger_propio, "%s", nombre);
-    sleep(2);
 
     exit(EXIT_SUCCESS);
 }
