@@ -165,6 +165,7 @@ void crear_archivo(uint32_t *PID, char *nombre)
 
     FILE *metadataArchivo = fopen(path_absoluto, "w");
     fclose(metadataArchivo);
+    free(path_absoluto);
 
     int bloque_libre = obtener_bloque_libre();
 
@@ -448,9 +449,10 @@ void actualizar_metadata(t_fcb *fcb)
     // cierro config y libero valores
     free(bloque_inicial);
     free(tamanio_en_bytes);
+    free(config_ruta);
     config_destroy(config);
 
-    // leer_metadata(fcb->nombre); //TODO: eliminar, está para hacer pruebas nomás la función
+    // leer_metadata(fcb->nombre); // TODO: eliminar, está para hacer pruebas nomás la función
 }
 
 void mover_fcb(t_fcb *fcb, int nuevo_inicio)
