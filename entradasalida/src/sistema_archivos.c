@@ -242,13 +242,13 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     int tamanio_anterior = fcb->tamanio_en_bytes;
 
     // Calcular el nuevo tamaño en bloques,  REVISAR
-    int nuevos_bloques = bytes_a_bloques(tam);
-    int bloques_anteriores = bytes_a_bloques(tamanio_anterior);
+    int tam_nuevo_en_bloques = bytes_a_bloques(tam);
+    int tam_anterior_en_bloques = bytes_a_bloques(tamanio_anterior);
 
     // Si el nuevo tamaño es menor, se liberan los bloques adicionales
-    if (nuevos_bloques < bloques_anteriores)
+    if (tam_nuevo_en_bloques < tam_anterior_en_bloques)
     {
-        for (int i = nuevos_bloques; i < bloques_anteriores; i++)
+        for (int i = tam_nuevo_en_bloques; i < tam_anterior_en_bloques; i++)
         {
             int bloque_a_liberar = bloque_inicial + i;
             bitarray_clean_bit(bitmap, bloque_a_liberar);
@@ -257,22 +257,22 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     else
     {
         // Si es necesario compactar, llamar a la función compactar
-        if (validar_compactacion(nuevos_bloques, fcb))
+        if (validar_compactacion(tam_nuevo_en_bloques, fcb))
         {
             compactar(PID, fcb, tam);
         }
         else
         { // asignar bloques extra que necesita
-            for (int i = bloques_anteriores + 1; i < nuevos_bloques - bloques_anteriores; i++)
+            for (int i = 0; i < tam_nuevo_en_bloques - tam_anterior_en_bloques; i++)
             {
-                bitarray_set_bit(bitmap, i);
+                bitarray_set_bit(bitmap, fcb->bloque_inicial + tam_anterior_en_bloques + i);
             }
         }
     }
 
     // Actualizar metadata
-    actualizar_metadata(fcb);
     fcb->tamanio_en_bytes = tam;
+    actualizar_metadata(fcb);
 
     msync(espacio_bitmap, tamanio_bitmap, MS_SYNC);
 
@@ -280,24 +280,31 @@ void truncar_archivo(uint32_t *PID, char *nombre, int tam)
     loggear_dialfs_truncar_archivo(*PID, nombre, tam);
 }
 
-bool validar_compactacion(int bloque_agregados, t_fcb *fcb)
+bool validar_compactacion(int tam_nuevo_en_bloques, t_fcb *fcb)
 {
     t_list_iterator *fcb_iterando = list_iterator_create(fcbs);
-    while (list_iterator_has_next(fcb_iterando))
-    {
-        t_fcb *fcb_actual = list_iterator_next(fcb_iterando);
-        int bloques_de_siguiente = fcb_actual->bloque_inicial;
+    bool hay_que_compactar = false;
+    int bloque_inicial_siguiente = 0;
+    t_fcb *fcb_siguiente;
 
-        if (strcmp(fcb->nombre, fcb_actual->nombre) != 0 && (bloques_de_siguiente - bloque_agregados < 0))
-        {
-            return true;
-        }
+    // busco el fcb del archivo que le sigue a mi archivo
+    while (list_iterator_has_next(fcb_iterando) && bloque_inicial_siguiente <= fcb->bloque_inicial)
+    {
+        fcb_siguiente = list_iterator_next(fcb_iterando);
+        bloque_inicial_siguiente = fcb_siguiente->bloque_inicial;
     }
 
-    return false;
+    if (bloque_inicial_siguiente > fcb->bloque_inicial)
+    {
+        hay_que_compactar = bloque_inicial_siguiente - fcb->bloque_inicial < tam_nuevo_en_bloques;
+    }
+
+    list_iterator_destroy(fcb_iterando);
+
+    return hay_que_compactar;
 }
 
-void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar)
+void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar_en_bytes)
 {
     // log minimo y obligatorio
     loggear_dialfs_inicio_compactacion(*PID);
@@ -313,10 +320,8 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar)
     memcpy(archivo_auxiliar, src, bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes) * obtener_block_size());
     list_remove_element(fcbs, archivo_a_truncar);
 
-    for (int i = 0; i < tamanio_a_truncar; i++)
-    {
+    for (int i = 0; i < bytes_a_bloques(archivo_a_truncar->tamanio_en_bytes); i++)
         bitarray_clean_bit(bitmap, archivo_a_truncar->bloque_inicial + i);
-    }
 
     if (((t_fcb *)list_get(fcbs, 0))->bloque_inicial != 0)
     {
@@ -345,7 +350,7 @@ void compactar(uint32_t *PID, t_fcb *archivo_a_truncar, int tamanio_a_truncar)
     }
 
     // Pegar el contenido de archivo_auxiliar desde bloque_final
-    mover_contenido_fcb(archivo_a_truncar, obtener_bloque_libre(), archivo_auxiliar, false, tamanio_a_truncar);
+    mover_contenido_fcb(archivo_a_truncar, obtener_bloque_libre(), archivo_auxiliar, false, tamanio_a_truncar_en_bytes);
 
     cargar_fcb(archivo_a_truncar);
 
