@@ -223,7 +223,6 @@ t_io *buscar_interfaz(char *nombre_io)
         {
             enviar_cod_op(VERIFICAR_DESCONEXION, io->fd);
             int op = recibir_operacion(io->fd);
-            log_error(logger_propio, "%d", op);
 
             if (op != CONEXION_ACTIVA)
                 liberar_interfaz(io);
