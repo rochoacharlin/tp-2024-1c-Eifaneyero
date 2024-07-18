@@ -48,7 +48,9 @@ typedef enum
     CONEXION_MEMORIA,
     CONEXION_IO,
     CONEXION_INTERFAZ_KERNEL,
-    DESCONEXION_INTERFAZ_KERNEL
+    DESCONEXION_INTERFAZ_KERNEL,
+    VERIFICAR_DESCONEXION,
+    CONEXION_ACTIVA
 } op_code;
 
 typedef struct
@@ -62,6 +64,7 @@ void enviar_mensaje(char *mensaje, int socket_cliente);
 t_paquete *crear_paquete(int codigo_operacion);
 void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio);
 void enviar_paquete(t_paquete *paquete, int socket_cliente);
+int enviar_cod_op_con_retorno(op_code codigo_de_operacion, int socket);
 void eliminar_paquete(t_paquete *paquete);
 void enviar_cod_op(op_code codigo_de_operacion, int socket);
 
