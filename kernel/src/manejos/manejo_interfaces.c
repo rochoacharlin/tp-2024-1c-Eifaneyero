@@ -51,15 +51,9 @@ void agregar_a_lista_io_global(char *nombre, char *tipo, int fd)
     if (pthread_create(&hilo_interfaz, NULL, (void *)atender_interfaz, (void *)interfaz) != 0)
         log_error(logger_propio, "Error creando el hilo para atender una interfaz");
 
-    pthread_t hilo_desconexion;
-    if (pthread_create(&hilo_desconexion, NULL, (void *)atender_desconexion, (void *)interfaz) != 0)
-        log_error(logger_propio, "Error creando el hilo para la desconexion de interfaz");
-
     interfaz->hilo_interfaz = hilo_interfaz;
-    interfaz->hilo_desconexion = hilo_interfaz;
 
     pthread_detach(hilo_interfaz);
-    pthread_detach(hilo_desconexion);
 }
 
 void manejador_interfaz(t_pcb *pcb, t_list *parametros)
@@ -67,7 +61,7 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
     char *nombre_interfaz = (char *)list_remove(parametros, 0);
     char *tipo_de_operacion = (char *)list_get(parametros, 0);
 
-    t_io *io = buscar_interfaz(nombre_interfaz); // Verifico que se conecto
+    t_io *io = buscar_interfaz(nombre_interfaz); // Verifico que se conecto y que sigue conectada
 
     if (io != NULL)
     {
@@ -184,28 +178,6 @@ void atender_interfaz(void *interfaz)
     liberar_interfaz(io);
 }
 
-void atender_desconexion(void *interfaz)
-{
-    t_io *io = (t_io *)interfaz;
-
-    while (1)
-    {
-        int operacion = recibir_operacion(io->fd);
-        switch (operacion)
-        {
-        case DESCONEXION_INTERFAZ_KERNEL:
-            log_info(logger_propio, "La interfaz de entrada salida %s se ha desconectado.", io->nombre);
-            liberar_interfaz(io);
-            pthread_exit(NULL);
-            break;
-
-        default:
-            log_error(logger_propio, "La interfaz de entrada salida %s no respondio correctamente.", io->nombre);
-            break;
-        }
-    }
-}
-
 // funciones de manejo de t_proceso_bloqueado
 
 void eliminar_proceso_bloqueado(t_proceso_bloqueado *proceso)
@@ -249,7 +221,14 @@ t_io *buscar_interfaz(char *nombre_io)
         io = (t_io *)list_get(interfaces, i);
         if (strcmp(io->nombre, nombre_io) == 0)
         {
-            return io;
+            enviar_cod_op(VERIFICAR_DESCONEXION, io->fd);
+            int op = recibir_operacion(io->fd);
+            log_error(logger_propio, "%d", op);
+
+            if (op != CONEXION_ACTIVA)
+                liberar_interfaz(io);
+            else
+                return io;
         }
     }
     return NULL;

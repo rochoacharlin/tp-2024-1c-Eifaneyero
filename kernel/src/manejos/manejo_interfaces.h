@@ -24,7 +24,6 @@ typedef struct
     pthread_mutex_t cola_bloqueados;
     sem_t procesos_en_cola;
     pthread_t hilo_interfaz;
-    pthread_t hilo_desconexion;
 } t_io;
 
 typedef struct
@@ -52,7 +51,6 @@ bool puede_realizar_operacion(t_io *io, char *operacion);
 void agregar_a_lista_io_global(char *nombre, char *tipo, int fd);
 void manejador_interfaz(t_pcb *pcb, t_list *parametros);
 void atender_interfaz(void *interfaz);
-void atender_desconexion(void *interfaz);
 
 // funciones de manejo de t_proceso_bloqueado
 void eliminar_proceso_bloqueado(t_proceso_bloqueado *proceso);
