@@ -15,6 +15,7 @@ sem_t planificacion_largo_plazo_liberada;
 sem_t planificacion_corto_plazo_liberada;
 sem_t desalojo_liberado;
 sem_t planificacion_pausada;
+sem_t atencion_liberada;
 
 pthread_mutex_t mutex_lista_NEW;
 pthread_mutex_t mutex_cola_READY;
@@ -156,6 +157,7 @@ void inicializar_semaforos_planificacion(void)
     sem_init(&planificacion_largo_plazo_liberada, 0, 1);
     sem_init(&planificacion_corto_plazo_liberada, 0, 1);
     sem_init(&desalojo_liberado, 0, 1);
+    sem_init(&atencion_liberada, 0, 1);
 }
 
 void destruir_semaforos_planificacion(void)

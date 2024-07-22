@@ -99,8 +99,11 @@ void detener_planificacion(void)
         cambiar_valor_de_semaforo(&planificacion_largo_plazo_liberada, 0);
         cambiar_valor_de_semaforo(&planificacion_corto_plazo_liberada, 0);
         sem_wait(&desalojo_liberado);
+        sem_wait(&atencion_liberada);
         sem_post(&planificacion_pausada);
     }
+    else
+        log_error(logger_propio, "La planificacion ya esta detenida.");
 }
 
 void reanudar_planificacion(void)
@@ -110,8 +113,11 @@ void reanudar_planificacion(void)
         sem_post(&planificacion_largo_plazo_liberada);
         sem_post(&planificacion_corto_plazo_liberada);
         sem_post(&desalojo_liberado);
+        sem_post(&atencion_liberada);
         planificacion_detenida = false;
     }
+    else
+        log_error(logger_propio, "La planificacion no esta detenida.");
 }
 
 void cambiar_grado_multiprogramacion(char *valor_deseado)

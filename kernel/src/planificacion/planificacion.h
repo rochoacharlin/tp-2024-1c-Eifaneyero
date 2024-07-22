@@ -26,11 +26,12 @@ extern int conexion_kernel_cpu_dispatch;
 extern int conexion_kernel_cpu_interrupt;
 
 extern sem_t hay_pcbs_NEW;
+extern sem_t hay_pcbs_READY;
 extern sem_t planificacion_largo_plazo_liberada;
 extern sem_t planificacion_corto_plazo_liberada;
 extern sem_t desalojo_liberado;
 extern sem_t planificacion_pausada;
-extern sem_t hay_pcbs_READY;
+extern sem_t atencion_liberada;
 
 extern pthread_mutex_t mutex_lista_NEW;
 extern pthread_mutex_t mutex_cola_READY;

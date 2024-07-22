@@ -158,11 +158,13 @@ void atender_interfaz(void *interfaz)
         {
             if (proceso->pcb->estado == BLOCKED)
             {
+                sem_wait(&atencion_liberada);
                 pthread_mutex_lock(&mutex_lista_BLOCKED);
                 list_remove_element(pcbs_en_BLOCKED, proceso->pcb);
                 pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
                 encolar_pcb_ready_segun_algoritmo(proceso->pcb);
+                sem_post(&atencion_liberada);
             }
         }
         else
