@@ -148,3 +148,11 @@ void listar_procesos_por_cada_estado(void)
 
     pcb_en_EXEC != NULL ? free(pid_pcb_exec) : 1;
 }
+
+void listar_recursos(void)
+{
+    for (int i = 0; i < cantidad_recursos(); i++)
+    {
+        printf("Cantidad de instancias de %s: %d \n", nombres_recursos[i], instancias_recursos[i]);
+    }
+}

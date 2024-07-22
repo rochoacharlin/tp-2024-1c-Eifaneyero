@@ -8,6 +8,7 @@ t_comando comandos[] = {
     {"INICIAR_PLANIFICACION", reanudar_planificacion},
     {"MULTIPROGRAMACION", cambiar_grado_multiprogramacion},
     {"PROCESO_ESTADO", listar_procesos_por_cada_estado},
+    {"RECURSOS", listar_recursos},
 };
 
 void consola_interactiva(void)

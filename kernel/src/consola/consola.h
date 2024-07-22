@@ -29,6 +29,7 @@ void detener_planificacion(void);
 void reanudar_planificacion(void);
 void cambiar_grado_multiprogramacion(char *valor);
 void listar_procesos_por_cada_estado(void);
+void listar_recursos(void);
 
 // funciones utiles
 void listar_procesos_por_estado(char *estado, t_list *lista);
