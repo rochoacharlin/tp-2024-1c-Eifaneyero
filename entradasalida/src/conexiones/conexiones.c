@@ -2,7 +2,6 @@
 
 int conexion_memoria;
 int conexion_kernel;
-bool apto_para_recibir_operaciones = true;
 
 void conexion_con_kernel(void)
 {
@@ -32,19 +31,12 @@ void recibir_peticiones_del_kernel(void)
     int cod_op;
     t_list *parametros;
 
-    while ((cod_op = recibir_operacion(conexion_kernel)) != -1 && apto_para_recibir_operaciones)
+    while ((cod_op = recibir_operacion(conexion_kernel)) != -1)
     {
-        if (cod_op == VERIFICAR_DESCONEXION)
-        {
-            enviar_cod_op(CONEXION_ACTIVA, conexion_kernel);
-        }
-        else
-        {
-            parametros = recibir_paquete(conexion_kernel);
-            respuesta = atender(cod_op, parametros);
-            enviar_cod_op(respuesta, conexion_kernel);
-            list_destroy_and_destroy_elements(parametros, free);
-        }
+        parametros = recibir_paquete(conexion_kernel);
+        respuesta = atender(cod_op, parametros);
+        enviar_cod_op(respuesta, conexion_kernel);
+        list_destroy_and_destroy_elements(parametros, free);
     }
     log_info(logger_propio, "Conexión cerrada con kernel");
 }
