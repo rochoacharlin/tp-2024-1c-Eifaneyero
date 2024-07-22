@@ -31,7 +31,8 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         sem_wait(&hay_pcbs_READY);
         sem_wait(&planificacion_corto_plazo_liberada);
 
-        pcb_en_EXEC = proximo_a_ejecutar();
+        t_pcb *pcb = proximo_a_ejecutar();
+        pcb_en_EXEC = pcb;
 
         estado anterior = pcb_en_EXEC->estado;
         pcb_en_EXEC->estado = EXEC;
@@ -44,8 +45,8 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
         pthread_mutex_unlock(&mutex_hubo_desalojo);
 
         pthread_t hilo_quantum;
-        procesar_pcb_segun_algoritmo(pcb_en_EXEC, &hilo_quantum);
-        esperar_contexto_y_manejar_desalojo(pcb_en_EXEC, &hilo_quantum);
+        procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
+        esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
 
         sem_post(&planificacion_corto_plazo_liberada);
     }
@@ -137,6 +138,7 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
     actualizar_pcb(pcb, contexto, ms_en_ejecucion);
     destruir_contexto(contexto);
+    pcb_en_EXEC = NULL;
 
     sem_wait(&desalojo_liberado);
 
