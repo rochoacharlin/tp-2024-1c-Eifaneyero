@@ -61,13 +61,13 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
     char *nombre_interfaz = (char *)list_remove(parametros, 0);
     char *tipo_de_operacion = (char *)list_get(parametros, 0);
 
-    t_io *io = buscar_interfaz(nombre_interfaz); // Verifico que se conecto y que sigue conectada
+    t_io *io = buscar_interfaz(nombre_interfaz); // verifico que se conecto y que sigue conectada
 
     if (io != NULL)
     {
         if (puede_realizar_operacion(io, tipo_de_operacion)) // verifico que puede hacer el tipo de operación
         {
-            // Agrego pcb a bloqueados
+            // agrego pcb a bloqueados
             pthread_mutex_lock(&mutex_lista_BLOCKED);
             list_add(pcbs_en_BLOCKED, (void *)pcb);
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
@@ -214,17 +214,12 @@ t_io *crear_interfaz(char *nombre, char *tipo, int fd)
 
 t_io *buscar_interfaz(char *nombre_io)
 {
-    t_io *io = NULL;
-    int tamanio = list_size(interfaces);
-    for (int i = 0; i < tamanio; i++)
+    for (int i = 0; i < list_size(interfaces); i++)
     {
-        io = (t_io *)list_get(interfaces, i);
+        t_io *io = list_get(interfaces, i);
         if (strcmp(io->nombre, nombre_io) == 0)
         {
-            enviar_cod_op(VERIFICAR_DESCONEXION, io->fd);
-            int op = recibir_operacion(io->fd);
-
-            if (op != CONEXION_ACTIVA)
+            if (socket_desconectado(io->fd))
                 liberar_interfaz(io);
             else
                 return io;
@@ -254,5 +249,64 @@ void liberar_procesos_io(t_list *procesos_io)
     {
         t_proceso_bloqueado *proceso = list_remove(procesos_io, i);
         eliminar_proceso_bloqueado(proceso);
+    }
+}
+
+bool socket_desconectado(int socket)
+{
+    fd_set read_fds;
+    struct timeval timeout;
+    int result;
+
+    // Configurar el conjunto de descriptores de archivo
+    FD_ZERO(&read_fds);
+    FD_SET(socket, &read_fds);
+
+    // Configurar el tiempo de espera a cero para que no espere
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+
+    // Usar select para ver si hay datos disponibles en el socket
+    result = select(socket + 1, &read_fds, NULL, NULL, &timeout);
+
+    if (result == -1)
+    {
+        perror("select");
+        return true; // Error en select, considerar el socket desconectado
+    }
+    else if (result == 0)
+    {
+        // No hay datos disponibles, el socket sigue activo
+        return false;
+    }
+    else
+    {
+        // El socket está listo para lectura, verificar si está desconectado
+        char buffer[1];
+        ssize_t bytes_recibidos = recv(socket, buffer, sizeof(buffer), MSG_PEEK | MSG_DONTWAIT);
+        if (bytes_recibidos == 0)
+        {
+            // Conexión cerrada ordenadamente
+            return true;
+        }
+        else if (bytes_recibidos < 0)
+        {
+            // Error en recv
+            if (errno == EWOULDBLOCK || errno == EAGAIN)
+            {
+                // No hay datos disponibles, el socket sigue activo
+                return false;
+            }
+            else
+            {
+                perror("recv");
+                return true; // Otro error
+            }
+        }
+        else
+        {
+            // Datos disponibles, el socket sigue activo
+            return false;
+        }
     }
 }

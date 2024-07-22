@@ -8,6 +8,7 @@
 #include <utils/comunicacion/comunicacion.h>
 #include "../planificacion/pcb.h"
 #include "../planificacion/planificacion.h"
+#include <fcntl.h>
 
 extern int fd_servidor;
 extern t_list *interfaces;
@@ -61,5 +62,6 @@ t_io *crear_interfaz(char *nombre, char *tipo, int fd);
 t_io *buscar_interfaz(char *nombre_io);
 void liberar_interfaz(t_io *io);
 void liberar_procesos_io(t_list *procesos_io);
+bool socket_desconectado(int socket);
 
 #endif

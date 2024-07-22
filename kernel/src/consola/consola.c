@@ -21,7 +21,6 @@ void consola_interactiva(void)
         buscar_y_ejecutar_comando(token);
         free(leido);
 
-        sleep(1);
         leido = readline("> ");
         add_history(leido);
         token = strtok(leido, " ");
