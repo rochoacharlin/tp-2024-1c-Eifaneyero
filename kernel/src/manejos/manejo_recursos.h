@@ -16,7 +16,7 @@ extern pthread_mutex_t mutex_instancias_recursos;
 
 // funciones principales
 void crear_colas_de_bloqueo(void);
-void desbloquear_pcb_si_corresponde(t_pcb *pcb, int pos_recurso);
+void desbloquear_pcb_si_corresponde(int pos_recurso);
 void wait_recurso(char *recurso, t_pcb *pcb);
 void signal_recurso(char *recurso, t_pcb *pcb);
 void liberar_recursos(t_pcb *pcb);
