@@ -126,15 +126,7 @@ op_code atender_stdout(int cod_op, t_list *parametros)
         loggear_operacion(*PID, nombres_de_instrucciones[cod_op]);
         t_list *direcciones_fisicas = list_slice(parametros, 2, list_size(parametros) - 2);
 
-        for (int i = 0; i < list_size(direcciones_fisicas) - 1; i += 2)
-        {
-            log_info(logger_propio, "Direccion %d: %s", i, (char *)list_get(direcciones_fisicas, i));
-            log_info(logger_propio, "Cantidad bytes %d: %s", i, (char *)list_get(direcciones_fisicas, i + 1));
-        }
-        log_info(logger_propio, "Cantidad caracteres: %d", atoi(list_get(parametros, 1)));
-
         respuesta = leer_de_memoria(*PID, atoi((char *)list_get(parametros, 1)), direcciones_fisicas, &valor_leido_completo);
-
         if (respuesta == OK && valor_leido_completo != NULL)
             log_info(logger_obligatorio, "PID: <%d> - Interfaz: <STDOUT> - Valor: %s", *PID, valor_leido_completo);
         else
