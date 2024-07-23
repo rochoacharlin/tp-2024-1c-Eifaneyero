@@ -47,7 +47,8 @@ typedef enum
     CONEXION_KERNEL,
     CONEXION_MEMORIA,
     CONEXION_IO,
-    CONEXION_INTERFAZ_KERNEL
+    CONEXION_INTERFAZ_KERNEL,
+    ERROR
 } op_code;
 
 typedef struct
