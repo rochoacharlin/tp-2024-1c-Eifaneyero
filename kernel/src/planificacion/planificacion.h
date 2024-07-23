@@ -40,6 +40,7 @@ extern pthread_mutex_t mutex_lista_BLOCKED;
 extern pthread_mutex_t mutex_pcb_EXEC;
 extern pthread_mutex_t mutex_lista_memoria;
 extern pthread_mutex_t mutex_lista_EXIT;
+extern pthread_mutex_t mutex_lista_PIDS;
 
 extern int *instancias_recursos;
 extern char *estadosProcesos[5];

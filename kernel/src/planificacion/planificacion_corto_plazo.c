@@ -101,10 +101,12 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb)
         encolar_pcb(pcbs_en_aux_READY, pcb);
         pthread_mutex_unlock(&mutex_cola_aux_READY);
 
+        pthread_mutex_lock(&mutex_lista_PIDS);
         lista_PIDS = string_new();
         mostrar_PIDS(pcbs_en_aux_READY);
         loggear_ingreso_a_READY(lista_PIDS, true);
         free(lista_PIDS);
+        pthread_mutex_unlock(&mutex_lista_PIDS);
 
         sem_post(&hay_pcbs_READY);
     }

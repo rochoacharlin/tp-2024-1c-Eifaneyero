@@ -24,6 +24,7 @@ pthread_mutex_t mutex_lista_BLOCKED;
 pthread_mutex_t mutex_pcb_EXEC;
 pthread_mutex_t mutex_lista_memoria;
 pthread_mutex_t mutex_lista_EXIT;
+pthread_mutex_t mutex_lista_PIDS;
 
 int32_t procesos_creados = 1;
 char *algoritmo;
@@ -91,10 +92,12 @@ void ingresar_pcb_a_READY(t_pcb *pcb)
     pthread_mutex_unlock(&mutex_cola_READY);
 
     // log minimo y obligatorio
+    pthread_mutex_lock(&mutex_lista_PIDS);
     lista_PIDS = string_new();
     mostrar_PIDS(pcbs_en_READY);
     loggear_ingreso_a_READY(lista_PIDS, false);
     free(lista_PIDS);
+    pthread_mutex_unlock(&mutex_lista_PIDS);
 
     sem_post(&hay_pcbs_READY);
 }
@@ -151,6 +154,7 @@ void inicializar_semaforos_planificacion(void)
     pthread_mutex_init(&mutex_lista_EXIT, NULL);
     pthread_mutex_init(&mutex_colas_de_recursos, NULL);
     pthread_mutex_init(&mutex_instancias_recursos, NULL);
+    pthread_mutex_init(&mutex_lista_PIDS, NULL);
     sem_init(&hay_pcbs_NEW, 0, 0);
     sem_init(&hay_pcbs_READY, 0, 0);
     sem_init(&sem_grado_multiprogramacion, 0, obtener_grado_multiprogramacion());
@@ -171,12 +175,14 @@ void destruir_semaforos_planificacion(void)
     pthread_mutex_destroy(&mutex_lista_EXIT);
     pthread_mutex_destroy(&mutex_colas_de_recursos);
     pthread_mutex_destroy(&mutex_instancias_recursos);
+    pthread_mutex_destroy(&mutex_lista_PIDS);
     sem_close(&hay_pcbs_NEW);
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
     sem_close(&planificacion_largo_plazo_liberada);
     sem_close(&planificacion_corto_plazo_liberada);
     sem_close(&desalojo_liberado);
+    sem_close(&atencion_liberada);
 }
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
