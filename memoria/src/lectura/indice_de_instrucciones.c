@@ -16,10 +16,21 @@ void destruir_indice_de_instrucciones(t_dictionary *indice_de_instrucciones)
     dictionary_destroy_and_destroy_elements(indice_de_instrucciones, destruir_lista_instrucciones);
 }
 
-void agregar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID, char *path)
+bool agregar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID, char *path)
 {
     t_list *instrucciones_de_proceso = subir_instrucciones(path); // sube las instrucciones a la estructura de memoria
-    dictionary_put_with_int_key(indice_de_instrucciones, PID, instrucciones_de_proceso);
+    bool agregado_exitoso = false;
+    if (!list_is_empty(instrucciones_de_proceso))
+    {
+        agregado_exitoso = true;
+        dictionary_put_with_int_key(indice_de_instrucciones, PID, instrucciones_de_proceso);
+    }
+    else
+    {
+        list_destroy(instrucciones_de_proceso);
+    }
+
+    return agregado_exitoso;
 }
 
 void quitar_instrucciones_al_indice(t_dictionary *indice_de_instrucciones, uint32_t PID)

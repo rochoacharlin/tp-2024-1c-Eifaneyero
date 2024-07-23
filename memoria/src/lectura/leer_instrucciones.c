@@ -12,8 +12,9 @@ t_list *subir_instrucciones(char *path)
     FILE *archivo = fopen(path_absoluto, "r");
     if (archivo == NULL)
     {
+        free(path_absoluto);
         log_error(logger_propio, "No se pudo encontrar el archivo de instrucciones.");
-        abort();
+        return list_create();
     }
 
     t_list *instrucciones = list_create();

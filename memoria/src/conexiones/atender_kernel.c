@@ -36,8 +36,13 @@ void atender_crear_proceso()
     uint32_t PID;
     char *path;
     recibir_creacion_proceso(&PID, &path);
-    crear_estructuras_administrativas(PID, path);
-    enviar_cod_op(OK, socket_kernel);
+    op_code respuesta = OK;
+    if (!crear_estructuras_administrativas(PID, path))
+    {
+        respuesta = ERROR;
+    }
+    free(path);
+    enviar_cod_op(respuesta, socket_kernel);
 }
 
 void recibir_creacion_proceso(uint32_t *PID, char **ptr_path)
@@ -48,11 +53,15 @@ void recibir_creacion_proceso(uint32_t *PID, char **ptr_path)
     list_destroy_and_destroy_elements(paquete_crear_proceso, free);
 }
 
-void crear_estructuras_administrativas(uint32_t PID, char *path)
+bool crear_estructuras_administrativas(uint32_t PID, char *path)
 {
-    agregar_instrucciones_al_indice(indice_instrucciones, PID, path);
-    free(path);
-    agregar_proceso_al_indice(PID);
+    bool agregado_exitoso = agregar_instrucciones_al_indice(indice_instrucciones, PID, path);
+    if (agregado_exitoso)
+    {
+        agregar_proceso_al_indice(PID);
+    }
+
+    return agregado_exitoso;
 }
 
 void atender_finalizar_proceso(void)

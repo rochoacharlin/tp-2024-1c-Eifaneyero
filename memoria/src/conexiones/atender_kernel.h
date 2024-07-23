@@ -7,7 +7,7 @@
 
 void atender_kernel(int *socket_cliente);
 
-void crear_estructuras_administrativas(uint32_t PID, char *path);
+bool crear_estructuras_administrativas(uint32_t PID, char *path);
 void recibir_creacion_proceso(uint32_t *PID, char **ptr_path);
 void atender_crear_proceso(void);
 
