@@ -17,6 +17,7 @@ t_pcb *crear_pcb()
 
 void destruir_pcb(t_pcb *pcb)
 {
+    list_destroy_and_destroy_elements(pcb->recursos_asignados, free);
     destruir_registros_cpu(pcb->registros_cpu);
     free(pcb);
 }

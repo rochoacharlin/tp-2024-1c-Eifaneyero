@@ -62,7 +62,11 @@ void iniciar_proceso(char *path)
             ingresar_pcb_a_NEW(pcb);
         }
         else
+        {
+            destruir_pcb(pcb);
+            procesos_creados--;
             log_info(logger_propio, "Creacion de proceso fallida en memoria.");
+        }
     }
     else
     {

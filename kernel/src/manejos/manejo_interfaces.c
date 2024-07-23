@@ -89,12 +89,14 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
         }
         else
         {
+            list_destroy_and_destroy_elements(parametros, free);
             log_info(logger_propio, "La interfaz %s no puede realizar la operacion %s.", nombre_interfaz, tipo_de_operacion);
             enviar_pcb_a_EXIT(pcb, INVALID_INTERFACE);
         }
     }
     else
     {
+        list_destroy_and_destroy_elements(parametros, free);
         log_info(logger_propio, "La interfaz %s no existe.", nombre_interfaz);
         enviar_pcb_a_EXIT(pcb, INVALID_INTERFACE);
     }
