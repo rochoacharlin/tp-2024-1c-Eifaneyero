@@ -5,6 +5,7 @@ t_list *colas_de_recursos;
 char **nombres_recursos;
 pthread_mutex_t mutex_colas_de_recursos;
 pthread_mutex_t mutex_instancias_recursos;
+pthread_mutex_t *mutex_cola_recurso;
 
 void crear_colas_de_bloqueo(void)
 {
@@ -24,6 +25,7 @@ void crear_colas_de_bloqueo(void)
         list_add(colas_de_recursos, (void *)cola_bloqueo);
         pthread_mutex_unlock(&mutex_colas_de_recursos);
     }
+    crear_mutex_por_cola_de_recurso();
 
     destruir_lista_string(instancias_aux);
 }
@@ -195,16 +197,19 @@ void signal_recurso(char *recurso, t_pcb *pcb)
 
 void eliminar_pcb_de_colas_de_recursos(t_pcb *pcb)
 {
-    pthread_mutex_lock(&mutex_instancias_recursos);
-    for (int i = 0; i < list_size(colas_de_recursos); i++)
+    for (int i = 0; i < list_size(colas_de_recursos); i++) 
     {
         t_list *cola = list_get(colas_de_recursos, i);
-        if (list_remove_element(cola, pcb))
+        pthread_mutex_lock(&mutex_cola_recurso[i]);
+        bool fue_quitada = list_remove_element(cola, pcb);
+        pthread_mutex_unlock(&mutex_cola_recurso[i]);
+        if (fue_quitada)
         {
+            pthread_mutex_lock(&mutex_instancias_recursos);
             ++instancias_recursos[i];
+            pthread_mutex_unlock(&mutex_instancias_recursos);
         }
     }
-    pthread_mutex_unlock(&mutex_instancias_recursos);
 }
 
 void destruir_lista_string(char **lista_string)
@@ -246,4 +251,22 @@ int cantidad_recursos(void)
 void destruir_colas_de_recursos(void)
 {
     list_destroy_and_destroy_elements(colas_de_recursos, (void *)list_destroy);
+}
+
+void crear_mutex_por_cola_de_recurso(void) 
+{
+    mutex_cola_recurso = malloc(sizeof(pthread_mutex_t) * cantidad_recursos());
+    for (int i = 0; i < cantidad_recursos(); i++) 
+    {
+        pthread_mutex_init(&mutex_cola_recurso[i], NULL);
+    }
+}
+
+void destruir_mutex_por_colas_de_recurso(void) 
+{
+    for (int i = 0; i < cantidad_recursos(); i++) 
+    {
+        pthread_mutex_destroy(&mutex_cola_recurso[i]);
+    }
+    free(mutex_cola_recurso);
 }

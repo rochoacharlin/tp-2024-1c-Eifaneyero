@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 
     destruir_semaforos_planificacion();
     destruir_listas_planificacion();
+    destruir_mutex_por_colas_de_recurso();
 
     close(conexion_kernel_cpu_dispatch);
     close(conexion_kernel_cpu_interrupt);

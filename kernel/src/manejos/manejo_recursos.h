@@ -13,6 +13,7 @@ extern t_list *colas_de_recursos;
 extern char **nombres_recursos;
 extern pthread_mutex_t mutex_colas_de_recursos;
 extern pthread_mutex_t mutex_instancias_recursos;
+extern pthread_mutex_t *mutex_cola_recurso;
 
 // funciones principales
 void crear_colas_de_bloqueo(void);
@@ -28,5 +29,7 @@ int posicion_recurso(char *recurso);
 int cantidad_recursos(void);
 void destruir_lista_string(char **lista_string);
 void destruir_colas_de_recursos(void);
+void crear_mutex_por_cola_de_recurso(void);
+void destruir_mutex_por_colas_de_recurso(void);
 
 #endif
