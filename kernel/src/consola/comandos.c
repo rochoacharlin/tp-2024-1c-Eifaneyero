@@ -126,23 +126,27 @@ void reanudar_planificacion(void)
 
 void cambiar_grado_multiprogramacion(char *valor_deseado)
 {
+    int valor_deseado_entero = atoi(valor_deseado);
     if (valor_deseado == NULL)
         log_error(logger_propio, "No se indico el numero de grado de multiprogramacion");
+    else if (valor_deseado_entero < 0)
+        log_error(logger_propio, "Se indico un grado de multiprogramacion negativo");
     else
     {
         int valor_resultante, valor_actual, valor_inicial;
-        valor_inicial = obtener_grado_multiprogramacion();
+        valor_inicial = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
         sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
 
-        valor_resultante = atoi(valor_deseado) - valor_inicial + valor_actual;
+        valor_resultante = valor_deseado_entero - valor_inicial + valor_actual;
+        pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+        grado_multiprogramacion_auxiliar = valor_resultante;
+        pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+        if (valor_resultante < 0)
+            valor_resultante = valor_deseado_entero;
+
         cambiar_valor_de_semaforo(&sem_grado_multiprogramacion, valor_resultante);
         config_set_value(config, "GRADO_MULTIPROGRAMACION", valor_deseado);
-
-        sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
-        log_info(logger_propio, "Grado multiprogramacion actual: %d", valor_actual);
-
-        // VERIFICAR: En caso de que se tengan más procesos ejecutando que lo que permite el grado de
-        //       multiprogramación, no se tomarán acciones sobre los mismos y se esperará su finalización normal.
+        config_save(config);
     }
 }
 
@@ -165,4 +169,12 @@ void listar_recursos(void)
     {
         printf("Cantidad de instancias de %s: %d \n", nombres_recursos[i], instancias_recursos[i]);
     }
+}
+
+void multiprogramacion_actual(void)
+{
+    int valor;
+    sem_getvalue(&sem_grado_multiprogramacion, &valor);
+    log_info(logger_propio, "Grado multiprogramacion actual real: %d", valor);
+    log_info(logger_propio, "Grado multiprogramacion actual auxiliar: %d", grado_multiprogramacion_auxiliar);
 }

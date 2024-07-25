@@ -20,10 +20,8 @@ extern t_list *pcbs_en_BLOCKED;
 extern t_list *pcbs_en_EXIT;
 
 extern sem_t sem_grado_multiprogramacion;
-extern int grado_multiprogramacion;
-
-extern int conexion_kernel_cpu_dispatch;
-extern int conexion_kernel_cpu_interrupt;
+extern int32_t grado_multiprogramacion_auxiliar;
+extern pthread_mutex_t mutex_multiprogramacion_auxiliar;
 
 extern sem_t hay_pcbs_NEW;
 extern sem_t hay_pcbs_READY;

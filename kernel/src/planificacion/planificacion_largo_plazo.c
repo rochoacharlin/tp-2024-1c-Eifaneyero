@@ -28,6 +28,8 @@ pthread_mutex_t mutex_lista_PIDS;
 
 int32_t procesos_creados = 1;
 char *algoritmo;
+int32_t grado_multiprogramacion_auxiliar;
+pthread_mutex_t mutex_multiprogramacion_auxiliar;
 
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
@@ -57,10 +59,15 @@ void iniciar_planificacion(void)
 
 void planificar_a_largo_plazo(void)
 {
+    grado_multiprogramacion_auxiliar = obtener_grado_multiprogramacion();
+
     while (1)
     {
         sem_wait(&hay_pcbs_NEW);
         sem_wait(&sem_grado_multiprogramacion);
+        pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+        grado_multiprogramacion_auxiliar--;
+        pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
         sem_wait(&planificacion_largo_plazo_liberada);
 
         t_pcb *pcb = obtener_siguiente_pcb_READY();
@@ -159,6 +166,7 @@ void inicializar_semaforos_planificacion(void)
     pthread_mutex_init(&mutex_colas_de_recursos, NULL);
     pthread_mutex_init(&mutex_instancias_recursos, NULL);
     pthread_mutex_init(&mutex_lista_PIDS, NULL);
+    pthread_mutex_init(&mutex_multiprogramacion_auxiliar, NULL);
     sem_init(&hay_pcbs_NEW, 0, 0);
     sem_init(&hay_pcbs_READY, 0, 0);
     sem_init(&sem_grado_multiprogramacion, 0, obtener_grado_multiprogramacion());
@@ -180,6 +188,7 @@ void destruir_semaforos_planificacion(void)
     pthread_mutex_destroy(&mutex_colas_de_recursos);
     pthread_mutex_destroy(&mutex_instancias_recursos);
     pthread_mutex_destroy(&mutex_lista_PIDS);
+    pthread_mutex_destroy(&mutex_multiprogramacion_auxiliar);
     sem_close(&hay_pcbs_NEW);
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
@@ -196,7 +205,12 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
     remover_pcb_de_listas_globales(pcb);
     pcb->estado = EXIT;
 
-    sem_post(&sem_grado_multiprogramacion);
+    pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+    bool grado_multiprogramacion_positivo = ++grado_multiprogramacion_auxiliar > 0;
+    pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+
+    if (grado_multiprogramacion_positivo)
+        sem_post(&sem_grado_multiprogramacion);
 
     pthread_mutex_lock(&mutex_lista_EXIT);
     list_add(pcbs_en_EXIT, pcb);

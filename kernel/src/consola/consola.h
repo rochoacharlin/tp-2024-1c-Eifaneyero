@@ -31,6 +31,10 @@ void cambiar_grado_multiprogramacion(char *valor);
 void listar_procesos_por_cada_estado(void);
 void listar_recursos(void);
 
+// comandos utiles pero que no estan en la consigna
+void listar_recursos(void);
+void multiprogramacion_actual(void);
+
 // funciones utiles
 void listar_procesos_por_estado(char *estado, t_list *lista);
 void buscar_y_ejecutar_comando(char *token);

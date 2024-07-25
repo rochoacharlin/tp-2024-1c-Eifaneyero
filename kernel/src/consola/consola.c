@@ -9,6 +9,7 @@ t_comando comandos[] = {
     {"MULTIPROGRAMACION", cambiar_grado_multiprogramacion},
     {"PROCESO_ESTADO", listar_procesos_por_cada_estado},
     {"RECURSOS", listar_recursos},
+    {"GRADO_MULTIPROGRAMACION", multiprogramacion_actual},
 };
 
 void consola_interactiva(void)
