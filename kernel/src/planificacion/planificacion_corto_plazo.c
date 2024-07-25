@@ -195,6 +195,11 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         }
         else
         {
+            if (strcmp(algoritmo, "VRR") == 0)
+            {
+                temporal_stop(temp);
+                temporal_destroy(temp);
+            }
             pthread_cancel(*hilo_quantum);
         }
 
@@ -209,6 +214,11 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         }
         else
         {
+            if (strcmp(algoritmo, "VRR") == 0)
+            {
+                temporal_stop(temp);
+                temporal_destroy(temp);
+            }
             pthread_cancel(*hilo_quantum);
         }
         break;
