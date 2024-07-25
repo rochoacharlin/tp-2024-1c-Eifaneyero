@@ -6,6 +6,7 @@ bool continua_ejecucion = true;
 bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
 t_contexto *contexto;
+t_contexto **contexto_original;
 
 void destruir_instruccion(t_instruccion *instruccion)
 {
@@ -14,9 +15,10 @@ void destruir_instruccion(t_instruccion *instruccion)
     free(instruccion);
 }
 
-void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
-{
-    contexto = contexto_a_ejecutar;
+void ciclo_de_instruccion(t_contexto **contexto_a_ejecutar)
+{ 
+    contexto_original = contexto_a_ejecutar;
+    contexto = *contexto_a_ejecutar;
     continua_ejecucion = true;
     hay_interrupcion = false;
 
@@ -358,8 +360,16 @@ bool instruccion_bloqueante(t_id id_instruccion)
 void check_interrupt(t_instruccion *instruccion)
 {
     if(instruccion->id == WAIT || instruccion->id == SIGNAL){
+        if (recibir_operacion(conexion_cpu_kernel_dispatch) != CONTEXTO_EJECUCION)
+        {
+            continua_ejecucion = false;
+            return; 
+        }
+        
         uint32_t pid_viejo = contexto->PID;
-        contexto = recibir_contexto(conexion_cpu_kernel_dispatch);
+        destruir_contexto(contexto);
+        *contexto_original = recibir_contexto(conexion_cpu_kernel_dispatch);
+        contexto = *contexto_original;
         uint32_t pid_nuevo = contexto->PID;
         
         if(pid_nuevo != pid_viejo){ 
@@ -454,7 +464,6 @@ void signal(char *recurso)
     t_list *parametros = list_create();
     list_add(parametros, string_duplicate(recurso));
     devolver_contexto(DESALOJO_SIGNAL, parametros);
-    // espere ok del kernel
 }
 
 void io_gen_sleep(char *nombre, char *unidades)
