@@ -145,10 +145,10 @@ void cambiar_grado_multiprogramacion(char *valor_deseado)
         pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
         int valor_auxiliar_anterior = grado_multiprogramacion_auxiliar;
         grado_multiprogramacion_auxiliar = valor_auxiliar_anterior < 0 ? valor_resultante + valor_auxiliar_anterior : valor_resultante;
-        pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
-
-        // y si es negativo el valor resultante y el auxiliar??
         valor_resultante = grado_multiprogramacion_auxiliar >= 0 ? grado_multiprogramacion_auxiliar : 0;
+        pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+        
+        // y si es negativo el valor resultante y el auxiliar??
         //valor_resultante = valor_auxiliar_anterior < 0 ? valor_deseado_entero + valor_auxiliar_anterior : valor_resultante;
         //valor_resultante = valor_resultante < 0 ? 0 : valor_resultante;
         // valor_resultante = valor_auxiliar_anterior < 0 && valor_resultante < 0 ? valor_deseado_entero + valor_auxiliar_anterior : valor_resultante;
