@@ -10,7 +10,11 @@ void planificar_a_corto_plazo_segun_algoritmo(void)
     pthread_mutex_init(&mutex_hubo_desalojo, NULL);
     if (strcmp(algoritmo, "FIFO") == 0 || strcmp(algoritmo, "RR") == 0)
     {
-        planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO_o_RR);
+        planificar_a_corto_plazo(proximo_a_ejecutar_segun_FIFO);
+    }
+    else if (strcmp(algoritmo, "RR") == 0)
+    {
+        planificar_a_corto_plazo(proximo_a_ejecutar_segun_RR);
     }
     else if (strcmp(algoritmo, "VRR") == 0)
     {
@@ -52,11 +56,20 @@ void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)())
     }
 }
 
-t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void)
+t_pcb *proximo_a_ejecutar_segun_FIFO(void)
 {
     pthread_mutex_lock(&mutex_cola_READY);
     t_pcb *pcb = desencolar_pcb(pcbs_en_READY);
     pthread_mutex_unlock(&mutex_cola_READY);
+    return pcb;
+}
+
+t_pcb *proximo_a_ejecutar_segun_RR(void)
+{
+    pthread_mutex_lock(&mutex_cola_READY);
+    t_pcb *pcb = desencolar_pcb(pcbs_en_READY);
+    pthread_mutex_unlock(&mutex_cola_READY);
+
     return pcb;
 }
 
@@ -120,20 +133,25 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb)
 void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
+    log_info(logger_propio, "volví al kernel");
+// SIGNAL
+// IO_STDIN...
+    if(motivo_desalojo != DESALOJO_SIGNAL && motivo_desalojo != DESALOJO_WAIT){
+        pthread_mutex_lock(&mutex_hubo_desalojo);
+        hubo_desalojo = true;
+        pthread_mutex_unlock(&mutex_hubo_desalojo);
 
-    pthread_mutex_lock(&mutex_hubo_desalojo);
-    hubo_desalojo = true;
-    pthread_mutex_unlock(&mutex_hubo_desalojo);
-    if (strcmp(algoritmo, "RR") == 0)
-    {
-        pthread_cancel(*hilo_quantum);
-    }
-    if (strcmp(algoritmo, "VRR") == 0)
-    {
-        temporal_stop(temp);
-        ms_en_ejecucion = temporal_gettime(temp);
-        temporal_destroy(temp);
-        pthread_cancel(*hilo_quantum);
+        if (strcmp(algoritmo, "RR") == 0)
+        {
+            pthread_cancel(*hilo_quantum);
+        }
+        else if (strcmp(algoritmo, "VRR") == 0)
+        {
+            temporal_stop(temp);
+            ms_en_ejecucion = temporal_gettime(temp);
+            temporal_destroy(temp);
+            pthread_cancel(*hilo_quantum);
+        }
     }
 
     t_list *paquete = recibir_paquete(conexion_kernel_cpu_dispatch);
@@ -169,11 +187,24 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         break;
 
     case DESALOJO_WAIT:
-        wait_recurso((char *)list_get(paquete, 12), pcb);
+        sem_post(&desalojo_liberado);
+        if(wait_recurso((char *)list_get(paquete, 12), pcb)){
+            enviar_contexto(conexion_kernel_cpu_dispatch, crear_contexto(pcb));
+            esperar_contexto_y_manejar_desalojo(pcb, hilo_quantum);
+        }else{
+            pthread_cancel(*hilo_quantum);
+        }
+
         break;
 
     case DESALOJO_SIGNAL:
-        signal_recurso((char *)list_get(paquete, 12), pcb);
+        sem_post(&desalojo_liberado);
+        if(signal_recurso((char *)list_get(paquete, 12), pcb)){
+            enviar_contexto(conexion_kernel_cpu_dispatch, crear_contexto(pcb));
+            esperar_contexto_y_manejar_desalojo(pcb, hilo_quantum);
+        }else{
+            pthread_cancel(*hilo_quantum);
+        }
         break;
 
     default:
@@ -225,7 +256,7 @@ void ejecutar_segun_FIFO(t_contexto *contexto)
 }
 
 void ejecutar_segun_RR(t_contexto *contexto)
-{
+{   
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     useconds_t tiempo_de_espera_ms = obtener_quantum() * 1000;
     usleep(tiempo_de_espera_ms);

@@ -15,7 +15,7 @@ sem_t planificacion_largo_plazo_liberada;
 sem_t planificacion_corto_plazo_liberada;
 sem_t desalojo_liberado;
 sem_t planificacion_pausada;
-sem_t atencion_liberada;
+sem_t transicion_estados_corto_plazo_liberada;
 
 pthread_mutex_t mutex_lista_NEW;
 pthread_mutex_t mutex_cola_READY;
@@ -87,9 +87,13 @@ t_pcb *obtener_siguiente_pcb_READY(void)
 
 void ingresar_pcb_a_READY(t_pcb *pcb)
 {
+    // sem_wait(&transicion_estados_corto_plazo_liberada);
+
     pthread_mutex_lock(&mutex_cola_READY);
     encolar_pcb(pcbs_en_READY, pcb);
     pthread_mutex_unlock(&mutex_cola_READY);
+
+    // sem_wait(&transicion_estados_corto_plazo_liberada);
 
     // log minimo y obligatorio
     pthread_mutex_lock(&mutex_lista_PIDS);
@@ -161,7 +165,7 @@ void inicializar_semaforos_planificacion(void)
     sem_init(&planificacion_largo_plazo_liberada, 0, 1);
     sem_init(&planificacion_corto_plazo_liberada, 0, 1);
     sem_init(&desalojo_liberado, 0, 1);
-    sem_init(&atencion_liberada, 0, 1);
+    sem_init(&transicion_estados_corto_plazo_liberada, 0, 1);
 }
 
 void destruir_semaforos_planificacion(void)
@@ -182,11 +186,13 @@ void destruir_semaforos_planificacion(void)
     sem_close(&planificacion_largo_plazo_liberada);
     sem_close(&planificacion_corto_plazo_liberada);
     sem_close(&desalojo_liberado);
-    sem_close(&atencion_liberada);
+    sem_close(&transicion_estados_corto_plazo_liberada);
 }
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 {
+    sem_wait(&planificacion_largo_plazo_liberada);
+
     remover_pcb_de_listas_globales(pcb);
     pcb->estado = EXIT;
 
@@ -195,6 +201,8 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
     pthread_mutex_lock(&mutex_lista_EXIT);
     list_add(pcbs_en_EXIT, pcb);
     pthread_mutex_unlock(&mutex_lista_EXIT);
+
+    sem_post(&planificacion_largo_plazo_liberada);
 
     // log minimo y obligatorio
     loggear_fin_de_proceso(pcb->PID, motivo);

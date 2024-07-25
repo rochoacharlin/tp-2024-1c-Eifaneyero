@@ -68,12 +68,14 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
         if (puede_realizar_operacion(io, tipo_de_operacion)) // verifico que puede hacer el tipo de operación
         {
             // agrego pcb a bloqueados
+            //sem_wait(&transicion_estados_corto_plazo_liberada);
             pthread_mutex_lock(&mutex_lista_BLOCKED);
             list_add(pcbs_en_BLOCKED, (void *)pcb);
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             // logs minimos y obligatorios
             pcb->estado = BLOCKED;
+            //sem_post(&transicion_estados_corto_plazo_liberada);
             loggear_cambio_de_estado(pcb->PID, EXEC, BLOCKED);
             loggear_motivo_de_bloqueo(pcb->PID, nombre_interfaz);
 
@@ -160,13 +162,13 @@ void atender_interfaz(void *interfaz)
         {
             if (proceso->pcb->estado == BLOCKED)
             {
-                sem_wait(&atencion_liberada);
+                sem_wait(&transicion_estados_corto_plazo_liberada);
                 pthread_mutex_lock(&mutex_lista_BLOCKED);
                 list_remove_element(pcbs_en_BLOCKED, proceso->pcb);
                 pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
                 encolar_pcb_ready_segun_algoritmo(proceso->pcb);
-                sem_post(&atencion_liberada);
+                sem_post(&transicion_estados_corto_plazo_liberada);
             }
         }
         else

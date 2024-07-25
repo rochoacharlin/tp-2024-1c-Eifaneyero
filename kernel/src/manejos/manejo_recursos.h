@@ -18,8 +18,8 @@ extern pthread_mutex_t *mutex_cola_recurso;
 // funciones principales
 void crear_colas_de_bloqueo(void);
 void desbloquear_pcb_si_corresponde(int pos_recurso);
-void wait_recurso(char *recurso, t_pcb *pcb);
-void signal_recurso(char *recurso, t_pcb *pcb);
+bool wait_recurso(char *recurso, t_pcb *pcb);
+bool signal_recurso(char *recurso, t_pcb *pcb);
 void liberar_recursos(t_pcb *pcb);
 
 // funciones complementarias
