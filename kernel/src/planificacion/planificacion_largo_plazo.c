@@ -207,10 +207,10 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 
     pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
     bool grado_multiprogramacion_positivo = ++grado_multiprogramacion_auxiliar > 0;
-    pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
-
     if (grado_multiprogramacion_positivo)
         sem_post(&sem_grado_multiprogramacion);
+    pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+
 
     pthread_mutex_lock(&mutex_lista_EXIT);
     list_add(pcbs_en_EXIT, pcb);
