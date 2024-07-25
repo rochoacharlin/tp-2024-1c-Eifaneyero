@@ -145,6 +145,8 @@ void atender_interfaz(void *interfaz)
     {
         sem_wait(&io->procesos_en_cola);
 
+        if(io->desconectada){break;}
+
         pthread_mutex_lock(&io->cola_bloqueados);
         t_proceso_bloqueado *proceso = (t_proceso_bloqueado *)list_remove(io->procesos_bloqueados, 0);
         pthread_mutex_unlock(&io->cola_bloqueados);
@@ -209,6 +211,7 @@ t_io *crear_interfaz(char *nombre, char *tipo, int fd)
     interfaz->fd = fd;
     interfaz->nombre = malloc(strlen(nombre) + 1);
     interfaz->tipo = malloc(strlen(tipo) + 1);
+    interfaz->desconectada = false;
     strcpy(interfaz->nombre, nombre);
     strcpy(interfaz->tipo, tipo);
     interfaz->procesos_bloqueados = list_create();
@@ -226,7 +229,11 @@ t_io *buscar_interfaz(char *nombre_io)
         if (strcmp(io->nombre, nombre_io) == 0)
         {
             if (socket_desconectado(io->fd))
-                liberar_interfaz(io);
+            {
+                io->desconectada = true;
+                sem_post(&(io->procesos_en_cola));
+                return NULL;
+            }
             else
                 return io;
         }
@@ -241,8 +248,8 @@ void liberar_interfaz(t_io *io)
     pthread_mutex_unlock(&mutex_interfaces);
     free(io->nombre);
     free(io->tipo);
-    pthread_cancel(io->hilo_interfaz);
     liberar_procesos_io(io->procesos_bloqueados);
+    free(io->procesos_bloqueados);
     pthread_mutex_destroy(&(io->cola_bloqueados));
     sem_destroy(&(io->procesos_en_cola));
     free(io);

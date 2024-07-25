@@ -25,6 +25,7 @@ typedef struct
     pthread_mutex_t cola_bloqueados;
     sem_t procesos_en_cola;
     pthread_t hilo_interfaz;
+    bool desconectada;
 } t_io;
 
 typedef struct
