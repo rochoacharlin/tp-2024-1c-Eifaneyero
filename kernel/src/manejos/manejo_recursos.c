@@ -64,11 +64,11 @@ void desbloquear_pcb_si_corresponde(int pos_recurso)
         pthread_mutex_unlock(&mutex_colas_de_recursos);
 
         // sem_wait(&transicion_estados_corto_plazo_liberada);
-        
+
         pthread_mutex_lock(&mutex_lista_BLOCKED);
         list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
         pthread_mutex_unlock(&mutex_lista_BLOCKED);
-        
+
         // sem_post(&transicion_estados_corto_plazo_liberada);
 
         int *pos = malloc(sizeof(int));
@@ -173,14 +173,14 @@ bool signal_recurso(char *recurso, t_pcb *pcb)
             pthread_mutex_unlock(&mutex_colas_de_recursos);
 
             // sem_wait(&transicion_estados_corto_plazo_liberada);
-            
+
             pthread_mutex_lock(&mutex_lista_BLOCKED);
             list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             // no considero mandarlo a Ready con prioridad ya que no se bloqueo por una IO
             ingresar_pcb_a_READY(pcb_a_desbloquear);
-            
+
             // sem_post(&transicion_estados_corto_plazo_liberada);
 
             int *pos = malloc(sizeof(int));
@@ -207,13 +207,13 @@ bool signal_recurso(char *recurso, t_pcb *pcb)
     {
         enviar_pcb_a_EXIT(pcb, INVALID_RESOURCE);
     }
-        
+
     return recurso_liberado;
 }
 
 void eliminar_pcb_de_colas_de_recursos(t_pcb *pcb)
 {
-    for (int i = 0; i < list_size(colas_de_recursos); i++) 
+    for (int i = 0; i < list_size(colas_de_recursos); i++)
     {
         t_list *cola = list_get(colas_de_recursos, i);
         pthread_mutex_lock(&mutex_cola_recurso[i]);
@@ -269,18 +269,18 @@ void destruir_colas_de_recursos(void)
     list_destroy_and_destroy_elements(colas_de_recursos, (void *)list_destroy);
 }
 
-void crear_mutex_por_cola_de_recurso(void) 
+void crear_mutex_por_cola_de_recurso(void)
 {
     mutex_cola_recurso = malloc(sizeof(pthread_mutex_t) * cantidad_recursos());
-    for (int i = 0; i < cantidad_recursos(); i++) 
+    for (int i = 0; i < cantidad_recursos(); i++)
     {
         pthread_mutex_init(&mutex_cola_recurso[i], NULL);
     }
 }
 
-void destruir_mutex_por_colas_de_recurso(void) 
+void destruir_mutex_por_colas_de_recurso(void)
 {
-    for (int i = 0; i < cantidad_recursos(); i++) 
+    for (int i = 0; i < cantidad_recursos(); i++)
     {
         pthread_mutex_destroy(&mutex_cola_recurso[i]);
     }

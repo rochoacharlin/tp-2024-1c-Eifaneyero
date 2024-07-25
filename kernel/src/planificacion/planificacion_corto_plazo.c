@@ -133,10 +133,9 @@ void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb)
 void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
 {
     int motivo_desalojo = recibir_operacion(conexion_kernel_cpu_dispatch);
-    log_info(logger_propio, "volví al kernel");
-// SIGNAL
-// IO_STDIN...
-    if(motivo_desalojo != DESALOJO_SIGNAL && motivo_desalojo != DESALOJO_WAIT){
+
+    if (motivo_desalojo != DESALOJO_SIGNAL && motivo_desalojo != DESALOJO_WAIT)
+    {
         pthread_mutex_lock(&mutex_hubo_desalojo);
         hubo_desalojo = true;
         pthread_mutex_unlock(&mutex_hubo_desalojo);
@@ -188,11 +187,14 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
 
     case DESALOJO_WAIT:
         sem_post(&desalojo_liberado);
-        if(wait_recurso((char *)list_get(paquete, 12), pcb)){
+        if (wait_recurso((char *)list_get(paquete, 12), pcb))
+        {
             enviar_contexto(conexion_kernel_cpu_dispatch, crear_contexto(pcb));
             contexto = NULL;
             esperar_contexto_y_manejar_desalojo(pcb, hilo_quantum);
-        }else{
+        }
+        else
+        {
             pthread_cancel(*hilo_quantum);
         }
 
@@ -200,10 +202,13 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
 
     case DESALOJO_SIGNAL:
         sem_post(&desalojo_liberado);
-        if(signal_recurso((char *)list_get(paquete, 12), pcb)){
+        if (signal_recurso((char *)list_get(paquete, 12), pcb))
+        {
             enviar_contexto(conexion_kernel_cpu_dispatch, crear_contexto(pcb));
             esperar_contexto_y_manejar_desalojo(pcb, hilo_quantum);
-        }else{
+        }
+        else
+        {
             pthread_cancel(*hilo_quantum);
         }
         break;
@@ -257,7 +262,7 @@ void ejecutar_segun_FIFO(t_contexto *contexto)
 }
 
 void ejecutar_segun_RR(t_contexto *contexto)
-{   
+{
     enviar_contexto(conexion_kernel_cpu_dispatch, contexto);
     useconds_t tiempo_de_espera_ms = obtener_quantum() * 1000;
     usleep(tiempo_de_espera_ms);
