@@ -16,7 +16,7 @@ void destruir_instruccion(t_instruccion *instruccion)
 }
 
 void ciclo_de_instruccion(t_contexto **contexto_a_ejecutar)
-{ 
+{
     contexto_original = contexto_a_ejecutar;
     contexto = *contexto_a_ejecutar;
     continua_ejecucion = true;
@@ -359,20 +359,22 @@ bool instruccion_bloqueante(t_id id_instruccion)
 
 void check_interrupt(t_instruccion *instruccion)
 {
-    if(instruccion->id == WAIT || instruccion->id == SIGNAL){
+    if (instruccion->id == WAIT || instruccion->id == SIGNAL)
+    {
         if (recibir_operacion(conexion_cpu_kernel_dispatch) != CONTEXTO_EJECUCION)
         {
             continua_ejecucion = false;
-            return; 
+            return;
         }
-        
+
         uint32_t pid_viejo = contexto->PID;
         destruir_contexto(contexto);
         *contexto_original = recibir_contexto(conexion_cpu_kernel_dispatch);
         contexto = *contexto_original;
         uint32_t pid_nuevo = contexto->PID;
-        
-        if(pid_nuevo != pid_viejo){ 
+
+        if (pid_nuevo != pid_viejo)
+        {
             pthread_mutex_lock(&mutex_interrupt);
             hay_interrupcion = false;
             pthread_mutex_unlock(&mutex_interrupt);
@@ -388,9 +390,10 @@ void check_interrupt(t_instruccion *instruccion)
         pthread_mutex_unlock(&mutex_interrupt);
     }
 
-    if(!instruccion_bloqueante(instruccion->id)){
+    if (!instruccion_bloqueante(instruccion->id))
+    {
         pthread_mutex_lock(&mutex_interrupt);
-        if (hay_interrupcion )
+        if (hay_interrupcion)
         {
             motivo_desalojo motivo = string_interrupcion_to_enum_motivo(motivo_interrupcion);
             free(motivo_interrupcion);
@@ -399,7 +402,9 @@ void check_interrupt(t_instruccion *instruccion)
             pthread_mutex_unlock(&mutex_interrupt);
             devolver_contexto(motivo, NULL);
             continua_ejecucion = false;
-        }else{
+        }
+        else
+        {
             pthread_mutex_unlock(&mutex_interrupt);
         }
     }
