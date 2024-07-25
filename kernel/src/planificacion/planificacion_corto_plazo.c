@@ -190,6 +190,7 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
         sem_post(&desalojo_liberado);
         if(wait_recurso((char *)list_get(paquete, 12), pcb)){
             enviar_contexto(conexion_kernel_cpu_dispatch, crear_contexto(pcb));
+            contexto = NULL;
             esperar_contexto_y_manejar_desalojo(pcb, hilo_quantum);
         }else{
             pthread_cancel(*hilo_quantum);
