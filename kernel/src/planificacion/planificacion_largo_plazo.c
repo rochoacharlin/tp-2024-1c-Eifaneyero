@@ -261,6 +261,9 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
             list_remove_element(pcbs_en_aux_READY, pcb);
             pthread_mutex_unlock(&mutex_cola_aux_READY);
         }
+        
+        sem_wait(&hay_pcbs_READY);
+
         break;
 
     case EXEC:
