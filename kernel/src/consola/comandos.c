@@ -17,6 +17,7 @@ void ejecutar_script(char *path_relativo)
         archivo = fopen(path_absoluto, "r");
         if (archivo == NULL)
         {
+            free(path_absoluto);
             log_error(logger_propio, "Error al abrir el archivo.");
             return;
         }
