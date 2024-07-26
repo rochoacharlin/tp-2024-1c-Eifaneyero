@@ -99,7 +99,7 @@ void atender_interrupt()
         {
             pthread_mutex_unlock(&mutex_interrupt);
             char *motivo = recibir_interrupcion();
-            if(motivo == NULL){break 2;}
+            if(motivo == NULL){abort();}
 
             pthread_mutex_lock(&mutex_interrupt);
             motivo_interrupcion = motivo;
