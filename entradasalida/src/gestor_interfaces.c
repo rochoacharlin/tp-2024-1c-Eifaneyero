@@ -100,6 +100,8 @@ op_code atender_stdin(int cod_op, t_list *parametros)
             {
                 log_info(logger_propio, "Se produjo un error al intentar escribir %s en la memoria", texto_a_enviar);
                 respuesta = OPERACION_INVALIDA;
+                eliminar_paquete(paquete);
+                free(texto_a_enviar);
                 break;
             }
 
