@@ -64,30 +64,37 @@ void planificar_a_largo_plazo(void)
     while (1)
     {
         sem_wait(&hay_pcbs_NEW);
-        sem_wait(&sem_grado_multiprogramacion);
-        pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
-        grado_multiprogramacion_auxiliar--;
-        pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
-        sem_wait(&planificacion_largo_plazo_liberada);
-
         t_pcb *pcb = obtener_siguiente_pcb_READY();
+        if (pcb != NULL)
+        {
+            sem_wait(&sem_grado_multiprogramacion);
+            sem_wait(&planificacion_largo_plazo_liberada);
+            pcb = desencolar_pcb(pcbs_en_NEW);
+            if(pcb->estado == NEW) 
+            {
+                estado anterior = pcb->estado;
+                pcb->estado = READY;
 
-        estado anterior = pcb->estado;
-        pcb->estado = READY;
-        list_add(pcbs_en_memoria, pcb);
+                // log minimo y obligatorio
+                loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
 
-        // log minimo y obligatorio
-        loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
-
-        ingresar_pcb_a_READY(pcb);
-        sem_post(&planificacion_largo_plazo_liberada);
+                ingresar_pcb_a_READY(pcb);
+                sem_post(&planificacion_largo_plazo_liberada);
+            }
+            else 
+            {
+                sem_post(&sem_grado_multiprogramacion);
+            }
+        }
     }
 }
 
 t_pcb *obtener_siguiente_pcb_READY(void)
 {
+    t_pcb *pcb = NULL;
     pthread_mutex_lock(&mutex_lista_NEW);
-    t_pcb *pcb = desencolar_pcb(pcbs_en_NEW);
+    if(list_size(pcbs_en_NEW) > 0)
+        pcb = list_get(pcbs_en_NEW, 0);
     pthread_mutex_unlock(&mutex_lista_NEW);
     return pcb;
 }
@@ -203,14 +210,17 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
     sem_wait(&planificacion_largo_plazo_liberada);
 
     remover_pcb_de_listas_globales(pcb);
+
+    if (pcb->estado != NEW)
+    {
+        pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+        bool grado_multiprogramacion_positivo = ++grado_multiprogramacion_auxiliar > 0;
+        if (grado_multiprogramacion_positivo)
+            sem_post(&sem_grado_multiprogramacion);
+        pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+    }
+    
     pcb->estado = EXIT;
-
-    pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
-    bool grado_multiprogramacion_positivo = ++grado_multiprogramacion_auxiliar > 0;
-    if (grado_multiprogramacion_positivo)
-        sem_post(&sem_grado_multiprogramacion);
-    pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
-
 
     pthread_mutex_lock(&mutex_lista_EXIT);
     list_add(pcbs_en_EXIT, pcb);
@@ -238,6 +248,7 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 
 void remover_pcb_de_listas_globales(t_pcb *pcb)
 {
+    int valor_semaforo;
     pthread_mutex_lock(&mutex_lista_memoria);
     list_remove_element(pcbs_en_memoria, pcb);
     pthread_mutex_unlock(&mutex_lista_memoria);
@@ -248,6 +259,12 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
         pthread_mutex_lock(&mutex_lista_NEW);
         list_remove_element(pcbs_en_NEW, pcb);
         pthread_mutex_unlock(&mutex_lista_NEW);
+
+        // para que el wait no se quede trabado si ya es cero
+        sem_getvalue(&hay_pcbs_NEW, &valor_semaforo);
+        if (--valor_semaforo < 0)
+            sem_wait(&hay_pcbs_NEW);
+        
         break;
 
     case READY:
@@ -261,8 +278,11 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
             list_remove_element(pcbs_en_aux_READY, pcb);
             pthread_mutex_unlock(&mutex_cola_aux_READY);
         }
-        
-        sem_wait(&hay_pcbs_READY);
+
+        // para que el wait no se quede trabado si ya es cero
+        sem_getvalue(&hay_pcbs_READY, &valor_semaforo);
+        if (--valor_semaforo < 0)
+            sem_wait(&hay_pcbs_READY);
 
         break;
 

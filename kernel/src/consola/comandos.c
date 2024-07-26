@@ -61,6 +61,10 @@ void iniciar_proceso(char *path)
         {
             log_info(logger_propio, "Creacion de proceso exitosa en memoria.");
             ingresar_pcb_a_NEW(pcb);
+            
+            pthread_mutex_lock(&mutex_lista_memoria);
+            list_add(pcbs_en_memoria, pcb);
+            pthread_mutex_unlock(&mutex_lista_memoria);
         }
         else
         {
@@ -127,37 +131,43 @@ void reanudar_planificacion(void)
 
 void cambiar_grado_multiprogramacion(char *valor_deseado)
 {
-    int valor_deseado_entero = atoi(valor_deseado);
-    int valor_config = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
-
     if (valor_deseado == NULL)
         log_error(logger_propio, "No se indico el numero de grado de multiprogramacion");
-    else if (valor_deseado_entero < 0)
-        log_error(logger_propio, "Se indico un grado de multiprogramacion negativo");
-    else if (valor_deseado_entero == valor_config)
-        log_info(logger_propio, "Ya se tiene un grado de multiprogramacion de %d", valor_config);
-    else
+    else 
     {
-        int valor_resultante, valor_actual;
-        sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
-        
-        valor_resultante = valor_deseado_entero - valor_config + valor_actual;
+        int valor_deseado_entero = atoi(valor_deseado);
+        int valor_config = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
 
-        pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
-        int valor_auxiliar_anterior = grado_multiprogramacion_auxiliar;
-        grado_multiprogramacion_auxiliar = valor_auxiliar_anterior < 0 ? valor_resultante + valor_auxiliar_anterior : valor_resultante;
-        valor_resultante = grado_multiprogramacion_auxiliar >= 0 ? grado_multiprogramacion_auxiliar : 0;
-        pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
-        
-        // y si es negativo el valor resultante y el auxiliar??
-        //valor_resultante = valor_auxiliar_anterior < 0 ? valor_deseado_entero + valor_auxiliar_anterior : valor_resultante;
-        //valor_resultante = valor_resultante < 0 ? 0 : valor_resultante;
-        // valor_resultante = valor_auxiliar_anterior < 0 && valor_resultante < 0 ? valor_deseado_entero + valor_auxiliar_anterior : valor_resultante;
+        if (valor_deseado_entero < 0)
+            log_error(logger_propio, "Se indico un grado de multiprogramacion negativo");
+        else if (valor_deseado_entero == valor_config)
+            log_info(logger_propio, "Ya se tiene un grado de multiprogramacion de %d", valor_config);
+        else
+        {
+            int valor_resultante, valor_actual;
+            sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
+            
+            valor_resultante = valor_deseado_entero - valor_config + valor_actual;
 
-        cambiar_valor_de_semaforo(&sem_grado_multiprogramacion, valor_resultante);
-        config_set_value(config, "GRADO_MULTIPROGRAMACION", valor_deseado);
-        config_save(config);
+            pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+            int valor_auxiliar_anterior = grado_multiprogramacion_auxiliar;
+            grado_multiprogramacion_auxiliar = valor_auxiliar_anterior < 0 ? valor_resultante + valor_auxiliar_anterior : valor_resultante;
+            valor_resultante = grado_multiprogramacion_auxiliar >= 0 ? grado_multiprogramacion_auxiliar : 0;
+            pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+            
+            // y si es negativo el valor resultante y el auxiliar??
+            //valor_resultante = valor_auxiliar_anterior < 0 ? valor_deseado_entero + valor_auxiliar_anterior : valor_resultante;
+            //valor_resultante = valor_resultante < 0 ? 0 : valor_resultante;
+            // valor_resultante = valor_auxiliar_anterior < 0 && valor_resultante < 0 ? valor_deseado_entero + valor_auxiliar_anterior : valor_resultante;
+
+            log_info(logger_propio, "Valor resultante: %d", valor_resultante);
+
+            cambiar_valor_de_semaforo(&sem_grado_multiprogramacion, valor_resultante);
+            config_set_value(config, "GRADO_MULTIPROGRAMACION", valor_deseado);
+            config_save(config);
+        }
     }
+    
 }
 
 void listar_procesos_por_cada_estado(void)
