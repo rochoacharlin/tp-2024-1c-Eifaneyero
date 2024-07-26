@@ -196,5 +196,7 @@ void multiprogramacion_actual(void)
     int valor;
     sem_getvalue(&sem_grado_multiprogramacion, &valor);
     log_info(logger_propio, "Grado multiprogramacion actual real: %d", valor);
+    pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
     log_info(logger_propio, "Grado multiprogramacion actual auxiliar: %d", grado_multiprogramacion_auxiliar);
+    pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
 }

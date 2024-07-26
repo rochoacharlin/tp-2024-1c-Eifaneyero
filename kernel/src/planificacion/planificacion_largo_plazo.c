@@ -69,9 +69,9 @@ void planificar_a_largo_plazo(void)
         {
             sem_wait(&sem_grado_multiprogramacion);
             sem_wait(&planificacion_largo_plazo_liberada);
-            pcb = desencolar_pcb(pcbs_en_NEW);
             if(pcb->estado == NEW) 
             {
+                pcb = desencolar_pcb(pcbs_en_NEW);
                 estado anterior = pcb->estado;
                 pcb->estado = READY;
 
@@ -79,11 +79,17 @@ void planificar_a_largo_plazo(void)
                 loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
 
                 ingresar_pcb_a_READY(pcb);
+                
+                pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+                grado_multiprogramacion_auxiliar--;
+                pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+
                 sem_post(&planificacion_largo_plazo_liberada);
             }
             else 
             {
-                sem_post(&sem_grado_multiprogramacion);
+                sem_post(&planificacion_largo_plazo_liberada);
+                sem_post(&sem_grado_multiprogramacion);    
             }
         }
     }
@@ -207,6 +213,7 @@ void destruir_semaforos_planificacion(void)
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 {
+    // es debatible que al detener la planificacion nos manden un pcb a EXIT
     sem_wait(&planificacion_largo_plazo_liberada);
 
     remover_pcb_de_listas_globales(pcb);
@@ -259,11 +266,6 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
         pthread_mutex_lock(&mutex_lista_NEW);
         list_remove_element(pcbs_en_NEW, pcb);
         pthread_mutex_unlock(&mutex_lista_NEW);
-
-        // para que el wait no se quede trabado si ya es cero
-        sem_getvalue(&hay_pcbs_NEW, &valor_semaforo);
-        if (--valor_semaforo < 0)
-            sem_wait(&hay_pcbs_NEW);
         
         break;
 
