@@ -68,12 +68,14 @@ void manejador_interfaz(t_pcb *pcb, t_list *parametros)
         if (puede_realizar_operacion(io, tipo_de_operacion)) // verifico que puede hacer el tipo de operación
         {
             // agrego pcb a bloqueados
+            // sem_wait(&transicion_estados_corto_plazo_liberada);
             pthread_mutex_lock(&mutex_lista_BLOCKED);
             list_add(pcbs_en_BLOCKED, (void *)pcb);
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             // logs minimos y obligatorios
             pcb->estado = BLOCKED;
+            // sem_post(&transicion_estados_corto_plazo_liberada);
             loggear_cambio_de_estado(pcb->PID, EXEC, BLOCKED);
             loggear_motivo_de_bloqueo(pcb->PID, nombre_interfaz);
 
@@ -143,6 +145,8 @@ void atender_interfaz(void *interfaz)
     {
         sem_wait(&io->procesos_en_cola);
 
+        if(io->desconectada){break;}
+
         pthread_mutex_lock(&io->cola_bloqueados);
         t_proceso_bloqueado *proceso = (t_proceso_bloqueado *)list_remove(io->procesos_bloqueados, 0);
         pthread_mutex_unlock(&io->cola_bloqueados);
@@ -160,13 +164,13 @@ void atender_interfaz(void *interfaz)
         {
             if (proceso->pcb->estado == BLOCKED)
             {
-                sem_wait(&atencion_liberada);
+                sem_wait(&transicion_estados_corto_plazo_liberada);
                 pthread_mutex_lock(&mutex_lista_BLOCKED);
                 list_remove_element(pcbs_en_BLOCKED, proceso->pcb);
                 pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
                 encolar_pcb_ready_segun_algoritmo(proceso->pcb);
-                sem_post(&atencion_liberada);
+                sem_post(&transicion_estados_corto_plazo_liberada);
             }
         }
         else
@@ -207,6 +211,7 @@ t_io *crear_interfaz(char *nombre, char *tipo, int fd)
     interfaz->fd = fd;
     interfaz->nombre = malloc(strlen(nombre) + 1);
     interfaz->tipo = malloc(strlen(tipo) + 1);
+    interfaz->desconectada = false;
     strcpy(interfaz->nombre, nombre);
     strcpy(interfaz->tipo, tipo);
     interfaz->procesos_bloqueados = list_create();
@@ -224,7 +229,11 @@ t_io *buscar_interfaz(char *nombre_io)
         if (strcmp(io->nombre, nombre_io) == 0)
         {
             if (socket_desconectado(io->fd))
-                liberar_interfaz(io);
+            {
+                io->desconectada = true;
+                sem_post(&(io->procesos_en_cola));
+                return NULL;
+            }
             else
                 return io;
         }
@@ -239,8 +248,8 @@ void liberar_interfaz(t_io *io)
     pthread_mutex_unlock(&mutex_interfaces);
     free(io->nombre);
     free(io->tipo);
-    pthread_cancel(io->hilo_interfaz);
     liberar_procesos_io(io->procesos_bloqueados);
+    free(io->procesos_bloqueados);
     pthread_mutex_destroy(&(io->cola_bloqueados));
     sem_destroy(&(io->procesos_en_cola));
     free(io);

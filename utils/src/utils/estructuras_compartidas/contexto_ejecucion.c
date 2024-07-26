@@ -10,9 +10,13 @@ t_contexto *iniciar_contexto(void)
 
 void destruir_contexto(t_contexto *contexto)
 {
-    dictionary_destroy_and_destroy_elements(contexto->registros_cpu, free);
-    free(contexto);
-    contexto = NULL;
+    if(contexto != NULL){
+        if(!dictionary_is_empty(contexto->registros_cpu)){
+            dictionary_destroy_and_destroy_elements(contexto->registros_cpu, free);
+        }
+        free(contexto);
+        contexto = NULL;
+    }
 }
 
 // AX, EAX, BX, EBX, CX, ECX, DX, EDX, PC, SI, DI
@@ -27,7 +31,7 @@ void agregar_a_paquete_registros_cpu(t_paquete *paquete, t_dictionary *registros
 
         agregar_a_paquete(paquete, (void *)registroAX, sizeof(uint8_t));
         agregar_a_paquete(paquete, (void *)registroEAX, sizeof(uint32_t));
-
+    
         name[0]++;
         long_name[1]++;
     }

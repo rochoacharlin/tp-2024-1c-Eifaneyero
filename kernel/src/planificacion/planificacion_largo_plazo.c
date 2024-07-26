@@ -15,7 +15,7 @@ sem_t planificacion_largo_plazo_liberada;
 sem_t planificacion_corto_plazo_liberada;
 sem_t desalojo_liberado;
 sem_t planificacion_pausada;
-sem_t atencion_liberada;
+sem_t transicion_estados_corto_plazo_liberada;
 
 pthread_mutex_t mutex_lista_NEW;
 pthread_mutex_t mutex_cola_READY;
@@ -28,6 +28,8 @@ pthread_mutex_t mutex_lista_PIDS;
 
 int32_t procesos_creados = 1;
 char *algoritmo;
+int32_t grado_multiprogramacion_auxiliar;
+pthread_mutex_t mutex_multiprogramacion_auxiliar;
 
 pthread_t hilo_planificador_largo_plazo;
 pthread_t hilo_planificador_corto_plazo;
@@ -57,39 +59,61 @@ void iniciar_planificacion(void)
 
 void planificar_a_largo_plazo(void)
 {
+    grado_multiprogramacion_auxiliar = obtener_grado_multiprogramacion();
+
     while (1)
     {
         sem_wait(&hay_pcbs_NEW);
-        sem_wait(&sem_grado_multiprogramacion);
-        sem_wait(&planificacion_largo_plazo_liberada);
-
         t_pcb *pcb = obtener_siguiente_pcb_READY();
+        if (pcb != NULL)
+        {
+            sem_wait(&sem_grado_multiprogramacion);
+            sem_wait(&planificacion_largo_plazo_liberada);
+            if(pcb->estado == NEW) 
+            {
+                pcb = desencolar_pcb(pcbs_en_NEW);
+                estado anterior = pcb->estado;
+                pcb->estado = READY;
 
-        estado anterior = pcb->estado;
-        pcb->estado = READY;
-        list_add(pcbs_en_memoria, pcb);
+                // log minimo y obligatorio
+                loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
 
-        // log minimo y obligatorio
-        loggear_cambio_de_estado(pcb->PID, anterior, pcb->estado);
+                ingresar_pcb_a_READY(pcb);
+                
+                pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+                grado_multiprogramacion_auxiliar--;
+                pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
 
-        ingresar_pcb_a_READY(pcb);
-        sem_post(&planificacion_largo_plazo_liberada);
+                sem_post(&planificacion_largo_plazo_liberada);
+            }
+            else 
+            {
+                sem_post(&planificacion_largo_plazo_liberada);
+                sem_post(&sem_grado_multiprogramacion);    
+            }
+        }
     }
 }
 
 t_pcb *obtener_siguiente_pcb_READY(void)
 {
+    t_pcb *pcb = NULL;
     pthread_mutex_lock(&mutex_lista_NEW);
-    t_pcb *pcb = desencolar_pcb(pcbs_en_NEW);
+    if(list_size(pcbs_en_NEW) > 0)
+        pcb = list_get(pcbs_en_NEW, 0);
     pthread_mutex_unlock(&mutex_lista_NEW);
     return pcb;
 }
 
 void ingresar_pcb_a_READY(t_pcb *pcb)
 {
+    // sem_wait(&transicion_estados_corto_plazo_liberada);
+
     pthread_mutex_lock(&mutex_cola_READY);
     encolar_pcb(pcbs_en_READY, pcb);
     pthread_mutex_unlock(&mutex_cola_READY);
+
+    // sem_wait(&transicion_estados_corto_plazo_liberada);
 
     // log minimo y obligatorio
     pthread_mutex_lock(&mutex_lista_PIDS);
@@ -155,13 +179,14 @@ void inicializar_semaforos_planificacion(void)
     pthread_mutex_init(&mutex_colas_de_recursos, NULL);
     pthread_mutex_init(&mutex_instancias_recursos, NULL);
     pthread_mutex_init(&mutex_lista_PIDS, NULL);
+    pthread_mutex_init(&mutex_multiprogramacion_auxiliar, NULL);
     sem_init(&hay_pcbs_NEW, 0, 0);
     sem_init(&hay_pcbs_READY, 0, 0);
     sem_init(&sem_grado_multiprogramacion, 0, obtener_grado_multiprogramacion());
     sem_init(&planificacion_largo_plazo_liberada, 0, 1);
     sem_init(&planificacion_corto_plazo_liberada, 0, 1);
     sem_init(&desalojo_liberado, 0, 1);
-    sem_init(&atencion_liberada, 0, 1);
+    sem_init(&transicion_estados_corto_plazo_liberada, 0, 1);
 }
 
 void destruir_semaforos_planificacion(void)
@@ -176,25 +201,39 @@ void destruir_semaforos_planificacion(void)
     pthread_mutex_destroy(&mutex_colas_de_recursos);
     pthread_mutex_destroy(&mutex_instancias_recursos);
     pthread_mutex_destroy(&mutex_lista_PIDS);
+    pthread_mutex_destroy(&mutex_multiprogramacion_auxiliar);
     sem_close(&hay_pcbs_NEW);
     sem_close(&hay_pcbs_READY);
     sem_close(&sem_grado_multiprogramacion);
     sem_close(&planificacion_largo_plazo_liberada);
     sem_close(&planificacion_corto_plazo_liberada);
     sem_close(&desalojo_liberado);
-    sem_close(&atencion_liberada);
+    sem_close(&transicion_estados_corto_plazo_liberada);
 }
 
 void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 {
-    remover_pcb_de_listas_globales(pcb);
-    pcb->estado = EXIT;
+    // es debatible que al detener la planificacion nos manden un pcb a EXIT
+    sem_wait(&planificacion_largo_plazo_liberada);
 
-    sem_post(&sem_grado_multiprogramacion);
+    remover_pcb_de_listas_globales(pcb);
+
+    if (pcb->estado != NEW)
+    {
+        pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+        bool grado_multiprogramacion_positivo = ++grado_multiprogramacion_auxiliar > 0;
+        if (grado_multiprogramacion_positivo)
+            sem_post(&sem_grado_multiprogramacion);
+        pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+    }
+    
+    pcb->estado = EXIT;
 
     pthread_mutex_lock(&mutex_lista_EXIT);
     list_add(pcbs_en_EXIT, pcb);
     pthread_mutex_unlock(&mutex_lista_EXIT);
+
+    sem_post(&planificacion_largo_plazo_liberada);
 
     // log minimo y obligatorio
     loggear_fin_de_proceso(pcb->PID, motivo);
@@ -216,6 +255,7 @@ void enviar_pcb_a_EXIT(t_pcb *pcb, int motivo)
 
 void remover_pcb_de_listas_globales(t_pcb *pcb)
 {
+    int valor_semaforo;
     pthread_mutex_lock(&mutex_lista_memoria);
     list_remove_element(pcbs_en_memoria, pcb);
     pthread_mutex_unlock(&mutex_lista_memoria);
@@ -226,6 +266,7 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
         pthread_mutex_lock(&mutex_lista_NEW);
         list_remove_element(pcbs_en_NEW, pcb);
         pthread_mutex_unlock(&mutex_lista_NEW);
+        
         break;
 
     case READY:
@@ -239,6 +280,12 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
             list_remove_element(pcbs_en_aux_READY, pcb);
             pthread_mutex_unlock(&mutex_cola_aux_READY);
         }
+
+        // para que el wait no se quede trabado si ya es cero
+        sem_getvalue(&hay_pcbs_READY, &valor_semaforo);
+        if (--valor_semaforo < 0)
+            sem_wait(&hay_pcbs_READY);
+
         break;
 
     case EXEC:

@@ -76,7 +76,7 @@ void atender_dispatch()
         {
             log_info(logger_propio, "Contexto recibido por CPU");
             t_contexto *contexto = recibir_contexto(conexion_cpu_kernel_dispatch);
-            ciclo_de_instruccion(contexto);
+            ciclo_de_instruccion(&contexto);
             destruir_contexto(contexto);
         }
         else

@@ -20,10 +20,8 @@ extern t_list *pcbs_en_BLOCKED;
 extern t_list *pcbs_en_EXIT;
 
 extern sem_t sem_grado_multiprogramacion;
-extern int grado_multiprogramacion;
-
-extern int conexion_kernel_cpu_dispatch;
-extern int conexion_kernel_cpu_interrupt;
+extern int32_t grado_multiprogramacion_auxiliar;
+extern pthread_mutex_t mutex_multiprogramacion_auxiliar;
 
 extern sem_t hay_pcbs_NEW;
 extern sem_t hay_pcbs_READY;
@@ -31,7 +29,7 @@ extern sem_t planificacion_largo_plazo_liberada;
 extern sem_t planificacion_corto_plazo_liberada;
 extern sem_t desalojo_liberado;
 extern sem_t planificacion_pausada;
-extern sem_t atencion_liberada;
+extern sem_t transicion_estados_corto_plazo_liberada;
 
 extern pthread_mutex_t mutex_lista_NEW;
 extern pthread_mutex_t mutex_cola_READY;
@@ -84,7 +82,8 @@ void destruir_semaforos_planificacion(void);
 // corto plazo
 void planificar_a_corto_plazo_segun_algoritmo(void);
 void planificar_a_corto_plazo(t_pcb *(*proximo_a_ejecutar)(void));
-t_pcb *proximo_a_ejecutar_segun_FIFO_o_RR(void);
+t_pcb *proximo_a_ejecutar_segun_FIFO(void);
+t_pcb *proximo_a_ejecutar_segun_RR(void);
 t_pcb *proximo_a_ejecutar_segun_VRR(void);
 void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum);
 void encolar_pcb_ready_segun_algoritmo(t_pcb *pcb);

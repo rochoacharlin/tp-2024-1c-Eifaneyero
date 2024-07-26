@@ -17,6 +17,7 @@ void ejecutar_script(char *path_relativo)
         archivo = fopen(path_absoluto, "r");
         if (archivo == NULL)
         {
+            free(path_absoluto);
             log_error(logger_propio, "Error al abrir el archivo.");
             return;
         }
@@ -60,6 +61,10 @@ void iniciar_proceso(char *path)
         {
             log_info(logger_propio, "Creacion de proceso exitosa en memoria.");
             ingresar_pcb_a_NEW(pcb);
+            
+            pthread_mutex_lock(&mutex_lista_memoria);
+            list_add(pcbs_en_memoria, pcb);
+            pthread_mutex_unlock(&mutex_lista_memoria);
         }
         else
         {
@@ -103,7 +108,7 @@ void detener_planificacion(void)
         cambiar_valor_de_semaforo(&planificacion_largo_plazo_liberada, 0);
         cambiar_valor_de_semaforo(&planificacion_corto_plazo_liberada, 0);
         sem_wait(&desalojo_liberado);
-        sem_wait(&atencion_liberada);
+        sem_wait(&transicion_estados_corto_plazo_liberada);
         sem_post(&planificacion_pausada);
     }
     else
@@ -117,7 +122,7 @@ void reanudar_planificacion(void)
         sem_post(&planificacion_largo_plazo_liberada);
         sem_post(&planificacion_corto_plazo_liberada);
         sem_post(&desalojo_liberado);
-        sem_post(&atencion_liberada);
+        sem_post(&transicion_estados_corto_plazo_liberada);
         planificacion_detenida = false;
     }
     else
@@ -128,22 +133,41 @@ void cambiar_grado_multiprogramacion(char *valor_deseado)
 {
     if (valor_deseado == NULL)
         log_error(logger_propio, "No se indico el numero de grado de multiprogramacion");
-    else
+    else 
     {
-        int valor_resultante, valor_actual, valor_inicial;
-        valor_inicial = obtener_grado_multiprogramacion();
-        sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
+        int valor_deseado_entero = atoi(valor_deseado);
+        int valor_config = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
 
-        valor_resultante = atoi(valor_deseado) - valor_inicial + valor_actual;
-        cambiar_valor_de_semaforo(&sem_grado_multiprogramacion, valor_resultante);
-        config_set_value(config, "GRADO_MULTIPROGRAMACION", valor_deseado);
+        if (valor_deseado_entero < 0)
+            log_error(logger_propio, "Se indico un grado de multiprogramacion negativo");
+        else if (valor_deseado_entero == valor_config)
+            log_info(logger_propio, "Ya se tiene un grado de multiprogramacion de %d", valor_config);
+        else
+        {
+            int valor_resultante, valor_actual;
+            sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
+            
+            valor_resultante = valor_deseado_entero - valor_config + valor_actual;
 
-        sem_getvalue(&sem_grado_multiprogramacion, &valor_actual);
-        log_info(logger_propio, "Grado multiprogramacion actual: %d", valor_actual);
+            pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+            int valor_auxiliar_anterior = grado_multiprogramacion_auxiliar;
+            grado_multiprogramacion_auxiliar = valor_auxiliar_anterior < 0 ? valor_resultante + valor_auxiliar_anterior : valor_resultante;
+            valor_resultante = grado_multiprogramacion_auxiliar >= 0 ? grado_multiprogramacion_auxiliar : 0;
+            pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
+            
+            // y si es negativo el valor resultante y el auxiliar??
+            //valor_resultante = valor_auxiliar_anterior < 0 ? valor_deseado_entero + valor_auxiliar_anterior : valor_resultante;
+            //valor_resultante = valor_resultante < 0 ? 0 : valor_resultante;
+            // valor_resultante = valor_auxiliar_anterior < 0 && valor_resultante < 0 ? valor_deseado_entero + valor_auxiliar_anterior : valor_resultante;
 
-        // VERIFICAR: En caso de que se tengan más procesos ejecutando que lo que permite el grado de
-        //       multiprogramación, no se tomarán acciones sobre los mismos y se esperará su finalización normal.
+            log_info(logger_propio, "Valor resultante: %d", valor_resultante);
+
+            cambiar_valor_de_semaforo(&sem_grado_multiprogramacion, valor_resultante);
+            config_set_value(config, "GRADO_MULTIPROGRAMACION", valor_deseado);
+            config_save(config);
+        }
     }
+    
 }
 
 void listar_procesos_por_cada_estado(void)
@@ -165,4 +189,14 @@ void listar_recursos(void)
     {
         printf("Cantidad de instancias de %s: %d \n", nombres_recursos[i], instancias_recursos[i]);
     }
+}
+
+void multiprogramacion_actual(void)
+{
+    int valor;
+    sem_getvalue(&sem_grado_multiprogramacion, &valor);
+    log_info(logger_propio, "Grado multiprogramacion actual real: %d", valor);
+    pthread_mutex_lock(&mutex_multiprogramacion_auxiliar);
+    log_info(logger_propio, "Grado multiprogramacion actual auxiliar: %d", grado_multiprogramacion_auxiliar);
+    pthread_mutex_unlock(&mutex_multiprogramacion_auxiliar);
 }

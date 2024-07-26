@@ -41,7 +41,7 @@ extern pthread_mutex_t mutex_interrupt;
 
 // -------------------- CICLO DE INSTRUCCION -------------------- //
 
-void ciclo_de_instruccion(t_contexto *contexto);
+void ciclo_de_instruccion(t_contexto **contexto);
 char *fetch();
 t_instruccion *decode(char *instruccion);
 void execute(t_instruccion *instruccion);

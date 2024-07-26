@@ -63,9 +63,13 @@ void desbloquear_pcb_si_corresponde(int pos_recurso)
         t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
         pthread_mutex_unlock(&mutex_colas_de_recursos);
 
+        // sem_wait(&transicion_estados_corto_plazo_liberada);
+
         pthread_mutex_lock(&mutex_lista_BLOCKED);
         list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
         pthread_mutex_unlock(&mutex_lista_BLOCKED);
+
+        // sem_post(&transicion_estados_corto_plazo_liberada);
 
         int *pos = malloc(sizeof(int));
         *pos = pos_recurso;
@@ -84,8 +88,10 @@ void desbloquear_pcb_si_corresponde(int pos_recurso)
     }
 }
 
-void wait_recurso(char *recurso, t_pcb *pcb)
+bool wait_recurso(char *recurso, t_pcb *pcb)
 {
+    bool recurso_asignado = false;
+
     if (existe_recurso(recurso))
     {
         int pos_recurso = posicion_recurso(recurso);
@@ -96,6 +102,7 @@ void wait_recurso(char *recurso, t_pcb *pcb)
 
         if (cantidad_instancias_recurso < 0)
         {
+            // sem_wait(&transicion_estados_corto_plazo_liberada);
             pcb->estado = BLOCKED;
             pcb_en_EXEC = NULL;
 
@@ -107,13 +114,13 @@ void wait_recurso(char *recurso, t_pcb *pcb)
             loggear_cambio_de_estado(pcb->PID, EXEC, BLOCKED);
             loggear_motivo_de_bloqueo(pcb->PID, recurso);
 
+            // sem_post(&transicion_estados_corto_plazo_liberada);
+
             // se queda bloqueado en la lista correspondiente al recurso
             pthread_mutex_lock(&mutex_colas_de_recursos);
             t_list *cola_bloqueo_recurso = list_get(colas_de_recursos, pos_recurso);
             list_add(cola_bloqueo_recurso, pcb);
             pthread_mutex_unlock(&mutex_colas_de_recursos);
-
-            sem_post(&desalojo_liberado);
         }
         else
         {
@@ -121,22 +128,27 @@ void wait_recurso(char *recurso, t_pcb *pcb)
             *pos = pos_recurso;
             list_add(pcb->recursos_asignados, pos);
 
+            recurso_asignado = true;
             // devolvemos la ejecucion al pcb sin resetear quantum en caso de ser RR o VRR
-            pthread_t hilo_quantum;
-            procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
-            sem_post(&desalojo_liberado);
-            esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
+            // pthread_t hilo_quantum;
+            // if(pcb->quantum > 0){
+            //     procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
+            //     esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
+            // }
         }
     }
     else
     {
         enviar_pcb_a_EXIT(pcb, INVALID_RESOURCE);
-        sem_post(&desalojo_liberado);
     }
+
+    return recurso_asignado;
 }
 
-void signal_recurso(char *recurso, t_pcb *pcb)
+bool signal_recurso(char *recurso, t_pcb *pcb)
 {
+    bool recurso_liberado = false;
+
     if (existe_recurso(recurso))
     {
         // aumento las instancias de recurso
@@ -160,13 +172,16 @@ void signal_recurso(char *recurso, t_pcb *pcb)
             t_pcb *pcb_a_desbloquear = desencolar_pcb(cola_bloqueo_recurso);
             pthread_mutex_unlock(&mutex_colas_de_recursos);
 
+            // sem_wait(&transicion_estados_corto_plazo_liberada);
+
             pthread_mutex_lock(&mutex_lista_BLOCKED);
             list_remove_element(pcbs_en_BLOCKED, pcb_a_desbloquear);
             pthread_mutex_unlock(&mutex_lista_BLOCKED);
 
             // no considero mandarlo a Ready con prioridad ya que no se bloqueo por una IO
             ingresar_pcb_a_READY(pcb_a_desbloquear);
-            sem_post(&desalojo_liberado);
+
+            // sem_post(&transicion_estados_corto_plazo_liberada);
 
             int *pos = malloc(sizeof(int));
             *pos = pos_recurso;
@@ -178,26 +193,27 @@ void signal_recurso(char *recurso, t_pcb *pcb)
         }
         else
         {
-            sem_post(&desalojo_liberado);
             pthread_mutex_unlock(&mutex_colas_de_recursos);
         }
 
         // devolvemos la ejecucion al pcb sin resetear quantum en caso de ser RR o VRR
-        pthread_t hilo_quantum;
-        procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
-        sem_post(&desalojo_liberado);
-        esperar_contexto_y_manejar_desalojo(pcb, &hilo_quantum);
+        // pthread_t hilo_quantum;
+        // procesar_pcb_segun_algoritmo(pcb, &hilo_quantum);
+        // esperar_contexto_y_manejar_desalojo(pcb, NULL);
+
+        recurso_liberado = true;
     }
     else
     {
         enviar_pcb_a_EXIT(pcb, INVALID_RESOURCE);
-        sem_post(&desalojo_liberado);
     }
+
+    return recurso_liberado;
 }
 
 void eliminar_pcb_de_colas_de_recursos(t_pcb *pcb)
 {
-    for (int i = 0; i < list_size(colas_de_recursos); i++) 
+    for (int i = 0; i < list_size(colas_de_recursos); i++)
     {
         t_list *cola = list_get(colas_de_recursos, i);
         pthread_mutex_lock(&mutex_cola_recurso[i]);
@@ -253,18 +269,18 @@ void destruir_colas_de_recursos(void)
     list_destroy_and_destroy_elements(colas_de_recursos, (void *)list_destroy);
 }
 
-void crear_mutex_por_cola_de_recurso(void) 
+void crear_mutex_por_cola_de_recurso(void)
 {
     mutex_cola_recurso = malloc(sizeof(pthread_mutex_t) * cantidad_recursos());
-    for (int i = 0; i < cantidad_recursos(); i++) 
+    for (int i = 0; i < cantidad_recursos(); i++)
     {
         pthread_mutex_init(&mutex_cola_recurso[i], NULL);
     }
 }
 
-void destruir_mutex_por_colas_de_recurso(void) 
+void destruir_mutex_por_colas_de_recurso(void)
 {
-    for (int i = 0; i < cantidad_recursos(); i++) 
+    for (int i = 0; i < cantidad_recursos(); i++)
     {
         pthread_mutex_destroy(&mutex_cola_recurso[i]);
     }

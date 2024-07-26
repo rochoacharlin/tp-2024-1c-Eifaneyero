@@ -6,6 +6,7 @@ bool continua_ejecucion = true;
 bool hay_interrupcion = false;
 // bool enviar_interrupcion = false;
 t_contexto *contexto;
+t_contexto **contexto_original;
 
 void destruir_instruccion(t_instruccion *instruccion)
 {
@@ -14,9 +15,10 @@ void destruir_instruccion(t_instruccion *instruccion)
     free(instruccion);
 }
 
-void ciclo_de_instruccion(t_contexto *contexto_a_ejecutar)
+void ciclo_de_instruccion(t_contexto **contexto_a_ejecutar)
 {
-    contexto = contexto_a_ejecutar;
+    contexto_original = contexto_a_ejecutar;
+    contexto = *contexto_a_ejecutar;
     continua_ejecucion = true;
     hay_interrupcion = false;
 
@@ -344,8 +346,6 @@ bool instruccion_bloqueante(t_id id_instruccion)
     case IO_FS_TRUNCATE:
     case IO_FS_WRITE:
     case IO_FS_READ:
-    case SIGNAL:
-    case WAIT:
     case EXIT:
         return true;
         break;
@@ -359,21 +359,54 @@ bool instruccion_bloqueante(t_id id_instruccion)
 
 void check_interrupt(t_instruccion *instruccion)
 {
+    if (instruccion->id == WAIT || instruccion->id == SIGNAL)
+    {
+        if (recibir_operacion(conexion_cpu_kernel_dispatch) != CONTEXTO_EJECUCION)
+        {
+            continua_ejecucion = false;
+            return;
+        }
+
+        uint32_t pid_viejo = contexto->PID;
+        destruir_contexto(contexto);
+        *contexto_original = recibir_contexto(conexion_cpu_kernel_dispatch);
+        contexto = *contexto_original;
+        uint32_t pid_nuevo = contexto->PID;
+
+        if (pid_nuevo != pid_viejo)
+        {
+            pthread_mutex_lock(&mutex_interrupt);
+            hay_interrupcion = false;
+            pthread_mutex_unlock(&mutex_interrupt);
+        }
+    }
+
     if (instruccion_bloqueante(instruccion->id))
     {
         continua_ejecucion = false;
-        hay_interrupcion = false;
-    }
-    else if (hay_interrupcion)
-    {
+
         pthread_mutex_lock(&mutex_interrupt);
-        motivo_desalojo motivo = string_interrupcion_to_enum_motivo(motivo_interrupcion);
-        free(motivo_interrupcion);
-        motivo_interrupcion = NULL;
         hay_interrupcion = false;
         pthread_mutex_unlock(&mutex_interrupt);
-        devolver_contexto(motivo, NULL);
-        continua_ejecucion = false;
+    }
+
+    if (!instruccion_bloqueante(instruccion->id))
+    {
+        pthread_mutex_lock(&mutex_interrupt);
+        if (hay_interrupcion)
+        {
+            motivo_desalojo motivo = string_interrupcion_to_enum_motivo(motivo_interrupcion);
+            free(motivo_interrupcion);
+            motivo_interrupcion = NULL;
+            hay_interrupcion = false;
+            pthread_mutex_unlock(&mutex_interrupt);
+            devolver_contexto(motivo, NULL);
+            continua_ejecucion = false;
+        }
+        else
+        {
+            pthread_mutex_unlock(&mutex_interrupt);
+        }
     }
 
     pthread_mutex_lock(&mutex_interrupt);
