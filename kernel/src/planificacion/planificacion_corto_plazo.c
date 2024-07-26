@@ -199,8 +199,8 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
             {
                 temporal_stop(temp);
                 temporal_destroy(temp);
+                pthread_cancel(*hilo_quantum);
             }
-            pthread_cancel(*hilo_quantum);
         }
 
         break;
@@ -218,8 +218,8 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
             {
                 temporal_stop(temp);
                 temporal_destroy(temp);
+                pthread_cancel(*hilo_quantum);
             }
-            pthread_cancel(*hilo_quantum);
         }
         break;
 
