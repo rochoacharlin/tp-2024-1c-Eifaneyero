@@ -157,9 +157,10 @@ void esperar_contexto_y_manejar_desalojo(t_pcb *pcb, pthread_t *hilo_quantum)
     t_contexto *contexto = obtener_contexto_de_paquete_desalojo(paquete);
     actualizar_pcb(pcb, contexto, ms_en_ejecucion);
     destruir_contexto(contexto);
-    pcb_en_EXEC = NULL;
 
     sem_wait(&desalojo_liberado);
+
+    pcb_en_EXEC = NULL;
 
     switch (motivo_desalojo)
     {
