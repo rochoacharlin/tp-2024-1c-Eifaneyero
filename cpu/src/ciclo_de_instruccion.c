@@ -393,7 +393,7 @@ void check_interrupt(t_instruccion *instruccion)
     if (!instruccion_bloqueante(instruccion->id))
     {
         pthread_mutex_lock(&mutex_interrupt);
-        if (hay_interrupcion)
+        if (hay_interrupcion && continua_ejecucion)
         {
             motivo_desalojo motivo = string_interrupcion_to_enum_motivo(motivo_interrupcion);
             free(motivo_interrupcion);
