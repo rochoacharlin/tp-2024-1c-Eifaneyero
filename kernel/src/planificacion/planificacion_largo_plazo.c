@@ -283,7 +283,7 @@ void remover_pcb_de_listas_globales(t_pcb *pcb)
 
         // para que el wait no se quede trabado si ya es cero
         sem_getvalue(&hay_pcbs_READY, &valor_semaforo);
-        if (--valor_semaforo < 0)
+        if (--valor_semaforo >= 0)
             sem_wait(&hay_pcbs_READY);
 
         break;
