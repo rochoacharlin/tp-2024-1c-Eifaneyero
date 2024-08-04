@@ -1,3 +1,10 @@
+# Autores
+Eitan Wajsberg
+Facundo Gauna Soma
+Nehuen Balian Amaros
+Yerilin Villarreal Mamani
+Rocío Ochoa Charlín
+
 # tp-scaffold
 
 Esta es una plantilla de proyecto diseñada para generar un TP de Sistemas
