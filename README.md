@@ -1,9 +1,9 @@
 # Autores
-Eitan Wajsberg
-Facundo Gauna Soma
-Nehuen Balian Amaros
-Yerilin Villarreal Mamani
-Rocío Ochoa Charlín
+- Eitan Wajsberg
+- Facundo Gauna Soma
+- Nehuen Balian Amaros
+- Yerilin Villarreal Mamani
+- Rocío Ochoa Charlín
 
 # tp-scaffold
 
